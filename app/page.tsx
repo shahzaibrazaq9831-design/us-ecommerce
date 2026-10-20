@@ -1,69 +1,215 @@
+import Link from "next/link";
 import Image from "next/image";
+import HeroSlider from "@/components/HeroSlider";
+import OccasionsCarousel from "@/components/OccasionsCarousel";
+import ProductCard from "@/components/ProductCard";
+import Reveal from "@/components/Reveal";
+import NewsletterForm from "@/components/NewsletterForm";
+import { products } from "@/data/products";
+import { categories, reviews, gallery } from "@/data/site";
 
-export default function Home() {
+export default function HomePage() {
+  const bestSellers = products.filter((p) => p.badge === "bestseller").slice(0, 4);
+  const newArrivals = products.filter((p) => p.badge === "new").slice(0, 4);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <>
+      <HeroSlider />
+
+      {/* Features Bar */}
+      <section className="features-bar">
+        <div className="container">
+          <div className="features-grid">
+            <Link href="/shipping" className="feature-item">
+              <div className="feature-icon">
+                <i className="fas fa-shipping-fast" />
+              </div>
+              <div className="feature-text">
+                <h4>Worldwide Shipping</h4>
+                <p>Free standard delivery to destinations available at checkout.</p>
+              </div>
+            </Link>
+            <Link href="/returns" className="feature-item">
+              <div className="feature-icon">
+                <i className="fas fa-undo-alt" />
+              </div>
+              <div className="feature-text">
+                <h4>Clear Returns Process</h4>
+                <p>7-day returns on eligible unstitched dresses, including sale items.</p>
+              </div>
+            </Link>
+            <Link href="/product" className="feature-item">
+              <div className="feature-icon">
+                <i className="fas fa-ruler-combined" />
+              </div>
+              <div className="feature-text">
+                <h4>Made-to-Order Stitching</h4>
+                <p>Choose a standard size or tailoring to your measurements.</p>
+              </div>
+            </Link>
+            <Link href="/contact" className="feature-item">
+              <div className="feature-icon">
+                <i className="fas fa-headset" />
+              </div>
+              <div className="feature-text">
+                <h4>Personal Customer Support</h4>
+                <p>Help with sizing, product details and orders by email or WhatsApp.</p>
+              </div>
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+
+      {/* Shop by Occasion */}
+      <Reveal>
+        <section className="section occasions-section">
+          <div className="container">
+            <div className="section-header">
+              <h2 className="section-title">Shop by Occasion</h2>
+              <p className="section-subtitle">
+                Find your look for the ceremony, the celebration and every gathering in between.
+              </p>
+            </div>
+            <OccasionsCarousel />
+          </div>
+        </section>
+      </Reveal>
+
+      {/* Best Sellers */}
+      <Reveal>
+        <section className="section best-sellers-section">
+          <div className="container">
+            <div className="section-header">
+              <h2 className="section-title">Best Sellers</h2>
+              <p className="section-subtitle">Our most loved pieces, handpicked for you</p>
+            </div>
+            <div className="products-grid">
+              {bestSellers.map((product) => (
+                <ProductCard key={product.slug} product={product} />
+              ))}
+            </div>
+            <div className="section-cta">
+              <Link href="/shop" className="btn btn-outline">
+                View All Best Sellers
+              </Link>
+            </div>
+          </div>
+        </section>
+      </Reveal>
+
+      {/* New Arrivals */}
+      <Reveal>
+        <section className="section new-arrivals-section">
+          <div className="container">
+            <div className="section-header">
+              <h2 className="section-title">New Arrivals</h2>
+              <p className="section-subtitle">Fresh styles just landed — be the first to wear them</p>
+            </div>
+            <div className="products-grid">
+              {newArrivals.map((product) => (
+                <ProductCard key={product.slug} product={product} />
+              ))}
+            </div>
+            <div className="section-cta">
+              <Link href="/shop" className="btn btn-outline">
+                View All New Arrivals
+              </Link>
+            </div>
+          </div>
+        </section>
+      </Reveal>
+
+      {/* Categories */}
+      <Reveal>
+        <section className="section categories-section">
+          <div className="container">
+            <div className="section-header">
+              <h2 className="section-title">Shop by Category</h2>
+            </div>
+            <div className="categories-grid">
+              {categories.map((cat) => (
+                <Link key={cat.name} href={cat.href} className="category-card">
+                  <div className="category-image">
+                    <Image src={cat.image} alt={cat.name} fill sizes="(max-width: 768px) 50vw, 25vw" style={{ objectFit: "cover" }} />
+                  </div>
+                  <div className="category-overlay">
+                    <h3>{cat.name}</h3>
+                    <span className="category-count">{cat.count} Products</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      </Reveal>
+
+      {/* Reviews */}
+      <Reveal>
+        <section className="section reviews-section">
+          <div className="container">
+            <div className="section-header">
+              <h2 className="section-title">What Our Customers Say</h2>
+              <p className="section-subtitle">Real reviews from real customers</p>
+            </div>
+            <div className="reviews-slider">
+              {reviews.map((r) => (
+                <div key={r.author} className="review-card">
+                  <div className="review-stars">
+                    {"★".repeat(Math.round(r.rating))}
+                    {"☆".repeat(5 - Math.round(r.rating))}
+                  </div>
+                  <p className="review-text">"{r.text}"</p>
+                  <div className="review-author">
+                    <div className="review-avatar">{r.initial}</div>
+                    <div>
+                      <strong>{r.author}</strong>
+                      <span>Verified Buyer</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </Reveal>
+
+      {/* Instagram */}
+      <Reveal>
+        <section className="section instagram-section">
+          <div className="container">
+            <div className="section-header">
+              <h2 className="section-title">Follow Our Style</h2>
+              <p className="section-subtitle">@premiumpakistanidresses</p>
+            </div>
+            <div className="instagram-grid">
+              {gallery.map((src) => (
+                <a key={src} href="https://www.instagram.com/premium.pakistani.dresses/" target="_blank" rel="noopener noreferrer" className="instagram-item">
+                  <Image src={src} alt="Style" fill sizes="(max-width: 768px) 33vw, 16vw" style={{ objectFit: "cover" }} />
+                  <div className="instagram-overlay">
+                    <i className="fab fa-instagram" />
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      </Reveal>
+
+      {/* Newsletter */}
+      <Reveal>
+        <section className="section newsletter-section">
+          <div className="container">
+            <div className="newsletter-content">
+              <h2>Subscribe to New Arrivals</h2>
+              <p>
+                Be first to discover new arrivals, bridal launches and restocks. Subscribe and receive code <strong>PPD10</strong> for 10% off your first prepaid order.
+              </p>
+              <NewsletterForm />
+              <p className="newsletter-note">By subscribing you agree to receive up to two marketing emails a month. Unsubscribe anytime.</p>
+            </div>
+          </div>
+        </section>
+      </Reveal>
+    </>
   );
 }

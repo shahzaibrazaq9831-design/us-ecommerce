@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Premium Pakistani Dresses - Next.js
+
+A complete, working e-commerce website built with Next.js 16 (App Router, TypeScript), matching the Premium Pakistani Dresses design.
+
+## Features
+
+- **15 routes**: Home, Shop, Collections, Product detail, Cart, Checkout, Wishlist, Account, Reviews, Contact, Shipping, Returns, Privacy, Terms
+- **Cart & Wishlist**: Persisted in `localStorage` (`ppd_cart`, `ppd_wishlist`) via React Context
+- **Product catalog**: Dummy products in `src/data/products.ts` with `Product` type
+- **Shared components**: Header, Footer, Announcement bar, ProductCard, Hero slider, Quick view modal, etc. in `src/components/`
+- **Styling**: Global CSS in `app/globals.css` with the same gold/cream theme, responsive design
+- **Images**: Optimized with `next/image` from `public/images/`
+- **Navigation**: `next/link` for client-side navigation
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Customization
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Add/Edit Products
+Edit `src/data/products.ts`. Each product needs: `id`, `slug`, `name`, `category`, `price`, `originalPrice` (number | null), `image`, `badge` (optional), `rating`, `reviews`, `description`. Add images to `public/images/` and reference them.
 
-## Learn More
+### Update Site Content
+Edit `src/data/site.ts` for site config, navigation, hero slides, occasions, categories, reviews, gallery, promo code.
 
-To learn more about Next.js, take a look at the following resources:
+### Update Styles
+Edit `app/globals.css` - CSS variables in `:root` control colors, typography, spacing.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Update Components
+Components are in `src/components/`. Layout chrome is composed in `app/layout.tsx`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tech Stack
 
-## Deploy on Vercel
+- Next.js 16.4.2 (App Router)
+- React 19.3.0
+- TypeScript
+- CSS (no Tailwind usage in the site design)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Local Preview (Legacy)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The original HTML/CSS/JS files remain in the parent directory for reference. A simple Node server is available there (`server.js`).
