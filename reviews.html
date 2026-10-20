@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Reviews - Premium Pakistani Dresses</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .page-hero { background: var(--color-cream); text-align: center; padding: 70px 20px; border-bottom: 1px solid var(--color-gray-200); }
+        .page-hero h1 { font-family: var(--font-heading); font-size: 2.5rem; margin-bottom: 12px; }
+        .page-hero p { color: var(--color-gray-600); }
+        .rating-summary { display: flex; align-items: center; justify-content: center; gap: 40px; padding: 40px 0; flex-wrap: wrap; }
+        .rating-big { text-align: center; }
+        .rating-big .number { font-family: var(--font-heading); font-size: 4rem; font-weight: 700; color: var(--color-primary); }
+        .rating-bars { flex: 1; min-width: 280px; max-width: 400px; }
+        .rating-bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; font-size: 0.85rem; }
+        .rating-bar-row span:first-child { width: 40px; color: var(--color-gray-600); }
+        .rating-bar { flex: 1; height: 8px; background: var(--color-gray-200); border-radius: 4px; overflow: hidden; }
+        .rating-bar .fill { height: 100%; background: var(--color-gold); border-radius: 4px; }
+        .reviews-list { max-width: 800px; margin: 0 auto; padding: 20px 0 100px; }
+        .review-item { background: var(--color-white); border: 1px solid var(--color-gray-200); border-radius: 16px; padding: 28px; margin-bottom: 20px; transition: all 0.3s ease; }
+        .review-item:hover { box-shadow: var(--shadow-md); }
+        .review-item .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .review-item .author { display: flex; align-items: center; gap: 12px; }
+        .review-item .avatar { width: 44px; height: 44px; background: var(--color-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .review-item .date { font-size: 0.8rem; color: var(--color-gray-400); }
+        .review-item p { color: var(--color-gray-700); line-height: 1.7; }
+        .review-item .verified { color: var(--color-success); font-size: 0.8rem; font-weight: 500; }
+    </style>
+</head>
+<body data-page="reviews.html">
+    <div id="site-announcement"></div>
+    <div id="site-header"></div>
+
+    <main>
+        <div class="page-hero">
+            <h1>Customer Reviews</h1>
+            <p>Real reviews from real customers</p>
+        </div>
+
+        <div class="container">
+            <div class="rating-summary">
+                <div class="rating-big">
+                    <div class="number">4.8</div>
+                    <div class="review-stars" style="justify-content: center;"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div>
+                    <p style="color: var(--color-gray-600); margin-top: 8px;">Based on 500+ reviews</p>
+                </div>
+                <div class="rating-bars">
+                    <div class="rating-bar-row"><span>5 star</span><div class="rating-bar"><div class="fill" style="width: 80%;"></div></div><span>80%</span></div>
+                    <div class="rating-bar-row"><span>4 star</span><div class="rating-bar"><div class="fill" style="width: 15%;"></div></div><span>15%</span></div>
+                    <div class="rating-bar-row"><span>3 star</span><div class="rating-bar"><div class="fill" style="width: 4%;"></div></div><span>4%</span></div>
+                    <div class="rating-bar-row"><span>2 star</span><div class="rating-bar"><div class="fill" style="width: 1%;"></div></div><span>1%</span></div>
+                    <div class="rating-bar-row"><span>1 star</span><div class="rating-bar"><div class="fill" style="width: 0%;"></div></div><span>0%</span></div>
+                </div>
+            </div>
+
+            <div class="reviews-list" id="reviewsList"></div>
+        </div>
+    </main>
+
+    <div id="site-footer"></div>
+
+    <script src="js/data.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const reviews = window.SITE_REVIEWS || [];
+            $('#reviewsList').innerHTML = reviews.map(r => `
+                <div class="review-item">
+                    <div class="top">
+                        <div class="author">
+                            <div class="avatar">${r.initial}</div>
+                            <div>
+                                <strong>${r.author}</strong>
+                                <div class="verified"><i class="fas fa-check-circle"></i> Verified Buyer</div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="review-stars">${getStars(r.rating)}</div>
+                            <div class="date">Verified Purchase</div>
+                        </div>
+                    </div>
+                    <p>"${r.text}"</p>
+                </div>`).join('');
+        });
+    </script>
+</body>
+</html>
