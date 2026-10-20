@@ -63,6 +63,14 @@ export default function Header() {
             <button className="menu-toggle" onClick={() => setMobileOpen(true)} aria-label="Open menu">
               <i className="fas fa-bars" />
             </button>
+            <button className="header-icon header-search-left" onClick={() => setSearchOpen(true)} aria-label="Search">
+              <i className="fas fa-search" />
+            </button>
+          </div>
+          <Link href="/" className="logo">
+            Premium Pakistani Dresses
+          </Link>
+          <div className="header-actions">
             <div className="country-selector">
               <select
                 value={selectedCountry}
@@ -76,14 +84,6 @@ export default function Header() {
                 ))}
               </select>
             </div>
-          </div>
-          <Link href="/" className="logo">
-            Premium Pakistani Dresses
-          </Link>
-          <div className="header-actions">
-            <button className="header-icon" onClick={() => setSearchOpen(true)} aria-label="Search">
-              <i className="fas fa-search" />
-            </button>
             <Link href="/account" className="header-icon" aria-label="Account">
               <i className="far fa-user" />
             </Link>
