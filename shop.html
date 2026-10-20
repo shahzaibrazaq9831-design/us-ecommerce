@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop All - Premium Pakistani Dresses</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .shop-header { background: linear-gradient(135deg, var(--color-cream) 0%, var(--color-white) 100%); padding: 60px 0 40px; text-align: center; border-bottom: 1px solid var(--color-gray-200); }
+        .shop-header h1 { font-family: var(--font-heading); font-size: 2.5rem; margin-bottom: 12px; }
+        .shop-header p { color: var(--color-gray-600); font-size: 1.05rem; }
+        .shop-layout { display: grid; grid-template-columns: 260px 1fr; gap: 40px; padding: 40px 0 80px; }
+        .filters-sidebar { position: sticky; top: 100px; height: fit-content; }
+        .filter-group { margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid var(--color-gray-200); }
+        .filter-group:last-child { border-bottom: none; }
+        .filter-group h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .filter-group h4 i { font-size: 0.8rem; color: var(--color-gray-400); transition: transform 0.3s ease; }
+        .filter-group.collapsed h4 i { transform: rotate(-90deg); }
+        .filter-group.collapsed .filter-options { display: none; }
+        .filter-options { display: flex; flex-direction: column; gap: 10px; }
+        .filter-option { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem; color: var(--color-gray-700); transition: color 0.2s ease; }
+        .filter-option:hover { color: var(--color-primary); }
+        .filter-option input { width: 18px; height: 18px; accent-color: var(--color-primary); cursor: pointer; }
+        .filter-option .count { margin-left: auto; font-size: 0.8rem; color: var(--color-gray-400); }
+        .shop-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 16px; }
+        .results-count { font-size: 0.9rem; color: var(--color-gray-600); }
+        .sort-select { padding: 10px 16px; border: 1px solid var(--color-gray-300); border-radius: 8px; font-size: 0.9rem; cursor: pointer; background: var(--color-white); }
+        .filter-toggle { display: none; align-items: center; gap: 8px; padding: 10px 20px; border: 1px solid var(--color-gray-300); border-radius: 8px; font-weight: 600; }
+        .clear-filters { font-size: 0.85rem; color: var(--color-primary); font-weight: 600; cursor: pointer; }
+        .clear-filters:hover { text-decoration: underline; }
+        @media (max-width: 900px) {
+            .shop-layout { grid-template-columns: 1fr; }
+            .filters-sidebar { display: none; }
+            .filters-sidebar.mobile-open { display: block; position: fixed; inset: 0; background: white; z-index: 2000; padding: 24px; overflow-y: auto; }
+            .filter-toggle { display: flex; }
+        }
+    </style>
+</head>
+<body data-page="shop.html">
+    <div id="site-announcement"></div>
+    <div id="site-header"></div>
+
+    <main id="main">
+        <div class="shop-header">
+            <div class="container">
+                <h1>Shop All</h1>
+                <p>Explore our complete collection of premium Pakistani designer-inspired dresses</p>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="shop-layout">
+                <aside class="filters-sidebar" id="filtersSidebar">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h3 style="font-family: var(--font-heading); font-size: 1.25rem;">Filters</h3>
+                        <span class="clear-filters" id="clearFilters">Clear All</span>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>Category <i class="fas fa-chevron-down"></i></h4>
+                        <div class="filter-options">
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="category" value="Bridal"> Bridal <span class="count">24</span></label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="category" value="Wedding"> Wedding <span class="count">36</span></label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="category" value="Formals"> Formals <span class="count">48</span></label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="category" value="Chiffon"> Chiffon <span class="count">32</span></label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="category" value="Eid"> Eid <span class="count">18</span></label>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>Occasion <i class="fas fa-chevron-down"></i></h4>
+                        <div class="filter-options">
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="occasion" value="Barat"> Barat <span class="count">12</span></label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="occasion" value="Mehndi"> Mehndi <span class="count">15</span></label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="occasion" value="Nikkah"> Nikkah <span class="count">10</span></label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="occasion" value="Walima"> Walima <span class="count">14</span></label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="occasion" value="Eid"> Eid <span class="count">18</span></label>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>Price <i class="fas fa-chevron-down"></i></h4>
+                        <div class="filter-options">
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="price" value="0-100"> Under $100</label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="price" value="100-150"> $100 - $150</label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="price" value="150-250"> $150 - $250</label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="price" value="250-999"> Over $250</label>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>Size <i class="fas fa-chevron-down"></i></h4>
+                        <div class="filter-options">
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="size" value="XS"> XS</label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="size" value="S"> S</label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="size" value="M"> M</label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="size" value="L"> L</label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="size" value="XL"> XL</label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="size" value="Custom"> Custom</label>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>Color <i class="fas fa-chevron-down"></i></h4>
+                        <div class="filter-options">
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="color" value="Blue"> Blue</label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="color" value="Green"> Green</label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="color" value="Pink"> Pink</label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="color" value="Maroon"> Maroon</label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="color" value="White"> White</label>
+                            <label class="filter-option"><input type="checkbox" class="filter-check" data-filter="color" value="Gold"> Gold</label>
+                        </div>
+                    </div>
+                </aside>
+
+                <div>
+                    <div class="shop-toolbar">
+                        <button class="filter-toggle" id="filterToggle"><i class="fas fa-sliders-h"></i> Filters</button>
+                        <span class="results-count" id="resultsCount">Showing 8 products</span>
+                        <select class="sort-select" id="sortSelect"><option value="featured">Featured</option><option value="newest">Newest</option><option value="price-low">Price: Low to High</option><option value="price-high">Price: High to Low</option><option value="rating">Top Rated</option></select>
+                    </div>
+                    <div class="products-grid" id="shopProductsGrid"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="site-footer"></div>
+
+    <script src="js/data.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Products are rendered by js/main.js (initProducts).
+            document.getElementById('clearFilters').addEventListener('click', () => {
+                document.querySelectorAll('.filter-check').forEach(c => c.checked = false);
+                $('#shopProductsGrid').innerHTML = (window.PRODUCTS || []).map(createProductCard).join('');
+                $('#resultsCount').textContent = `Showing ${(window.PRODUCTS || []).length} products`;
+            });
+
+            document.getElementById('filterToggle').addEventListener('click', () => {
+                document.getElementById('filtersSidebar').classList.toggle('mobile-open');
+            });
+        });
+    </script>
+</body>
+</html>

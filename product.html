@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product - Premium Pakistani Dresses</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .product-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; padding: 60px 0; }
+        .product-gallery img { width: 100%; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
+        .product-detail-info h1 { font-family: var(--font-heading); font-size: 2rem; margin-bottom: 16px; }
+        .product-detail-info .price { font-size: 1.75rem; font-weight: 700; color: var(--color-primary); margin: 20px 0; }
+        .product-detail-info .description { color: var(--color-gray-600); line-height: 1.8; margin-bottom: 30px; }
+        .quantity-selector { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+        .quantity-selector button { width: 44px; height: 44px; border: 2px solid var(--color-gray-300); border-radius: 8px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        .quantity-selector button:hover { border-color: var(--color-primary); color: var(--color-primary); }
+        .quantity-selector input { width: 60px; text-align: center; font-size: 1.1rem; font-weight: 600; border: none; }
+        .product-actions-detail { display: flex; gap: 16px; margin-bottom: 30px; }
+        .product-actions-detail .btn { flex: 1; padding: 16px 32px; }
+        .product-meta { padding: 24px 0; border-top: 1px solid var(--color-gray-200); }
+        .product-meta p { font-size: 0.9rem; color: var(--color-gray-600); margin-bottom: 8px; }
+        .product-meta strong { color: var(--color-secondary); }
+        .size-selector { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .size-btn { padding: 10px 20px; border: 2px solid var(--color-gray-300); border-radius: 8px; font-weight: 500; transition: all 0.3s ease; }
+        .size-btn:hover, .size-btn.active { border-color: var(--color-primary); background: var(--color-primary); color: white; }
+        .related-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+        @media (max-width: 768px) { .product-detail { grid-template-columns: 1fr; gap: 30px; } .related-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body data-page="product.html">
+    <div id="site-announcement"></div>
+    <div id="site-header"></div>
+
+    <main id="main">
+        <div class="container">
+            <nav style="padding: 20px 0; font-size: 0.85rem; color: var(--color-gray-500);">
+                <a href="index.html">Home</a> / <a href="shop.html">Shop</a> / <span style="color: var(--color-secondary);">Embroidered Chiffon Suit</span>
+            </nav>
+
+            <div class="product-detail">
+                <div class="product-gallery">
+                    <img src="https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?w=800&q=80" alt="Embroidered Chiffon Suit">
+                </div>
+                <div class="product-detail-info">
+                    <span class="product-category">Chiffon</span>
+                    <h1>Embroidered Chiffon Suit - Royal Blue</h1>
+                    <div class="review-stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                        <span style="margin-left: 8px; font-size: 0.85rem; color: var(--color-gray-600);">4.8 (124 reviews)</span>
+                    </div>
+                    <div class="price">$89.99 <span style="font-size: 1rem; color: var(--color-gray-500); text-decoration: line-through; font-weight: 400;">$119.99</span></div>
+                    <p class="description">
+                        Exquisitely crafted chiffon suit featuring intricate hand-embroidery with gold threadwork.
+                        This stunning royal blue ensemble includes a beautifully embroidered kameez, matching dupatta,
+                        and comfortable shalwar. Perfect for weddings, formal events, and special occasions.
+                    </p>
+                    <div style="margin-bottom: 24px;">
+                        <label style="font-weight: 600; margin-bottom: 12px; display: block;">Size</label>
+                        <div class="size-selector">
+                            <button class="size-btn">XS</button>
+                            <button class="size-btn">S</button>
+                            <button class="size-btn active">M</button>
+                            <button class="size-btn">L</button>
+                            <button class="size-btn">XL</button>
+                            <button class="size-btn">Custom</button>
+                        </div>
+                    </div>
+                    <div class="quantity-selector">
+                        <label style="font-weight: 600;">Quantity</label>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <button onclick="updateQty(-1)">−</button>
+                            <input type="text" value="1" id="qtyInput" readonly>
+                            <button onclick="updateQty(1)">+</button>
+                        </div>
+                    </div>
+                    <div class="product-actions-detail">
+                        <button class="btn btn-primary" onclick="addToCart(1)"><i class="fas fa-shopping-bag"></i> Add to Cart</button>
+                        <button class="btn btn-outline" onclick="toggleWishlist(1)"><i class="far fa-heart"></i> Wishlist</button>
+                    </div>
+                    <div class="product-meta">
+                        <p><strong>Product ID:</strong> PPD-CHF-001</p>
+                        <p><strong>Availability:</strong> In Stock</p>
+                        <p><strong>Shipping:</strong> Free Worldwide Delivery (5-7 business days)</p>
+                        <p><strong>Returns:</strong> 7-day easy returns on unstitched items</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products -->
+        <section class="section" style="background: var(--color-cream);">
+            <div class="container">
+                <div class="section-header"><h2 class="section-title">You May Also Like</h2></div>
+                <div class="related-grid" id="relatedGrid"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="site-footer"></div>
+
+    <script src="js/data.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        function updateQty(change) {
+            const input = document.getElementById('qtyInput');
+            let val = parseInt(input.value) + change;
+            if (val < 1) val = 1;
+            input.value = val;
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const related = (window.PRODUCTS || []).filter(p => p.id !== 1).slice(0, 4);
+            $('#relatedGrid').innerHTML = related.map(createProductCard).join('');
+        });
+    </script>
+</body>
+</html>

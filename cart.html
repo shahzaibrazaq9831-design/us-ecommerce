@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - Premium Pakistani Dresses</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .cart-container { display: grid; grid-template-columns: 1fr 380px; gap: 40px; padding: 40px 0 80px; }
+        .cart-items { display: flex; flex-direction: column; gap: 20px; }
+        .cart-item { display: grid; grid-template-columns: 120px 1fr auto; gap: 24px; padding: 20px; background: var(--color-white); border-radius: 16px; box-shadow: var(--shadow-sm); transition: all 0.3s ease; }
+        .cart-item:hover { box-shadow: var(--shadow-md); }
+        .cart-item-image { width: 120px; height: 160px; border-radius: 12px; overflow: hidden; }
+        .cart-item-image img { width: 100%; height: 100%; object-fit: cover; }
+        .cart-item-details h3 { font-family: var(--font-heading); font-size: 1.1rem; margin-bottom: 8px; }
+        .cart-item-details .category { font-size: 0.8rem; color: var(--color-primary); font-weight: 600; text-transform: uppercase; }
+        .cart-item-details .price { font-size: 1.1rem; font-weight: 700; color: var(--color-secondary); margin-top: 12px; }
+        .cart-item-actions { display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; }
+        .remove-btn { color: var(--color-gray-400); font-size: 1.2rem; transition: color 0.3s ease; }
+        .remove-btn:hover { color: var(--color-error); }
+        .quantity-control { display: flex; align-items: center; gap: 12px; border: 1px solid var(--color-gray-300); border-radius: 8px; padding: 4px; }
+        .quantity-control button { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.3s ease; }
+        .quantity-control button:hover { background: var(--color-gray-100); }
+        .quantity-control span { font-weight: 600; min-width: 24px; text-align: center; }
+        .cart-summary { background: var(--color-cream); border-radius: 16px; padding: 32px; height: fit-content; position: sticky; top: 100px; }
+        .cart-summary h2 { font-family: var(--font-heading); font-size: 1.5rem; margin-bottom: 24px; }
+        .summary-row { display: flex; justify-content: space-between; padding: 12px 0; font-size: 0.95rem; }
+        .summary-row.total { border-top: 2px solid var(--color-gray-300); margin-top: 12px; padding-top: 20px; font-size: 1.2rem; font-weight: 700; }
+        .promo-code { display: flex; gap: 8px; margin: 20px 0; }
+        .promo-code input { flex: 1; padding: 12px 16px; border: 1px solid var(--color-gray-300); border-radius: 8px; font-size: 0.9rem; }
+        .promo-code button { padding: 12px 20px; background: var(--color-secondary); color: white; border-radius: 8px; font-weight: 600; transition: all 0.3s ease; }
+        .promo-code button:hover { background: var(--color-primary); }
+        .checkout-btn { width: 100%; padding: 16px; font-size: 1rem; margin-top: 16px; }
+        .empty-cart { text-align: center; padding: 80px 20px; }
+        .empty-cart i { font-size: 4rem; color: var(--color-gray-300); margin-bottom: 24px; }
+        .empty-cart h2 { font-family: var(--font-heading); font-size: 1.75rem; margin-bottom: 12px; }
+        .empty-cart p { color: var(--color-gray-600); margin-bottom: 32px; }
+        @media (max-width: 900px) { .cart-container { grid-template-columns: 1fr; } .cart-summary { position: static; } }
+        @media (max-width: 600px) {
+            .cart-item { grid-template-columns: 80px 1fr; }
+            .cart-item-image { width: 80px; height: 100px; }
+            .cart-item-actions { grid-column: 1 / -1; flex-direction: row; align-items: center; }
+        }
+    </style>
+</head>
+<body data-page="cart.html">
+    <div id="site-announcement"></div>
+    <div id="site-header"></div>
+
+    <main id="main">
+        <div class="container">
+            <h1 style="font-family: var(--font-heading); font-size: 2rem; padding: 30px 0;">Shopping Cart</h1>
+            <div class="cart-container" id="cartContainer"></div>
+        </div>
+    </main>
+
+    <div id="site-footer"></div>
+
+    <script src="js/data.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => { renderCartPage(); });
+    </script>
+</body>
+</html>
