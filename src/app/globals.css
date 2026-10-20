@@ -206,32 +206,40 @@ main {
 .country-selector {
   display: flex;
   align-items: center;
+  position: relative;
 }
 
-.country-selector select {
+.country-selector-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   border: 1px solid var(--color-gray-300);
   border-radius: var(--radius-sm);
   padding: 6px 28px 6px 10px;
-  font-size: 0.875rem;
-  background-color: var(--color-white);
-  color: var(--color-secondary);
-  cursor: pointer;
   height: 36px;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 6px center;
-  background-size: 16px;
-  min-width: 90px;
-  transition: border-color var(--transition-fast);
+  font-size: 0.875rem;
+  color: var(--color-secondary);
+  background-color: var(--color-white);
+  pointer-events: none;
 }
 
-.country-selector select:hover {
-  border-color: var(--color-primary);
+.country-selector-display img {
+  width: 20px;
+  height: 14px;
+  object-fit: cover;
+  display: block;
 }
 
-.country-selector select:focus {
-  outline: none;
+.country-selector select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.country-selector:hover .country-selector-display {
   border-color: var(--color-primary);
 }
 

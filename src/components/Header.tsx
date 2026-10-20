@@ -8,15 +8,15 @@ import { useCart } from "@/context/CartContext";
 import SearchOverlay from "./SearchOverlay";
 
 const countries = [
-  { code: "US", name: "United States", flag: "🇺🇸" },
-  { code: "PK", name: "Pakistan", flag: "🇵🇰" },
-  { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
-  { code: "CA", name: "Canada", flag: "🇨🇦" },
-  { code: "AU", name: "Australia", flag: "🇦🇺" },
-  { code: "AE", name: "United Arab Emirates", flag: "🇦🇪" },
-  { code: "SA", name: "Saudi Arabia", flag: "🇸🇦" },
-  { code: "FR", name: "France", flag: "🇫🇷" },
-  { code: "DE", name: "Germany", flag: "🇩🇪" },
+  { code: "US", name: "United States", flag: "/flags/us.png" },
+  { code: "PK", name: "Pakistan", flag: "/flags/pk.png" },
+  { code: "GB", name: "United Kingdom", flag: "/flags/gb.png" },
+  { code: "CA", name: "Canada", flag: "/flags/ca.png" },
+  { code: "AU", name: "Australia", flag: "/flags/au.png" },
+  { code: "AE", name: "United Arab Emirates", flag: "/flags/ae.png" },
+  { code: "SA", name: "Saudi Arabia", flag: "/flags/sa.png" },
+  { code: "FR", name: "France", flag: "/flags/fr.png" },
+  { code: "DE", name: "Germany", flag: "/flags/de.png" },
 ];
 
 export default function Header() {
@@ -72,6 +72,15 @@ export default function Header() {
           </Link>
           <div className="header-actions">
             <div className="country-selector">
+              <div className="country-selector-display">
+                <img
+                  src={countries.find((c) => c.code === selectedCountry)?.flag || "/flags/us.png"}
+                  alt={selectedCountry}
+                  width={20}
+                  height={14}
+                />
+                <span>{selectedCountry}</span>
+              </div>
               <select
                 value={selectedCountry}
                 onChange={(e) => setSelectedCountry(e.target.value)}
@@ -79,7 +88,7 @@ export default function Header() {
               >
                 {countries.map((c) => (
                   <option key={c.code} value={c.code}>
-                    {c.flag} {c.code}
+                    {c.code}
                   </option>
                 ))}
               </select>
