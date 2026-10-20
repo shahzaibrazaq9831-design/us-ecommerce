@@ -63,7 +63,7 @@ export default function Header() {
             <button className="menu-toggle" onClick={() => setMobileOpen(true)} aria-label="Open menu">
               <i className="fas fa-bars" />
             </button>
-            <button className="header-icon header-search-left" onClick={() => setSearchOpen(true)} aria-label="Search">
+            <button className="header-search-btn" onClick={() => setSearchOpen(true)} aria-label="Search">
               <i className="fas fa-search" />
             </button>
           </div>
