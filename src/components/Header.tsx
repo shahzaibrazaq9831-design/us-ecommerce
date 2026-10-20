@@ -7,12 +7,25 @@ import { navItems } from "@/data/site";
 import { useCart } from "@/context/CartContext";
 import SearchOverlay from "./SearchOverlay";
 
+const countries = [
+  { code: "US", name: "United States", flag: "🇺🇸" },
+  { code: "PK", name: "Pakistan", flag: "🇵🇰" },
+  { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
+  { code: "CA", name: "Canada", flag: "🇨🇦" },
+  { code: "AU", name: "Australia", flag: "🇦🇺" },
+  { code: "AE", name: "United Arab Emirates", flag: "🇦🇪" },
+  { code: "SA", name: "Saudi Arabia", flag: "🇸🇦" },
+  { code: "FR", name: "France", flag: "🇫🇷" },
+  { code: "DE", name: "Germany", flag: "🇩🇪" },
+];
+
 export default function Header() {
   const pathname = usePathname();
   const { cartCount, wishlist } = useCart();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState("US");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -46,9 +59,24 @@ export default function Header() {
     <>
       <header className={`header${scrolled ? " scrolled" : ""}`}>
         <div className="header-top">
-          <button className="menu-toggle" onClick={() => setMobileOpen(true)} aria-label="Open menu">
-            <i className="fas fa-bars" />
-          </button>
+          <div className="header-top-left">
+            <button className="menu-toggle" onClick={() => setMobileOpen(true)} aria-label="Open menu">
+              <i className="fas fa-bars" />
+            </button>
+            <div className="country-selector">
+              <select
+                value={selectedCountry}
+                onChange={(e) => setSelectedCountry(e.target.value)}
+                aria-label="Select country"
+              >
+                {countries.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.flag} {c.code}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
           <Link href="/" className="logo">
             Premium Pakistani Dresses
           </Link>
