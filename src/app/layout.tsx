@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -36,15 +37,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <CartProvider>
-          <AnnouncementBar />
-          <Suspense fallback={<header className="header" />}>
-            <Header />
-          </Suspense>
-          <main>{children}</main>
-          <Footer />
-          <FloatingElements />
-        </CartProvider>
+        <CurrencyProvider>
+          <CartProvider>
+            <AnnouncementBar />
+            <Suspense fallback={<header className="header" />}>
+              <Header />
+            </Suspense>
+            <main>{children}</main>
+            <Footer />
+            <FloatingElements />
+          </CartProvider>
+        </CurrencyProvider>
       </body>
     </html>
   );

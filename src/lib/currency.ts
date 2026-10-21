@@ -1,0 +1,20 @@
+export const exchangeRates: Record<string, number> = {
+  PKR: 1,
+  USD: 0.00358, // placeholder
+  GBP: 0.0028,
+  CAD: 0.00495,
+  AUD: 0.00555,
+  EUR: 0.0033,
+  AED: 0.01316,
+  SAR: 0.01343,
+  QAR: 0.01304,
+  BHD: 0.00135,
+  NZD: 0.00605,
+  MYR: 0.0168,
+  SGD: 0.0048,
+  ZAR: 0.0665,
+  MUR: 0.166,
+  JPY: 0.53,
+  INR: 0.298,
+  TRY: 0.122,
+};
