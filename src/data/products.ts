@@ -3,6 +3,8 @@
  * Edit this file to add/update products. No API or database yet.
  */
 
+import { DEFAULT_CURRENCY, formatCurrency } from "@/lib/currency";
+
 export type Badge = "new" | "sale" | "bestseller";
 
 export interface Product {
@@ -142,6 +144,11 @@ export function getRelatedProducts(slug: string, limit = 4): Product[] {
   return products.filter((product) => product.slug !== slug).slice(0, limit);
 }
 
+/**
+ * Static PKR formatter for server-rendered prices.
+ * Interactive prices use `useCurrency().formatPrice` so they follow the
+ * currency chosen in the header.
+ */
 export function formatPrice(value: number): string {
-  return `$${value.toFixed(2)}`;
+  return formatCurrency(value, DEFAULT_CURRENCY);
 }

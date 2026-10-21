@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { navItems } from "@/data/site";
 import { useCart } from "@/context/CartContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import SearchOverlay from "./SearchOverlay";
 import { countries } from "@/data/countries";
 import { Search, Check, ChevronDown } from "lucide-react";
@@ -12,34 +13,17 @@ import { Search, Check, ChevronDown } from "lucide-react";
 export default function Header() {
   const pathname = usePathname();
   const { cartCount, wishlist } = useCart();
+  const { country: selected, setCountry } = useCurrency();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [countryOpen, setCountryOpen] = useState(false);
   const [countryQuery, setCountryQuery] = useState("");
-  const [selectedCountryCode, setSelectedCountryCode] = useState("PK");
   const countryRef = useRef<HTMLDivElement>(null);
   const countryInputRef = useRef<HTMLInputElement>(null);
 
-  const selected = countries.find((c) => c.code === selectedCountryCode) || countries[0];
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("selectedCountry");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const found = countries.find((c) => c.code === parsed.code);
-        if (found) setSelectedCountryCode(found.code);
-      }
-    } catch {}
-  }, []);
-
   const selectCountry = (c: (typeof countries)[number]) => {
-    setSelectedCountryCode(c.code);
-    try {
-      localStorage.setItem("selectedCountry", JSON.stringify(c));
-      document.cookie = `selectedCountry=${encodeURIComponent(JSON.stringify(c))}; path=/; max-age=31536000`;
-    } catch {}
+    setCountry(c);
     setCountryOpen(false);
     setCountryQuery("");
   };

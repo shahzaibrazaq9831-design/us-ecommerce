@@ -3,10 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
-import { formatPrice } from "@/data/products";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function QuickViewModal() {
   const { quickView, closeQuickView, addToCart, openQuickView, toggleWishlist, isWishlisted } = useCart();
+  const { formatPrice } = useCurrency();
 
   if (!quickView) return null;
 

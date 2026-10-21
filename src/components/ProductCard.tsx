@@ -3,10 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
-import { formatPrice, type Product } from "@/data/products";
+import { useCurrency } from "@/context/CurrencyContext";
+import { type Product } from "@/data/products";
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart, toggleWishlist, isWishlisted, openQuickView } = useCart();
+  const { formatPrice } = useCurrency();
   const wishlisted = isWishlisted(product.slug);
 
   return (

@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { products, formatPrice } from "@/data/products";
+import { products } from "@/data/products";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function SearchOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState("");
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     if (open) {

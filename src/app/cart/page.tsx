@@ -3,10 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
-import { formatPrice } from "@/data/products";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart();
+  const { formatPrice } = useCurrency();
 
   if (cart.length === 0) {
     return (

@@ -4,11 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
-import { formatPrice } from "@/data/products";
+import { useCurrency } from "@/context/CurrencyContext";
 import { siteConfig } from "@/data/site";
 
 export default function CheckoutPage() {
   const { cart, cartTotal, cartCount, clearCart } = useCart();
+  const { formatPrice } = useCurrency();
   const [submitted, setSubmitted] = useState(false);
 
   if (cart.length === 0 && !submitted) {

@@ -2,8 +2,9 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { products, getProductBySlug, getRelatedProducts, formatPrice } from "@/data/products";
+import { products, getProductBySlug, getRelatedProducts } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
+import Price from "@/components/Price";
 import AddToCartButton from "./AddToCartButton";
 import WishlistButton from "./WishlistButton";
 
@@ -51,10 +52,10 @@ async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
               </span>
             </div>
             <div className="product-price" style={{ marginBottom: "20px" }}>
-              <span className="price-current" style={{ fontSize: "1.6rem" }}>
-                {formatPrice(product.price)}
-              </span>
-              {product.originalPrice !== null && <span className="price-original" style={{ fontSize: "1.2rem" }}>{formatPrice(product.originalPrice)}</span>}
+              <Price value={product.price} className="price-current" style={{ fontSize: "1.6rem" }} />
+              {product.originalPrice !== null && (
+                <Price value={product.originalPrice} className="price-original" style={{ fontSize: "1.2rem" }} />
+              )}
             </div>
             <p style={{ color: "var(--color-gray-700)", lineHeight: "1.8", marginBottom: "24px" }}>{product.description}</p>
             <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "24px" }}>
