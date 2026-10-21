@@ -169,17 +169,23 @@ export default function Header() {
                           <li
                             key={c.code}
                             onClick={() => selectCountry(c)}
-                            className={`h-[40px] px-4 flex items-center gap-[14px] cursor-pointer hover:bg-[#F1EEE9] ${isSelected ? "bg-[#F1EEE9]" : ""}`}
+                            title={c.label || `${c.name} (${c.currency})`}
+                            className={`h-[40px] px-4 flex items-center gap-[10px] cursor-pointer hover:bg-[#F1EEE9] ${isSelected ? "bg-[#F1EEE9]" : ""}`}
                           >
                             <img
                               src={`https://flagcdn.com/w40/${c.iso2}.png`}
                               alt={c.name}
-                              className="w-[28px] h-[20px] rounded-[2px] object-cover"
+                              className="w-[28px] h-[20px] rounded-[2px] object-cover shrink-0"
                             />
-                            <span className={`text-[15px] flex-1 ${isSelected ? "text-[#1A1A1A] font-medium" : "text-[#333]"}`}>
-                              {c.label || `${c.name} (${c.currency})`}
+                            <span
+                              className={`text-[15px] flex-1 min-w-0 truncate ${isSelected ? "text-[#1A1A1A] font-medium" : "text-[#333]"}`}
+                            >
+                              {c.name}
                             </span>
-                            {isSelected && <Check size={16} className="text-[#8B6B2E]" />}
+                            <span className="text-[12px] uppercase tracking-wide text-[#8A8175] shrink-0">
+                              {c.currency}
+                            </span>
+                            {isSelected && <Check size={16} className="text-[#8B6B2E] shrink-0" />}
                           </li>
                         );
                       })}
