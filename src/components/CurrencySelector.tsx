@@ -4,9 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Search, ChevronDown, Check } from "lucide-react";
 import { countries, type Country } from "@/data/countries";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useCart } from "@/context/CartContext";
 
 export default function CurrencySelector() {
   const { country, setCountry } = useCurrency();
+  const { showToast } = useCart();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const [query, setQuery] = useState("");
@@ -127,7 +129,13 @@ export default function CurrencySelector() {
   };
 
   const selectCountry = (c: Country) => {
+    // Build the message from the country that was just picked (never from state,
+    // which hasn't updated yet), so the toast always names the new country.
+    const changed = c.code !== country.code;
     setCountry(c);
+    if (changed) {
+      showToast(`Country and currency changed to ${c.name} (${c.currency}).`);
+    }
     closePanel();
   };
 
