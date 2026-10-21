@@ -766,94 +766,165 @@ main {
 .hero-slide {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
   opacity: 0;
-  transition: opacity 1s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.hero-slide::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 100%);
+  visibility: hidden;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
 }
 
 .hero-slide.active {
   opacity: 1;
+  visibility: visible;
 }
 
-.hero-content {
-  position: relative;
-  text-align: center;
-  color: var(--color-white);
-  max-width: 800px;
-  padding: var(--spacing-xl);
-  animation: heroFadeUp 1s ease;
+.hero-slide-link {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
-@keyframes heroFadeUp {
-  from { opacity: 0; transform: translateY(40px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Copy is baked into the artwork, so the slide is a plain image panel. */
+.hero-slide-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.hero-eyebrow {
-  display: inline-block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--color-gold);
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-xs) var(--spacing-md);
-  border: 1px solid var(--color-gold);
+.hero-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Frosted circular arrows */
+.hero-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
   border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--color-black);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  z-index: 10;
+  transition: background-color var(--transition-fast);
 }
 
-.hero-title {
-  font-family: var(--font-heading);
-  font-size: clamp(2.5rem, 5vw, 4.5rem);
-  font-weight: 700;
-  line-height: 1.1;
-  margin-bottom: var(--spacing-lg);
-  text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+.hero-arrow:hover,
+.hero-arrow:focus-visible {
+  background: var(--color-white);
 }
 
-.hero-subtitle {
-  font-size: clamp(1rem, 2vw, 1.25rem);
-  font-weight: 300;
-  margin-bottom: var(--spacing-2xl);
-  opacity: 0.95;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+.hero-arrow svg {
+  width: 20px;
+  height: 20px;
 }
 
+.hero-arrow-prev { left: 12px; }
+.hero-arrow-next { right: 12px; }
+
+/* Pill containing the three dots, all the same size, on one line */
 .hero-dots {
   position: absolute;
-  bottom: var(--spacing-2xl);
+  bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: var(--spacing-sm);
+  align-items: center;
+  padding: 2px;
+  border-radius: var(--radius-full);
+  background: rgba(23, 23, 23, 0.25);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 10;
 }
 
 .hero-dots .dot {
-  width: 12px;
-  height: 12px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
   border-radius: var(--radius-full);
-  background: rgba(255,255,255,0.5);
-  transition: all var(--transition-base);
+  cursor: pointer;
 }
 
-.hero-dots .dot.active {
+/* Inactive dots stay a small circle; the active one widens into a pill. */
+.hero-dots .dot > span {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.6);
+  overflow: hidden;
+  transition: width var(--transition-fast), background-color var(--transition-fast);
+}
+
+.hero-dots .dot:hover > span {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.hero-dots .dot.active > span {
+  width: 24px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Fills left-to-right over the slide duration, showing the time left to scroll */
+.hero-dot-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
   background: var(--color-white);
-  width: 36px;
-  border-radius: 6px;
+  animation: heroProgress 3000ms linear forwards;
+}
+
+/* Countdown line pinned to the bottom of the hero */
+.hero-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(23, 23, 23, 0.15);
+  z-index: 10;
+}
+
+.hero-progress-fill {
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  background: var(--color-primary);
+  animation: heroProgress 3000ms linear forwards;
+}
+
+@keyframes heroProgress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Hovering, focusing or holding the slider freezes the countdown too */
+.hero.paused .hero-dot-fill,
+.hero.paused .hero-progress-fill {
+  animation-play-state: paused;
 }
 
 /* Buttons */

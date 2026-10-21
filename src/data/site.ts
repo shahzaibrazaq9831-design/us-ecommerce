@@ -81,30 +81,28 @@ export interface HeroSlide {
 
 export const heroSlides: HeroSlide[] = [
   {
-    eyebrow: "New Collection 2026",
-    title: "Luxury Pakistani Designer-Inspired Dresses",
-    subtitle:
-      "Discover timeless elegance with our exclusive collection of premium Pakistani dresses",
-    cta: "Shop New Arrivals",
+    eyebrow: "New Arrivals",
+    title: "New Arrivals — Flat 50% Off",
+    subtitle: "Freshly dropped designs from our latest collection",
+    cta: "Shop Now",
     href: "/shop",
-    image: "/images/dress-1.jpg",
+    image: "/images/hero1.png",
   },
   {
-    eyebrow: "Bridal Season",
-    title: "Stunning Bridal Collection",
-    subtitle:
-      "Make your special day unforgettable with our exquisite bridal wear",
-    cta: "Shop Bridal",
+    eyebrow: "Best Sellers",
+    title: "Best Sellers — Flat 50% Off",
+    subtitle: "Our most loved pieces, back by popular demand",
+    cta: "Shop Now",
     href: "/shop",
-    image: "/images/dress-2.jpg",
+    image: "/images/hero2.png",
   },
   {
-    eyebrow: "Eid Special",
-    title: "Celebrate in Style",
-    subtitle: "Eid collection now available with worldwide free delivery",
-    cta: "Shop Eid Collection",
-    href: "/collections",
-    image: "/images/dress-3.jpg",
+    eyebrow: "Formal Collection",
+    title: "Formal Collection — Flat 50% Off",
+    subtitle: "Statement outfits for weddings, Eid and evening events",
+    cta: "Shop Now",
+    href: "/shop",
+    image: "/images/hero3.png",
   },
 ];
 
