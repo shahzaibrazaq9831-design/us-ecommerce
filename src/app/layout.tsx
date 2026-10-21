@@ -5,6 +5,7 @@ import { CartProvider } from "@/context/CartContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import Header from "@/components/Header";
+import OfferStrip from "@/components/OfferStrip";
 import Footer from "@/components/Footer";
 import FloatingElements from "@/components/FloatingElements";
 import { Suspense } from "react";
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Suspense fallback={<header className="header" />}>
               <Header />
             </Suspense>
+            <OfferStrip />
             <main>{children}</main>
             <Footer />
             <FloatingElements />

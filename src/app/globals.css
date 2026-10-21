@@ -256,11 +256,10 @@ main {
   color: var(--color-primary);
 }
 
-.menu-toggle {
+/* The mobile bar (hamburger / logo / search + cart) replaces the desktop bar
+   below 1024px. See the "Mobile experience" section at the end of this file. */
+.m-header {
   display: none;
-  font-size: 1.25rem;
-  color: var(--color-secondary);
-  padding: var(--spacing-sm);
 }
 
 .header-actions {
@@ -634,60 +633,9 @@ main {
   padding-left: calc(var(--spacing-lg) + 4px);
 }
 
-/* Mobile Menu */
-.mobile-menu {
-  position: fixed;
-  top: 0;
-  left: -320px;
-  width: 300px;
-  height: 100vh;
-  background: var(--color-white);
-  z-index: 2000;
-  transition: left var(--transition-base);
-  overflow-y: auto;
-  box-shadow: var(--shadow-xl);
-}
-
-.mobile-menu.active {
-  left: 0;
-}
-
-.mobile-menu-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-gray-200);
-}
-
-.mobile-menu-header .logo {
-  font-size: 1.1rem;
-}
-
-.close-menu {
-  font-size: 1.25rem;
-  color: var(--color-gray-600);
-  padding: var(--spacing-sm);
-}
-
-.mobile-nav-list {
-  padding: var(--spacing-md) 0;
-}
-
-.mobile-nav-list li a {
-  display: block;
-  padding: var(--spacing-md) var(--spacing-lg);
-  font-size: 0.95rem;
-  color: var(--color-secondary);
-  border-bottom: 1px solid var(--color-gray-100);
-  transition: all var(--transition-fast);
-}
-
-.mobile-nav-list li a:hover {
-  background: var(--color-cream);
-  color: var(--color-primary);
-  padding-left: calc(var(--spacing-lg) + 8px);
-}
+/* Mobile Menu
+   The slide-out drawer lives in the "Mobile experience" section at the end of
+   this file; the rules below were the old off-canvas menu. */
 
 .overlay {
   position: fixed;
@@ -781,18 +729,18 @@ main {
 
 .hero-slide-link {
   display: block;
+  position: relative;
   width: 100%;
   height: 100%;
 }
 
-/* Copy is baked into the artwork, so the slide is a plain image panel. */
+/* The artwork carries the copy on desktop; the mobile copy panel sits on top. */
 .hero-slide-image {
   display: block;
   width: 100%;
   height: 100%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  object-fit: cover;
+  object-position: center;
 }
 
 .hero-sr-only {
@@ -1878,7 +1826,6 @@ main {
 
 @media (max-width: 768px) {
   :root { --header-height: 60px; --container-padding: 16px; }
-  .menu-toggle { display: block; }
   .main-nav { display: none; }
   .logo { font-size: 1.1rem; }
   .header-actions { gap: var(--spacing-sm); }
@@ -1912,3 +1859,622 @@ main {
   .occasion-image { width: 150px; height: 200px; }
   .toast { right: 16px; bottom: 16px; left: 16px; max-width: none; }
 }
+
+/* ============================================
+   Mobile experience (below 1024px)
+   Mirrors the reference store's phone layout:
+   announcement marquee → sticky header → offer
+   strip → hero → trust grid → slide-out drawer.
+   ============================================ */
+
+/* Everything in this block is phone-only until the media query opens. */
+.m-header,
+.m-drawer,
+.m-drawer-overlay,
+.offer-strip,
+.hero-overlay,
+.trust-grid,
+.announcement-track--mobile {
+  display: none;
+}
+
+/* Expands a small icon button to a 44px tap target without changing layout. */
+.tap-target {
+  position: relative;
+}
+
+.tap-target::after {
+  content: "";
+  position: absolute;
+  inset: 50%;
+  width: 100%;
+  min-width: 44px;
+  height: 100%;
+  min-height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+@media (max-width: 1023px) {
+  :root {
+    --header-height: 56px;
+    --container-padding: 16px;
+  }
+
+  /* ---------- Announcement bar ---------- */
+  .announcement-bar {
+    background: #1F3D2B;
+    height: auto;
+    min-height: 30px;
+    padding: 6px 0;
+    padding-top: calc(6px + env(safe-area-inset-top));
+  }
+
+  .announcement-track--desktop {
+    display: none;
+  }
+
+  .announcement-track--mobile {
+    display: flex;
+    gap: 0;
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: #FFFFFF;
+    animation-duration: 22s;
+  }
+
+  .announcement-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 10px;
+    white-space: nowrap;
+  }
+
+  .announcement-group .announcement-separator {
+    opacity: 0.65;
+  }
+
+  .announcement-group .announcement-separator--mid {
+    opacity: 0.7;
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  /* ---------- Sticky header ---------- */
+  .header {
+    background: #FBF7F1;
+    box-shadow: none;
+    border-bottom: 1px solid rgba(31, 61, 43, 0.08);
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .header.scrolled {
+    box-shadow: 0 2px 12px rgba(26, 26, 26, 0.08);
+  }
+
+  .header-top,
+  .main-nav {
+    display: none;
+  }
+
+  .m-header {
+    display: flex;
+    align-items: center;
+    position: relative;
+    height: 56px;
+    padding: 0 10px;
+  }
+
+  .m-header-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 44px;
+    flex: 0 0 auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #1A1A1A;
+  }
+
+  .m-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+  }
+
+  .m-header-logo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    max-width: min(56vw, 210px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    line-height: 1;
+    color: #1A1A1A;
+    /* Keeps the wordmark visually identical while the hit area stays 44px. */
+    padding: 15px 0;
+  }
+
+  .m-header-badge {
+    top: 8px;
+    right: -7px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 16px;
+    background: #1F3D2B;
+    color: #FFFFFF;
+  }
+
+  /* ---------- Offer strip ---------- */
+  .offer-strip {
+    display: block;
+    background: #FBF7F1;
+    border-bottom: 1px solid rgba(31, 61, 43, 0.08);
+    padding: 8px 12px 9px;
+    text-align: center;
+  }
+
+  .offer-strip-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #1F3D2B;
+  }
+
+  .offer-strip-sep {
+    color: #8B6B2E;
+  }
+
+  .offer-strip-divider {
+    padding: 0 4px;
+    color: #CFC2AB;
+  }
+
+  .offer-strip-timer {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #8B6B2E;
+  }
+
+  .offer-strip-sub {
+    margin-top: 3px;
+    font-size: 10.5px;
+    line-height: 1.4;
+    color: #7A746B;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    aspect-ratio: 3 / 4;
+  }
+
+  .hero-slide-image {
+    object-position: center;
+  }
+
+  .hero-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 2px;
+    position: absolute;
+    inset: 0;
+    padding: 0 20px 62px;
+    z-index: 5;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      rgba(18, 18, 16, 0.55) 0%,
+      rgba(18, 18, 16, 0.24) 45%,
+      rgba(18, 18, 16, 0) 72%
+    );
+  }
+
+  .hero-overlay-title {
+    font-family: var(--font-heading);
+    font-size: 28px;
+    line-height: 1.15;
+    font-weight: 600;
+    color: #FFFFFF;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
+  }
+
+  .hero-overlay-plus {
+    font-size: 18px;
+    line-height: 1;
+    margin: 5px 0 3px;
+    color: #E4C983;
+  }
+
+  .hero-overlay-off {
+    font-size: 21px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #FFFFFF;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
+  }
+
+  .hero-overlay-cta {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    margin-top: 14px;
+    padding: 0 22px;
+    border-radius: 4px;
+    background: #8B6B2E;
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* ---------- Trust grid ---------- */
+  .trust-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px 10px;
+    padding: 20px 12px;
+    background: #FFFFFF;
+    border-bottom: 1px solid #EFEAE2;
+  }
+
+  .trust-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    min-height: 44px;
+    padding: 4px 4px;
+    text-align: center;
+  }
+
+  .trust-icon {
+    color: #B49252;
+  }
+
+  .trust-label {
+    font-size: 11px;
+    line-height: 1.35;
+    font-weight: 600;
+    color: #2A2A2A;
+  }
+
+  /* The richer feature bar is a desktop-only element. */
+  .features-bar {
+    display: none;
+  }
+
+  /* ---------- WhatsApp float ---------- */
+  .whatsapp-float {
+    width: 52px;
+    height: 52px;
+    font-size: 1.6rem;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    z-index: 999;
+  }
+
+  /* ---------- Slide-out drawer ---------- */
+  .m-drawer-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 2900;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 300ms ease-out, visibility 0s linear 300ms;
+  }
+
+  .m-drawer-overlay[data-open="true"] {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 300ms ease-out, visibility 0s;
+  }
+
+  .m-drawer {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 85vw;
+    max-width: 360px;
+    height: 100dvh;
+    z-index: 3000;
+    background: #FFFBF5;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 300ms ease-out, visibility 0s linear 300ms;
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .m-drawer[data-open="true"] {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 300ms ease-out, visibility 0s;
+  }
+
+  .m-drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex: 0 0 auto;
+    padding: 12px 16px;
+    border-bottom: 1px solid #EFE8DD;
+  }
+
+  .m-drawer-logo {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #1A1A1A;
+  }
+
+  .m-drawer-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    padding: 0;
+    border: 1px solid #DCD3C5;
+    border-radius: 9999px;
+    background: transparent;
+    color: #1A1A1A;
+  }
+
+  .m-drawer-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 14px 16px calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .m-drawer-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid #E5E0D8;
+    border-radius: 12px;
+    background: #FFFFFF;
+    color: #8A857D;
+  }
+
+  .m-drawer-search input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    background: transparent;
+    font-size: 13px;
+    color: #1F1F1F;
+  }
+
+  .m-drawer-search input::placeholder {
+    color: #A29C93;
+  }
+
+  .m-drawer-search input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+
+  .m-drawer-eyebrow {
+    margin: 16px 0 8px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8A857D;
+  }
+
+  .m-drawer-nav {
+    margin-top: 16px;
+    border-top: 1px solid #EFE8DD;
+  }
+
+  .m-drawer-item {
+    border-bottom: 1px solid #EFE8DD;
+  }
+
+  .m-drawer-nav .m-drawer-item:last-child {
+    border-bottom: 0;
+  }
+
+  .m-drawer-row {
+    display: flex;
+    align-items: center;
+    height: 48px;
+  }
+
+  .m-drawer-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    flex: 1;
+    min-width: 0;
+    font-size: 16px;
+    line-height: 1.2;
+    color: #1A1A1A;
+  }
+
+  .m-drawer-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 8px;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    background: #8B2635;
+    color: #FFFFFF;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    vertical-align: middle;
+  }
+
+  .m-drawer-caret {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    margin-right: -10px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #8A857D;
+  }
+
+  .m-drawer-caret svg {
+    transition: transform 260ms ease;
+  }
+
+  .m-drawer-caret[aria-expanded="true"] svg {
+    transform: rotate(180deg);
+  }
+
+  .m-drawer-panel {
+    overflow: hidden;
+    transition: height 260ms ease;
+  }
+
+  .m-drawer-panel-inner {
+    padding: 0 0 10px 4px;
+  }
+
+  .m-drawer-sublink {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 9px 0;
+    font-size: 14px;
+    line-height: 1.3;
+    color: #6B635A;
+  }
+
+  .m-drawer-foot {
+    margin-top: 14px;
+    padding-top: 4px;
+    border-top: 1px solid #EFE8DD;
+  }
+
+  .m-drawer-foot-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    font-size: 14px;
+    color: #1A1A1A;
+  }
+
+  .m-drawer-foot-link svg {
+    flex: 0 0 auto;
+    color: #B49252;
+  }
+
+  /* ---------- Country selector inside the drawer ---------- */
+  .currency-selector--drawer {
+    width: 100%;
+  }
+
+  .currency-trigger--drawer {
+    width: 100%;
+    height: 44px;
+    gap: 10px;
+    padding: 0 12px;
+    border: 1px solid #E5E0D8;
+    border-radius: 12px;
+    background: #FFFFFF;
+  }
+
+  .currency-trigger--drawer:hover {
+    background: #FFFFFF;
+    border-color: #D8D1C6;
+  }
+
+  .currency-trigger--drawer img {
+    width: 20px;
+    height: 14px;
+  }
+
+  .currency-trigger-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #1A1A1A;
+  }
+
+  /* Opens inside the drawer, at full width, instead of floating above it. */
+  .currency-selector--drawer .currency-panel {
+    position: static;
+    width: 100%;
+    max-width: none;
+    margin-top: 8px;
+    border-radius: 12px;
+    transform-origin: top center;
+  }
+}
+
+@media (max-width: 359px) {
+  .m-header-logo {
+    font-size: 13px;
+    max-width: 50vw;
+  }
+
+  .offer-strip-main {
+    font-size: 11.5px;
+  }
+
+  .hero-overlay-title {
+    font-size: 25px;
+  }
+
+  .hero-overlay-off {
+    font-size: 19px;
+  }
+}
+

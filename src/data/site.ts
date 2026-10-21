@@ -32,12 +32,17 @@ export interface NavItem {
   label: string;
   href: string;
   children?: NavChild[];
+  /** Shows a small "NEW" badge next to the label (mobile drawer only). */
+  isNew?: boolean;
+  /** Keeps the entry out of the desktop navigation bar (mobile drawer only). */
+  desktopHidden?: boolean;
 }
 
 export const navItems: NavItem[] = [
   { label: "Shop All", href: "/shop" },
   { label: "Best Sellers", href: "/shop" },
   { label: "New Arrivals", href: "/shop" },
+  { label: "ETHNC", href: "/shop", isNew: true, desktopHidden: true },
   {
     label: "Occasions",
     href: "/collections",
@@ -56,8 +61,26 @@ export const navItems: NavItem[] = [
     label: "Wedding",
     href: "/shop",
     children: [
-      { label: "Bridal", href: "/shop" },
-      { label: "Wedding", href: "/shop" },
+      { label: "Wedding Dresses", href: "/shop" },
+      { label: "Wedding Shawls", href: "/shop" },
+      { label: "Lehenga Choli", href: "/shop" },
+      { label: "Sharara Dresses", href: "/shop" },
+      { label: "Maxi Lehenga", href: "/shop" },
+      { label: "Gharara Dresses", href: "/shop" },
+      { label: "Velvet Dresses", href: "/shop" },
+      { label: "Nikkah Dresses", href: "/shop" },
+    ],
+  },
+  {
+    label: "Bridal",
+    href: "/shop",
+    desktopHidden: true,
+    children: [
+      { label: "Pakistani Bridal Dresses", href: "/shop" },
+      { label: "Luxury Bridal Wear", href: "/shop" },
+      { label: "Bridal Maxi", href: "/shop" },
+      { label: "Bridal Gown", href: "/shop" },
+      { label: "Bridal Lehenga Choli", href: "/shop" },
     ],
   },
   { label: "Formals", href: "/shop" },
@@ -65,7 +88,19 @@ export const navItems: NavItem[] = [
   {
     label: "Designers",
     href: "/shop",
-    children: [{ label: "ETHNC", href: "/shop" }],
+    children: [
+      { label: "Abeera Usman", href: "/shop" },
+      { label: "Aisha Imran", href: "/shop" },
+      { label: "Bunto Kazmi", href: "/shop" },
+      { label: "Crimson", href: "/shop" },
+      { label: "Eman Adeel", href: "/shop" },
+      { label: "Farah Talib Aziz", href: "/shop" },
+      { label: "Haseens Official", href: "/shop" },
+      { label: "Hassan Sheheryar Yasin", href: "/shop" },
+      { label: "Mahira Khan", href: "/shop" },
+      { label: "Sana Safinaz", href: "/shop" },
+      { label: "Zaroon Zahid", href: "/shop" },
+    ],
   },
   { label: "Reviews", href: "/reviews" },
 ];

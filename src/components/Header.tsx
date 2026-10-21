@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Menu, Search, ShoppingBag } from "lucide-react";
 import { navItems } from "@/data/site";
 import { useCart } from "@/context/CartContext";
 import SearchOverlay from "./SearchOverlay";
 import CurrencySelector from "./CurrencySelector";
+import MobileMenuDrawer from "./MobileMenuDrawer";
 
 export default function Header() {
   const pathname = usePathname();
@@ -30,17 +32,6 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [mobileOpen]);
-
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
@@ -49,11 +40,9 @@ export default function Header() {
   return (
     <>
       <header className={`header${scrolled ? " scrolled" : ""}`}>
+        {/* Desktop bar */}
         <div className="header-top">
           <div className="header-top-left">
-            <button className="menu-toggle" onClick={() => setMobileOpen(true)} aria-label="Open menu">
-              <i className="fas fa-bars" />
-            </button>
             <button className="header-search-btn" onClick={() => setSearchOpen(true)} aria-label="Search">
               <i className="fas fa-search" />
             </button>
@@ -76,47 +65,67 @@ export default function Header() {
             </Link>
           </div>
         </div>
+
+        {/* Mobile bar */}
+        <div className="m-header">
+          <button
+            type="button"
+            className="m-header-btn m-header-menu tap-target"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open menu"
+            aria-haspopup="dialog"
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-menu-drawer"
+          >
+            <Menu size={22} strokeWidth={1.5} aria-hidden="true" />
+          </button>
+
+          <Link href="/" className="m-header-logo" aria-label="Premium Pakistani Dresses">
+            Premium Pakistani Dresses
+          </Link>
+
+          <div className="m-header-actions">
+            <button
+              type="button"
+              className="m-header-btn tap-target"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Search"
+            >
+              <Search size={22} strokeWidth={1.5} aria-hidden="true" />
+            </button>
+            <Link href="/cart" className="m-header-btn tap-target" aria-label="Cart">
+              <ShoppingBag size={22} strokeWidth={1.5} aria-hidden="true" />
+              {cartCount > 0 ? <span className="badge m-header-badge">{cartCount}</span> : null}
+            </Link>
+          </div>
+        </div>
+
         <nav className="main-nav">
           <ul className="nav-list">
-            {navItems.map((item) => (
-              <li key={item.label} className={`${item.children ? "nav-dropdown" : ""}${isActive(item.href) ? " active" : ""}`}>
-                <Link href={item.href}>
-                  {item.label}
-                  {item.children ? <i className="fas fa-chevron-down" style={{ fontSize: "0.7rem" }} /> : null}
-                </Link>
-                {item.children ? (
-                  <ul className="dropdown">
-                    {item.children.map((child) => (
-                      <li key={child.label}>
-                        <Link href={child.href}>{child.label}</Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </li>
-            ))}
+            {navItems
+              .filter((item) => !item.desktopHidden)
+              .map((item) => (
+                <li key={item.label} className={`${item.children ? "nav-dropdown" : ""}${isActive(item.href) ? " active" : ""}`}>
+                  <Link href={item.href}>
+                    {item.label}
+                    {item.children ? <i className="fas fa-chevron-down" style={{ fontSize: "0.7rem" }} /> : null}
+                  </Link>
+                  {item.children ? (
+                    <ul className="dropdown">
+                      {item.children.map((child) => (
+                        <li key={child.label}>
+                          <Link href={child.href}>{child.label}</Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </li>
+              ))}
           </ul>
         </nav>
       </header>
 
-      <div className={`mobile-menu${mobileOpen ? " active" : ""}`}>
-        <div className="mobile-menu-header">
-          <Link href="/" className="logo">
-            Premium Pakistani Dresses
-          </Link>
-          <button className="close-menu" onClick={() => setMobileOpen(false)} aria-label="Close menu">
-            <i className="fas fa-times" />
-          </button>
-        </div>
-        <ul className="mobile-nav-list">
-          {navItems.map((item) => (
-            <li key={item.label}>
-              <Link href={item.href}>{item.label}</Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className={`overlay${mobileOpen ? " active" : ""}`} onClick={() => setMobileOpen(false)} />
+      <MobileMenuDrawer open={mobileOpen} onClose={() => setMobileOpen(false)} />
 
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>

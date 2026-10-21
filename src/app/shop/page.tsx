@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { products } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import Reveal from "@/components/Reveal";
@@ -14,11 +14,36 @@ const priceRanges = [
   { label: "$250+", min: 250, max: Infinity },
 ];
 
+/**
+ * Reads the query string without a hydration mismatch: the server snapshot is
+ * empty, the client snapshot is the real URL, so React swaps the value in
+ * right after hydration.
+ */
+const subscribeToLocation = () => () => {};
+const getLocationSearch = () => window.location.search;
+const getServerLocationSearch = () => "";
+
 export default function ShopPage() {
   const [category, setCategory] = useState("All");
   const [price, setPrice] = useState("All Prices");
   const [sort, setSort] = useState("featured");
   const [search, setSearch] = useState("");
+  const locationSearch = useSyncExternalStore(
+    subscribeToLocation,
+    getLocationSearch,
+    getServerLocationSearch
+  );
+  const [seenSearch, setSeenSearch] = useState<string | null>(null);
+
+  // The mobile drawer links to /shop?q=... — pick the term up from the URL.
+  // Adjusting state during render (instead of in an effect) keeps this free of
+  // cascading renders and of hydration mismatches.
+  if (seenSearch === null) {
+    setSeenSearch(locationSearch);
+  } else if (seenSearch !== locationSearch) {
+    setSeenSearch(locationSearch);
+    setSearch(new URLSearchParams(locationSearch).get("q") ?? "");
+  }
 
   const filtered = useMemo(() => {
     let items = [...products];

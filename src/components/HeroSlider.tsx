@@ -1,11 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { heroSlides } from "@/data/site";
 
 /** Time each slide stays on screen — matches the reference store (3000ms). */
-const INTERVAL = 3000;
+const DESKTOP_INTERVAL = 3000;
+/** Phones get a slower, calmer rotation (5000ms). */
+const MOBILE_INTERVAL = 5000;
 /** Swipe distance (px) required to change slide on touch devices. */
 const SWIPE_THRESHOLD = 45;
 
@@ -16,10 +19,11 @@ export default function HeroSlider() {
   /** Once the visitor navigates by hand, auto-advance stays off (as on the reference store). */
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [interval, setIntervalMs] = useState(DESKTOP_INTERVAL);
 
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
   /** Time left on the current slide, so resuming continues where the pause happened. */
-  const remaining = useRef(INTERVAL);
+  const remaining = useRef(DESKTOP_INTERVAL);
   const startedAt = useRef(0);
 
   const total = heroSlides.length;
@@ -46,6 +50,7 @@ export default function HeroSlider() {
     () => navigateTo(current + 1),
     [current, navigateTo]
   );
+
   const goPrev = useCallback(
     () => navigateTo(current - 1),
     [current, navigateTo]
@@ -60,15 +65,26 @@ export default function HeroSlider() {
     return () => query.removeEventListener("change", update);
   }, []);
 
+  // Phones rotate slower than the desktop hero.
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 1023px)");
+    const update = () => setIntervalMs(query.matches ? MOBILE_INTERVAL : DESKTOP_INTERVAL);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
   // The countdown resets whenever the slide changes. Declared before the timer
   // effect so a fresh full interval is restored after each auto-advance.
   useEffect(() => {
-    remaining.current = INTERVAL;
-  }, [current]);
+    remaining.current = interval;
+  }, [current, interval]);
 
   // Auto-advance. The timeout uses the remaining time, so resuming after a
   // hover/focus pause continues in step with the CSS progress animations,
   // which are paused in parallel via the `.paused` class.
+  // `interval` is a dependency because the first render uses the desktop
+  // value and switches to the phone value once the media query is known.
   useEffect(() => {
     if (!running) return;
     startedAt.current = Date.now();
@@ -83,7 +99,7 @@ export default function HeroSlider() {
         remaining.current - (Date.now() - startedAt.current)
       );
     };
-  }, [running, current, total]);
+  }, [running, current, total, interval]);
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "ArrowRight") {
@@ -150,9 +166,13 @@ export default function HeroSlider() {
               draggable={false}
               tabIndex={index === current ? undefined : -1}
             >
-              <span
+              <Image
+                src={slide.image}
+                alt=""
+                fill
+                priority={index === 0}
+                sizes="100vw"
                 className="hero-slide-image"
-                style={{ backgroundImage: `url('${slide.image}')` }}
               />
               <span className="hero-sr-only">
                 {slide.title}. {slide.subtitle}. {slide.cta}.
@@ -160,6 +180,18 @@ export default function HeroSlider() {
             </Link>
           </div>
         ))}
+      </div>
+
+      {/* Mobile-only copy panel */}
+      <div className="hero-overlay">
+        <p className="hero-overlay-title">Luxury Bridal Dresses</p>
+        <p className="hero-overlay-plus" aria-hidden="true">
+          +
+        </p>
+        <p className="hero-overlay-off">FLAT 50% OFF</p>
+        <Link href="/shop" className="hero-overlay-cta">
+          Shop Now
+        </Link>
       </div>
 
       <button
@@ -221,7 +253,7 @@ export default function HeroSlider() {
                 <span
                   key={current}
                   className="hero-dot-fill"
-                  style={{ animationDuration: `${INTERVAL}ms` }}
+                  style={{ animationDuration: `${interval}ms` }}
                 />
               )}
             </span>
@@ -234,7 +266,7 @@ export default function HeroSlider() {
           <div
             key={current}
             className="hero-progress-fill"
-            style={{ animationDuration: `${INTERVAL}ms` }}
+            style={{ animationDuration: `${interval}ms` }}
           />
         </div>
       )}

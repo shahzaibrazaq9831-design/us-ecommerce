@@ -6,7 +6,9 @@ import { countries, type Country } from "@/data/countries";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useCart } from "@/context/CartContext";
 
-export default function CurrencySelector() {
+type CurrencySelectorVariant = "header" | "drawer";
+
+export default function CurrencySelector({ variant = "header" }: { variant?: CurrencySelectorVariant }) {
   const { country, setCountry } = useCurrency();
   const { showToast } = useCart();
   const [open, setOpen] = useState(false);
@@ -62,17 +64,22 @@ export default function CurrencySelector() {
       }
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      // Only swallow Escape while the panel is actually open, so the mobile
+      // drawer can still be dismissed with Escape when the panel is closed.
+      if (e.key === "Escape" && open) {
+        e.preventDefault();
         closePanel();
       }
     };
     document.addEventListener("mousedown", onClick);
-    document.addEventListener("keydown", onKey);
+    // Capture phase: the panel has to claim Escape before the mobile drawer
+    // (which listens on the bubble phase) can close itself.
+    document.addEventListener("keydown", onKey, true);
     return () => {
       document.removeEventListener("mousedown", onClick);
-      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("keydown", onKey, true);
     };
-  }, [closePanel]);
+  }, [closePanel, open]);
 
   useEffect(() => {
     return () => {
@@ -139,24 +146,37 @@ export default function CurrencySelector() {
     closePanel();
   };
 
+  const isDrawer = variant === "drawer";
+
   return (
-    <div ref={ref} className="currency-selector" onKeyDown={handleKeyDown}>
+    <div
+      ref={ref}
+      className={`currency-selector${isDrawer ? " currency-selector--drawer" : ""}`}
+      onKeyDown={handleKeyDown}
+    >
       <button
         type="button"
         onClick={toggleOpen}
-        className="currency-trigger"
+        className={`currency-trigger${isDrawer ? " currency-trigger--drawer" : ""}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`Change currency. Current: ${country.currency} (${country.name})`}
       >
         <img src={`https://flagcdn.com/w40/${country.iso2}.png`} alt="" aria-hidden="true" />
-        <span className="currency-trigger-code">{country.currency}</span>
+        {isDrawer ? (
+          <span className="currency-trigger-label">
+            {country.name} ({country.currency})
+          </span>
+        ) : (
+          <span className="currency-trigger-code">{country.currency}</span>
+        )}
         <ChevronDown size={12} strokeWidth={2} aria-hidden="true" className={open ? "currency-chevron is-open" : "currency-chevron"} />
       </button>
 
       {open || closing ? (
         <div
           className={`currency-panel${closing ? " is-closing" : ""}`}
+          data-open={open ? "true" : "false"}
           role="dialog"
           aria-label="Choose a country and currency"
         >

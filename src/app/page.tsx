@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import HeroSlider from "@/components/HeroSlider";
+import TrustGrid from "@/components/TrustGrid";
 import OccasionsCarousel from "@/components/OccasionsCarousel";
 import ProductCard from "@/components/ProductCard";
 import Reveal from "@/components/Reveal";
@@ -15,6 +16,9 @@ export default function HomePage() {
   return (
     <>
       <HeroSlider />
+
+      {/* Compact trust grid (phones only) */}
+      <TrustGrid />
 
       {/* Features Bar */}
       <section className="features-bar">
