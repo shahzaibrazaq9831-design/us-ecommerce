@@ -26,6 +26,8 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState("US");
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -71,8 +73,12 @@ export default function Header() {
             Premium Pakistani Dresses
           </Link>
           <div className="header-actions">
-            <div className="country-selector">
-              <div className="country-selector-display">
+            <div className="country-dropdown">
+              <button
+                className="country-dropdown-toggle"
+                onClick={() => setCountryOpen((v) => !v)}
+                aria-label="Select country"
+              >
                 <img
                   src={countries.find((c) => c.code === selectedCountry)?.flag || "/flags/us.png"}
                   alt={selectedCountry}
@@ -80,18 +86,45 @@ export default function Header() {
                   height={14}
                 />
                 <span>{selectedCountry}</span>
-              </div>
-              <select
-                value={selectedCountry}
-                onChange={(e) => setSelectedCountry(e.target.value)}
-                aria-label="Select country"
-              >
-                {countries.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.code}
-                  </option>
-                ))}
-              </select>
+                <i className="fas fa-chevron-down" style={{ fontSize: "0.6rem", marginLeft: "4px" }} />
+              </button>
+              {countryOpen ? (
+                <div className="country-dropdown-menu">
+                  <div className="country-dropdown-search">
+                    <i className="fas fa-search" />
+                    <input
+                      type="text"
+                      placeholder="Search country"
+                      value={countrySearch}
+                      onChange={(e) => setCountrySearch(e.target.value)}
+                    />
+                  </div>
+                  <ul className="country-dropdown-list">
+                    {countries
+                      .filter((c) =>
+                        countrySearch
+                          ? c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
+                            c.code.toLowerCase().includes(countrySearch.toLowerCase())
+                          : true
+                      )
+                      .map((c) => (
+                        <li
+                          key={c.code}
+                          className={c.code === selectedCountry ? "active" : ""}
+                          onClick={() => {
+                            setSelectedCountry(c.code);
+                            setCountryOpen(false);
+                            setCountrySearch("");
+                          }}
+                        >
+                          <img src={c.flag} alt={c.code} width={20} height={14} />
+                          <span className="country-name">{c.name}</span>
+                          <span className="country-code">{c.code}</span>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              ) : null}
             </div>
             <Link href="/account" className="header-icon" aria-label="Account">
               <i className="far fa-user" />
