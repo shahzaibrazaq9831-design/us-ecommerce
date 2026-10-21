@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Search, ChevronDown, Check } from "lucide-react";
 import { countries, type Country } from "@/data/countries";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -8,31 +8,60 @@ import { useCurrency } from "@/context/CurrencyContext";
 export default function CurrencySelector() {
   const { country, setCountry } = useCurrency();
   const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  const [showActive, setShowActive] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const filtered = countries.filter((c) => {
     if (!query) return true;
     const q = query.toLowerCase();
-    return c.name.toLowerCase().includes(q) || c.currency.toLowerCase().includes(q) || c.code.toLowerCase().includes(q);
+    return (
+      c.name.toLowerCase().includes(q) ||
+      c.currency.toLowerCase().includes(q) ||
+      c.code.toLowerCase().includes(q) ||
+      (c.label || "").toLowerCase().includes(q)
+    );
   });
+
+  const resetList = useCallback(() => {
+    setQuery("");
+    setActiveIndex(0);
+    setShowActive(false);
+  }, []);
+
+  const closePanel = useCallback(() => {
+    if (!open) return;
+    setOpen(false);
+    setClosing(true);
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => {
+      setClosing(false);
+      resetList();
+    }, 160);
+  }, [open, resetList]);
+
+  const openPanel = useCallback(() => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setClosing(false);
+    setActiveIndex(Math.max(countries.findIndex((c) => c.code === country.code), 0));
+    setShowActive(false);
+    setOpen(true);
+  }, [country.code]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-        setQuery("");
-        setActiveIndex(0);
+        closePanel();
       }
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setOpen(false);
-        setQuery("");
-        setActiveIndex(0);
+        closePanel();
       }
     };
     document.addEventListener("mousedown", onClick);
@@ -41,70 +70,91 @@ export default function CurrencySelector() {
       document.removeEventListener("mousedown", onClick);
       document.removeEventListener("keydown", onKey);
     };
+  }, [closePanel]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimer.current) clearTimeout(closeTimer.current);
+    };
   }, []);
 
   useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-      setActiveIndex(0);
-    } else {
-      setQuery("");
-    }
+    if (!open) return;
+    const timer = setTimeout(() => inputRef.current?.focus(), 40);
+    // Keep the current selection visible without scrolling the page.
+    const frame = requestAnimationFrame(() => {
+      const list = listRef.current;
+      const selected = list?.querySelector<HTMLElement>('[data-selected="true"]');
+      if (!list || !selected) return;
+      const top = selected.offsetTop;
+      const bottom = top + selected.offsetHeight;
+      if (top < list.scrollTop) {
+        list.scrollTop = top;
+      } else if (bottom > list.scrollTop + list.clientHeight) {
+        list.scrollTop = bottom - list.clientHeight;
+      }
+    });
+    return () => {
+      clearTimeout(timer);
+      cancelAnimationFrame(frame);
+    };
   }, [open]);
 
+  const toggleOpen = () => {
+    if (open) {
+      closePanel();
+    } else {
+      openPanel();
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!open) return;
+    if (!open || filtered.length === 0) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
+      setShowActive(true);
       setActiveIndex((i) => Math.min(i + 1, filtered.length - 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
+      setShowActive(true);
       setActiveIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (filtered[activeIndex]) {
-        setCountry(filtered[activeIndex]);
-        setOpen(false);
-        setQuery("");
-        setActiveIndex(0);
+        selectCountry(filtered[activeIndex]);
       }
     }
   };
 
   const selectCountry = (c: Country) => {
     setCountry(c);
-    setOpen(false);
-    setQuery("");
-    setActiveIndex(0);
+    closePanel();
   };
 
   return (
-    <div ref={ref} className="relative z-[1200]" onKeyDown={handleKeyDown}>
+    <div ref={ref} className="currency-selector" onKeyDown={handleKeyDown}>
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 h-[40px] px-[14px] rounded-[10px] border-2 border-[#8B6B2E] bg-[#FBF7F1] text-[#1A1A1A] text-[14px] font-medium hover:bg-[#FBF7F1]"
+        onClick={toggleOpen}
+        className="currency-trigger"
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-label={`Change currency. Current: ${country.currency} (${country.name})`}
       >
-        <img
-          src={`https://flagcdn.com/w40/${country.iso2}.png`}
-          alt={country.name}
-          className="w-[22px] h-[16px] rounded-[2px] object-cover"
-        />
-        <span className="uppercase">{country.currency}</span>
-        <ChevronDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+        <img src={`https://flagcdn.com/w40/${country.iso2}.png`} alt="" aria-hidden="true" />
+        <span className="currency-trigger-code">{country.currency}</span>
+        <ChevronDown size={12} strokeWidth={2} aria-hidden="true" className={open ? "currency-chevron is-open" : "currency-chevron"} />
       </button>
 
-      {open && (
+      {open || closing ? (
         <div
-          className="absolute right-0 top-[calc(100%+8px)] w-[290px] max-[640px]:w-[min(92vw,320px)] bg-white border border-[#E5E0D8] rounded-[14px] shadow-[0_8px_30px_rgba(0,0,0,0.15)] overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
-          role="combobox"
-          aria-expanded={open}
+          className={`currency-panel${closing ? " is-closing" : ""}`}
+          role="dialog"
+          aria-label="Choose a country and currency"
         >
-          <div className="p-3 border-b border-[#EEE9E2] bg-white sticky top-0 z-10">
-            <div className="relative">
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B6B6B]" />
+          <div className="currency-search">
+            <div className="currency-search-inner">
+              <Search size={14} strokeWidth={2} aria-hidden="true" />
               <input
                 ref={inputRef}
                 type="text"
@@ -114,18 +164,16 @@ export default function CurrencySelector() {
                   setActiveIndex(0);
                 }}
                 placeholder="Search countries"
-                className="w-full h-[40px] pl-9 pr-3 border border-[#D9D4CC] rounded-[12px] bg-[#FAF8F5] text-[14px] placeholder:text-[#6B6B6B] focus:outline-none focus:ring-1 focus:ring-[#8B6B2E]/40"
+                aria-label="Search countries"
+                autoComplete="off"
+                spellCheck={false}
               />
             </div>
           </div>
 
-          <ul
-            ref={listRef}
-            role="listbox"
-            className="max-h-[340px] max-[640px]:max-h-[60vh] overflow-y-auto currency-selector-scroll"
-          >
+          <ul ref={listRef} className="currency-list" role="listbox" aria-label="Countries">
             {filtered.length === 0 ? (
-              <li className="h-[40px] flex items-center justify-center text-[14px] text-[#6B6B6B]">No countries found</li>
+              <li className="currency-empty">No countries found</li>
             ) : (
               filtered.map((c, idx) => {
                 const isSelected = c.code === country.code;
@@ -135,44 +183,27 @@ export default function CurrencySelector() {
                     key={c.code}
                     role="option"
                     aria-selected={isSelected}
-                    onMouseEnter={() => setActiveIndex(idx)}
+                    data-selected={isSelected || undefined}
+                    onMouseEnter={() => {
+                      setActiveIndex(idx);
+                      setShowActive(false);
+                    }}
                     onClick={() => selectCountry(c)}
-                    className={`h-[40px] px-4 flex items-center gap-[14px] cursor-pointer ${
-                      isActive || isSelected ? "bg-[#F1EEE9]" : ""
-                    } hover:bg-[#F1EEE9]`}
+                    className={`currency-option${isActive && showActive ? " is-active" : ""}`}
+                    title={c.label || `${c.name} (${c.currency})`}
                   >
-                    <img
-                      src={`https://flagcdn.com/w40/${c.iso2}.png`}
-                      alt={c.name}
-                      className="w-[28px] h-[20px] rounded-[2px] object-cover"
-                    />
-                    <span className={`text-[15px] flex-1 ${isSelected ? "text-[#1A1A1A] font-medium" : "text-[#333]"}`}>
+                    <img src={`https://flagcdn.com/w40/${c.iso2}.png`} alt="" aria-hidden="true" />
+                    <span className="currency-option-label">
                       {c.name} ({c.currency})
                     </span>
-                    {isSelected && <Check size={16} className="text-[#8B6B2E]" />}
+                    {isSelected ? <Check size={12} strokeWidth={2.5} aria-hidden="true" /> : null}
                   </li>
                 );
               })
             )}
           </ul>
         </div>
-      )}
-      <style jsx global>{`
-        .currency-selector-scroll::-webkit-scrollbar {
-          width: 6px;
-        }
-        .currency-selector-scroll::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .currency-selector-scroll::-webkit-scrollbar-thumb {
-          background: #9a9a9a;
-          border-radius: 9999px;
-        }
-        .currency-selector-scroll {
-          scrollbar-width: thin;
-          scrollbar-color: #9a9a9a transparent;
-        }
-      `}</style>
+      ) : null}
     </div>
   );
 }
