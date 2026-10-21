@@ -845,7 +845,9 @@ main {
 .hero-arrow-prev { left: 12px; }
 .hero-arrow-next { right: 12px; }
 
-/* Pill containing the three dots, all the same size, on one line */
+/* Pill containing the three dots, all the same size, on one line.
+   Sizes/blur mirror the reference store: 44px dot buttons, 2px pill padding,
+   backdrop-blur-sm (8px), ink at 25% */
 .hero-dots {
   position: absolute;
   bottom: 8px;
@@ -856,8 +858,8 @@ main {
   padding: 2px;
   border-radius: 9999px;
   background: rgba(23, 23, 23, 0.25);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 10;
 }
 
