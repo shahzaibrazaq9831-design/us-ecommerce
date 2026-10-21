@@ -756,6 +756,8 @@ main {
   height: 85vh;
   min-height: 600px;
   overflow: hidden;
+  /* Let vertical page scrolls through, horizontal drags swipe slides */
+  touch-action: pan-y;
 }
 
 .hero-slider {
@@ -804,14 +806,14 @@ main {
   border: 0;
 }
 
-/* Frosted circular arrows */
+/* Frosted circular arrows — hidden on phones, like the reference store */
 .hero-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   width: 44px;
   height: 44px;
-  display: inline-flex;
+  display: none;
   align-items: center;
   justify-content: center;
   border: 0;
@@ -823,6 +825,10 @@ main {
   cursor: pointer;
   z-index: 10;
   transition: background-color var(--transition-fast);
+}
+
+@media (min-width: 640px) {
+  .hero-arrow { display: inline-flex; }
 }
 
 .hero-arrow:hover,
@@ -847,7 +853,7 @@ main {
   display: flex;
   align-items: center;
   padding: 2px;
-  border-radius: var(--radius-full);
+  border-radius: 9999px;
   background: rgba(23, 23, 23, 0.25);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -872,19 +878,24 @@ main {
   display: block;
   width: 10px;
   height: 10px;
-  border-radius: var(--radius-full);
+  border-radius: 9999px;
   background: rgba(255, 255, 255, 0.6);
   overflow: hidden;
   transition: width var(--transition-fast), background-color var(--transition-fast);
 }
 
-.hero-dots .dot:hover > span {
+.hero-dots .dot:not(.active):hover > span {
   background: rgba(255, 255, 255, 0.9);
 }
 
 .hero-dots .dot.active > span {
   width: 24px;
   background: rgba(255, 255, 255, 0.4);
+}
+
+/* With auto-play off (e.g. reduced motion) the active dot is solid, no countdown */
+.hero.no-autoplay .hero-dots .dot.active > span {
+  background: var(--color-white);
 }
 
 /* Fills left-to-right over the slide duration, showing the time left to scroll */
