@@ -753,8 +753,9 @@ main {
    ============================================ */
 .hero {
   position: relative;
-  height: 85vh;
-  min-height: 600px;
+  /* Box matches the artwork's 16:9 ratio so the full image is always
+     visible, same as the reference store (no zoom, no cropped edges) */
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   /* Let vertical page scrolls through, horizontal drags swipe slides */
   touch-action: pan-y;
@@ -1880,7 +1881,6 @@ main {
   .logo { font-size: 1.1rem; }
   .header-actions { gap: var(--spacing-sm); }
   .header-icon { font-size: 1.1rem; }
-  .hero { height: 70vh; min-height: 500px; }
   .hero-title { font-size: 2rem; }
   .hero-subtitle { font-size: 0.95rem; }
   .features-grid { grid-template-columns: 1fr; gap: var(--spacing-md); }
