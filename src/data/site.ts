@@ -125,7 +125,7 @@ export const heroSlides: HeroSlide[] = [
     cta: "Shop Now",
     href: "/shop",
     image: "/images/hero1.png",
-    mobileImage: "/images/mobile1.jfif",
+    mobileImage: "/images/mobile1.png",
   },
   {
     eyebrow: "Best Sellers",
@@ -134,7 +134,7 @@ export const heroSlides: HeroSlide[] = [
     cta: "Shop Now",
     href: "/shop",
     image: "/images/hero2.png",
-    mobileImage: "/images/mobile2.jfif",
+    mobileImage: "/images/mobile2.png",
   },
   {
     eyebrow: "Formal Collection",
@@ -143,7 +143,7 @@ export const heroSlides: HeroSlide[] = [
     cta: "Shop Now",
     href: "/shop",
     image: "/images/hero3.png",
-    mobileImage: "/images/mobile3.jfif",
+    mobileImage: "/images/mobile3.png",
   },
 ];
 
