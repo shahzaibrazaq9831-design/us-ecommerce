@@ -5,7 +5,7 @@
  */
 
 export const siteConfig = {
-  name: "Premium Pakistani Dresses",
+  name: "Damsa Coture",
   tagline: "Luxury Designer-Inspired Dresses",
   company: "PPD GLOBAL LLC",
   email: "support@premiumpakistanidresses.com",
@@ -111,7 +111,10 @@ export interface HeroSlide {
   subtitle: string;
   cta: string;
   href: string;
+  /** Landscape artwork used from 1024px up. */
   image: string;
+  /** Portrait artwork (427 x 534) used by the phone hero. */
+  mobileImage: string;
 }
 
 export const heroSlides: HeroSlide[] = [
@@ -122,6 +125,7 @@ export const heroSlides: HeroSlide[] = [
     cta: "Shop Now",
     href: "/shop",
     image: "/images/hero1.png",
+    mobileImage: "/images/mobile1.jfif",
   },
   {
     eyebrow: "Best Sellers",
@@ -130,6 +134,7 @@ export const heroSlides: HeroSlide[] = [
     cta: "Shop Now",
     href: "/shop",
     image: "/images/hero2.png",
+    mobileImage: "/images/mobile2.jfif",
   },
   {
     eyebrow: "Formal Collection",
@@ -138,6 +143,7 @@ export const heroSlides: HeroSlide[] = [
     cta: "Shop Now",
     href: "/shop",
     image: "/images/hero3.png",
+    mobileImage: "/images/mobile3.jfif",
   },
 ];
 
@@ -177,8 +183,18 @@ export interface Category {
 }
 
 export const categories: Category[] = [
-  { name: "Bridal Dresses", count: 24, href: "/shop", image: "/images/dress-2.jpg" },
-  { name: "Wedding Dresses", count: 36, href: "/shop", image: "/images/dress-3.jpg" },
+  {
+    name: "Bridal Dresses",
+    count: 24,
+    href: "/shop",
+    image: "/images/dress-2.jpg",
+  },
+  {
+    name: "Wedding Dresses",
+    count: 36,
+    href: "/shop",
+    image: "/images/dress-3.jpg",
+  },
   { name: "Formals", count: 48, href: "/shop", image: "/images/dress-4.jpg" },
   { name: "Chiffon", count: 32, href: "/shop", image: "/images/dress-1.jpg" },
 ];

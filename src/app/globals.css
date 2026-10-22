@@ -2063,8 +2063,15 @@ main {
   }
 
   /* ---------- Hero ---------- */
+  /* The phone hero uses the portrait artwork at the reference size:
+     427 x 534 px. It shrinks proportionally on narrower screens and is
+     centred on a soft band on wider phones/tablets. */
   .hero {
-    aspect-ratio: 3 / 4;
+    width: 100%;
+    max-width: 427px;
+    aspect-ratio: 427 / 534;
+    margin-inline: auto;
+    background: #FBF7F1;
   }
 
   .hero-slide-image {
@@ -2082,12 +2089,19 @@ main {
     padding: 0 20px 62px;
     z-index: 5;
     pointer-events: none;
-    background: linear-gradient(
-      90deg,
-      rgba(18, 18, 16, 0.55) 0%,
-      rgba(18, 18, 16, 0.24) 45%,
-      rgba(18, 18, 16, 0) 72%
-    );
+    /* Bottom-up wash so the copy stays readable over the photo artwork. */
+    background:
+      linear-gradient(
+        to top,
+        rgba(18, 18, 16, 0.78) 0%,
+        rgba(18, 18, 16, 0.35) 34%,
+        rgba(18, 18, 16, 0) 62%
+      ),
+      linear-gradient(
+        90deg,
+        rgba(18, 18, 16, 0.38) 0%,
+        rgba(18, 18, 16, 0) 65%
+      );
   }
 
   .hero-overlay-title {
@@ -2448,14 +2462,13 @@ main {
     color: #1A1A1A;
   }
 
-  /* Opens inside the drawer, at full width, instead of floating above it. */
-  .currency-selector--drawer .currency-panel {
-    position: static;
+}
+
+@media (max-width: 427px) {
+  .hero {
+    max-width: 100%;
     width: 100%;
-    max-width: none;
-    margin-top: 8px;
-    border-radius: 12px;
-    transform-origin: top center;
+    margin-inline: 0;
   }
 }
 

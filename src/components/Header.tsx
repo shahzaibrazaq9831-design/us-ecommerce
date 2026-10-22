@@ -43,25 +43,37 @@ export default function Header() {
         {/* Desktop bar */}
         <div className="header-top">
           <div className="header-top-left">
-            <button className="header-search-btn" onClick={() => setSearchOpen(true)} aria-label="Search">
+            <button
+              className="header-search-btn"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Search"
+            >
               <i className="fas fa-search" />
             </button>
           </div>
           <Link href="/" className="logo">
-            Premium Pakistani Dresses
+            Damsa Coture
           </Link>
           <div className="header-actions">
             <CurrencySelector />
             <Link href="/account" className="header-icon" aria-label="Account">
               <i className="far fa-user" />
             </Link>
-            <Link href="/wishlist" className="header-icon" aria-label="Wishlist">
+            <Link
+              href="/wishlist"
+              className="header-icon"
+              aria-label="Wishlist"
+            >
               <i className="far fa-heart" />
-              {wishlist.length > 0 ? <span className="badge">{wishlist.length}</span> : null}
+              {wishlist.length > 0 ? (
+                <span className="badge">{wishlist.length}</span>
+              ) : null}
             </Link>
             <Link href="/cart" className="header-icon" aria-label="Cart">
               <i className="fas fa-shopping-bag" />
-              {cartCount > 0 ? <span className="badge">{cartCount}</span> : null}
+              {cartCount > 0 ? (
+                <span className="badge">{cartCount}</span>
+              ) : null}
             </Link>
           </div>
         </div>
@@ -80,7 +92,11 @@ export default function Header() {
             <Menu size={22} strokeWidth={1.5} aria-hidden="true" />
           </button>
 
-          <Link href="/" className="m-header-logo" aria-label="Premium Pakistani Dresses">
+          <Link
+            href="/"
+            className="m-header-logo"
+            aria-label="Premium Pakistani Dresses"
+          >
             Premium Pakistani Dresses
           </Link>
 
@@ -93,9 +109,15 @@ export default function Header() {
             >
               <Search size={22} strokeWidth={1.5} aria-hidden="true" />
             </button>
-            <Link href="/cart" className="m-header-btn tap-target" aria-label="Cart">
+            <Link
+              href="/cart"
+              className="m-header-btn tap-target"
+              aria-label="Cart"
+            >
               <ShoppingBag size={22} strokeWidth={1.5} aria-hidden="true" />
-              {cartCount > 0 ? <span className="badge m-header-badge">{cartCount}</span> : null}
+              {cartCount > 0 ? (
+                <span className="badge m-header-badge">{cartCount}</span>
+              ) : null}
             </Link>
           </div>
         </div>
@@ -105,10 +127,18 @@ export default function Header() {
             {navItems
               .filter((item) => !item.desktopHidden)
               .map((item) => (
-                <li key={item.label} className={`${item.children ? "nav-dropdown" : ""}${isActive(item.href) ? " active" : ""}`}>
+                <li
+                  key={item.label}
+                  className={`${item.children ? "nav-dropdown" : ""}${isActive(item.href) ? " active" : ""}`}
+                >
                   <Link href={item.href}>
                     {item.label}
-                    {item.children ? <i className="fas fa-chevron-down" style={{ fontSize: "0.7rem" }} /> : null}
+                    {item.children ? (
+                      <i
+                        className="fas fa-chevron-down"
+                        style={{ fontSize: "0.7rem" }}
+                      />
+                    ) : null}
                   </Link>
                   {item.children ? (
                     <ul className="dropdown">
@@ -125,7 +155,10 @@ export default function Header() {
         </nav>
       </header>
 
-      <MobileMenuDrawer open={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <MobileMenuDrawer
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+      />
 
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>

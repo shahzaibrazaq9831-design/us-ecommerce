@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import Link from "next/link";
 import { heroSlides } from "@/data/site";
 
@@ -151,35 +151,55 @@ export default function HeroSlider() {
       }}
     >
       <div className="hero-slider" aria-live={running ? "off" : "polite"}>
-        {heroSlides.map((slide, index) => (
-          <div
-            key={slide.title}
-            className={`hero-slide${index === current ? " active" : ""}`}
-            role="group"
-            aria-roledescription="slide"
-            aria-label={`${index + 1} of ${total}: ${slide.title}`}
-            aria-hidden={index !== current}
-          >
-            <Link
-              href={slide.href}
-              className="hero-slide-link"
-              draggable={false}
-              tabIndex={index === current ? undefined : -1}
+        {heroSlides.map((slide, index) => {
+          /* Phone artwork: portrait 427 x 534 shots served to the phone hero. */
+          const { props: mobileProps } = getImageProps({
+            alt: "",
+            src: slide.mobileImage,
+            width: 825,
+            height: 1024,
+            sizes: "(max-width: 427px) 100vw, 427px",
+            quality: 80,
+          });
+
+          return (
+            <div
+              key={slide.title}
+              className={`hero-slide${index === current ? " active" : ""}`}
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`${index + 1} of ${total}: ${slide.title}`}
+              aria-hidden={index !== current}
             >
-              <Image
-                src={slide.image}
-                alt=""
-                fill
-                priority={index === 0}
-                sizes="100vw"
-                className="hero-slide-image"
-              />
-              <span className="hero-sr-only">
-                {slide.title}. {slide.subtitle}. {slide.cta}.
-              </span>
-            </Link>
-          </div>
-        ))}
+              <Link
+                href={slide.href}
+                className="hero-slide-link"
+                draggable={false}
+                tabIndex={index === current ? undefined : -1}
+              >
+                <picture>
+                  <source
+                    media="(max-width: 1023px)"
+                    srcSet={mobileProps.srcSet}
+                    sizes={mobileProps.sizes}
+                  />
+                  <Image
+                    src={slide.image}
+                    alt=""
+                    fill
+                    loading="eager"
+                    fetchPriority={index === 0 ? "high" : "auto"}
+                    sizes="100vw"
+                    className="hero-slide-image"
+                  />
+                </picture>
+                <span className="hero-sr-only">
+                  {slide.title}. {slide.subtitle}. {slide.cta}.
+                </span>
+              </Link>
+            </div>
+          );
+        })}
       </div>
 
       {/* Mobile-only copy panel */}
