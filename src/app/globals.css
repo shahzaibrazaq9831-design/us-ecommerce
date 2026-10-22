@@ -1267,7 +1267,7 @@ main {
   }
 }
 
-/* Phones: swipe only, and a card and a half in view. */
+/* Phones: a card and a half in view, with compact arrow controls. */
 @media (max-width: 767px) {
   .occasion-tile {
     flex-basis: 62vw;
@@ -1275,7 +1275,21 @@ main {
   }
 
   .occasion-carousel-arrow {
-    display: none;
+    width: 32px;
+    height: 32px;
+    box-shadow: 0 3px 10px rgba(26, 26, 26, 0.18);
+  }
+
+  .occasion-carousel-arrow svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Keep the 44px tap target around the smaller visible circle. */
+  .occasion-carousel-arrow::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
   }
 
   .occasion-tile-content {

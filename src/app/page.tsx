@@ -67,28 +67,6 @@ export default function HomePage() {
       {/* Shop by Occasion */}
       <OccasionCarousel />
 
-      {/* Best Sellers */}
-      <Reveal>
-        <section className="section best-sellers-section">
-          <div className="container">
-            <div className="section-header">
-              <h2 className="section-title">Best Sellers</h2>
-              <p className="section-subtitle">Our most loved pieces, handpicked for you</p>
-            </div>
-            <div className="products-grid">
-              {bestSellers.map((product) => (
-                <ProductCard key={product.slug} product={product} />
-              ))}
-            </div>
-            <div className="section-cta">
-              <Link href="/shop" className="btn btn-outline">
-                View All Best Sellers
-              </Link>
-            </div>
-          </div>
-        </section>
-      </Reveal>
-
       {/* New Arrivals */}
       <Reveal>
         <section className="section new-arrivals-section">
@@ -105,6 +83,28 @@ export default function HomePage() {
             <div className="section-cta">
               <Link href="/shop" className="btn btn-outline">
                 View All New Arrivals
+              </Link>
+            </div>
+          </div>
+        </section>
+      </Reveal>
+
+      {/* Best Sellers */}
+      <Reveal>
+        <section className="section best-sellers-section">
+          <div className="container">
+            <div className="section-header">
+              <h2 className="section-title">Best Sellers</h2>
+              <p className="section-subtitle">Our most loved pieces, handpicked for you</p>
+            </div>
+            <div className="products-grid">
+              {bestSellers.map((product) => (
+                <ProductCard key={product.slug} product={product} />
+              ))}
+            </div>
+            <div className="section-cta">
+              <Link href="/shop" className="btn btn-outline">
+                View All Best Sellers
               </Link>
             </div>
           </div>
