@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -175,8 +176,19 @@ export default function MobileMenuDrawer({ open, onClose }: { open: boolean; onC
         inert={!open}
       >
         <div className="m-drawer-head">
-          <Link href="/" className="m-drawer-logo" onClick={onClose}>
-            Premium Pakistani Dresses
+          <Link
+            href="/"
+            className="m-drawer-logo"
+            onClick={onClose}
+            aria-label="Damsa Coture"
+          >
+            <Image
+              src="/images/logo-damsa.webp"
+              alt="Damsa Coture"
+              width={889}
+              height={220}
+              className="m-drawer-logo-img"
+            />
           </Link>
           <button
             type="button"

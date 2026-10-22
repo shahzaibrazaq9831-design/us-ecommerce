@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -51,8 +52,15 @@ export default function Header() {
               <i className="fas fa-search" />
             </button>
           </div>
-          <Link href="/" className="logo">
-            Damsa Coture
+          <Link href="/" className="logo header-logo" aria-label="Damsa Coture">
+            <Image
+              src="/images/logo-damsa.webp"
+              alt="Damsa Coture"
+              width={889}
+              height={220}
+              priority
+              className="header-logo-img"
+            />
           </Link>
           <div className="header-actions">
             <CurrencySelector />
@@ -92,12 +100,14 @@ export default function Header() {
             <Menu size={22} strokeWidth={1.5} aria-hidden="true" />
           </button>
 
-          <Link
-            href="/"
-            className="m-header-logo"
-            aria-label="Premium Pakistani Dresses"
-          >
-           Damsa Coture
+          <Link href="/" className="m-header-logo" aria-label="Damsa Coture">
+            <Image
+              src="/images/logo-damsa.webp"
+              alt="Damsa Coture"
+              width={889}
+              height={220}
+              className="m-header-logo-img"
+            />
           </Link>
 
           <div className="m-header-actions">

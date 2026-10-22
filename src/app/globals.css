@@ -186,9 +186,9 @@ main {
 }
 
 .header-top {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   height: var(--header-height);
   padding: 0 var(--container-padding);
   max-width: var(--container-max);
@@ -199,6 +199,7 @@ main {
 .header-top-left {
   display: flex;
   align-items: center;
+  justify-self: start;
   gap: var(--spacing-sm);
   flex: 0 0 auto;
 }
@@ -256,6 +257,27 @@ main {
   color: var(--color-primary);
 }
 
+.header-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.header-logo-img {
+  display: block;
+  width: auto;
+  height: 50px;
+  transform: scale(1);
+  transform-origin: center;
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.header.scrolled .header-logo-img {
+  transform: scale(0.84);
+}
+
 /* The mobile bar (hamburger / logo / search + cart) replaces the desktop bar
    below 1024px. See the "Mobile experience" section at the end of this file. */
 .m-header {
@@ -265,6 +287,7 @@ main {
 .header-actions {
   display: flex;
   align-items: center;
+  justify-self: end;
   gap: var(--spacing-md);
 }
 
@@ -2212,18 +2235,26 @@ main {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
     max-width: min(56vw, 210px);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-family: var(--font-heading);
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: -0.2px;
-    line-height: 1;
-    color: #1A1A1A;
-    /* Keeps the wordmark visually identical while the hit area stays 44px. */
-    padding: 15px 0;
+    line-height: 0;
+  }
+
+  .m-header-logo-img {
+    display: block;
+    width: auto;
+    height: 30px;
+    transform: scale(1);
+    transform-origin: center;
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  .header.scrolled .m-header-logo-img {
+    transform: scale(0.86);
   }
 
   .m-header-badge {
@@ -2491,11 +2522,13 @@ main {
     display: flex;
     align-items: center;
     min-height: 44px;
-    font-family: var(--font-heading);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 1.2;
-    color: #1A1A1A;
+    line-height: 0;
+  }
+
+  .m-drawer-logo-img {
+    display: block;
+    width: auto;
+    height: 30px;
   }
 
   .m-drawer-close {
