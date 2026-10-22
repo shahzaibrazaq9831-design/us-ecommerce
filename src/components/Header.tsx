@@ -97,7 +97,7 @@ export default function Header() {
             className="m-header-logo"
             aria-label="Premium Pakistani Dresses"
           >
-            Premium Pakistani Dresses
+           Damsa Coture
           </Link>
 
           <div className="m-header-actions">

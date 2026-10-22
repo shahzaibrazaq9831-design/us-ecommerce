@@ -1023,9 +1023,12 @@ main {
 
 .occasions-grid {
   display: flex;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
   overflow-x: auto;
   scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
   padding: var(--spacing-md) 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -1036,7 +1039,9 @@ main {
 }
 
 .occasion-card {
-  flex: 0 0 200px;
+  /* Phones: exactly two cards in view, so one arrow press = one screen. */
+  flex: 0 0 calc(50% - (var(--spacing-md) / 2));
+  scroll-snap-align: start;
   text-align: center;
   transition: transform var(--transition-base);
 }
@@ -1046,29 +1051,49 @@ main {
 }
 
 .occasion-image {
-  width: 200px;
-  height: 260px;
+  width: 100%;
+  aspect-ratio: 7 / 10;
   border-radius: var(--radius-lg);
-  margin-bottom: var(--spacing-md);
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-md);
   transition: box-shadow var(--transition-base);
+  background: var(--color-gray-100);
 }
 
 .occasion-card:hover .occasion-image {
   box-shadow: var(--shadow-xl);
 }
 
-.occasion-name {
+/* Lookbook index shown on the image instead of a text label. */
+.occasion-number {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: rgba(26, 26, 26, 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: var(--color-white);
+  font-family: var(--font-heading);
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--color-secondary);
-  transition: color var(--transition-fast);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  transition: background var(--transition-base), transform var(--transition-base);
 }
 
-.occasion-card:hover .occasion-name {
-  color: var(--color-primary);
+.occasion-card:hover .occasion-number {
+  background: var(--color-primary);
+  transform: scale(1.05);
 }
 
 .scroll-btn {
@@ -1095,8 +1120,73 @@ main {
   box-shadow: var(--shadow-lg);
 }
 
-.scroll-left { left: -22px; }
-.scroll-right { right: -22px; }
+/* Arrows live inside the rail by default so they can never be clipped
+   by the viewport edge; wide screens get the classic outside-the-card look. */
+.scroll-left { left: 4px; }
+.scroll-right { right: 4px; }
+
+/* Tablet: three cards in view. */
+@media (min-width: 600px) and (max-width: 1024px) {
+  .occasion-card {
+    flex: 0 0 calc(33.3333% - (var(--spacing-md) * 2 / 3));
+  }
+}
+
+/* Laptop: four cards in view. */
+@media (min-width: 1025px) {
+  .occasion-card {
+    flex: 0 0 calc(25% - (var(--spacing-md) * 3 / 4));
+  }
+}
+
+/* Wide laptop: five cards in view. */
+@media (min-width: 1281px) {
+  .occasion-card {
+    flex: 0 0 calc(20% - (var(--spacing-md) * 4 / 5));
+  }
+}
+
+/* Tablet and below: compact arrows that stay inside the rail. */
+@media (max-width: 1024px) {
+  .scroll-btn {
+    width: 38px;
+    height: 38px;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.92);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .scroll-left { left: 6px; }
+  .scroll-right { right: 6px; }
+}
+
+/* Wide screens: pull the arrows out to the edge of the section. */
+@media (min-width: 1025px) {
+  .scroll-left { left: -22px; }
+  .scroll-right { right: -22px; }
+}
+
+/* Phones: smaller arrows and a smaller index badge. */
+@media (max-width: 768px) {
+  .scroll-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 0.8rem;
+  }
+
+  .scroll-left { left: 6px; }
+  .scroll-right { right: 6px; }
+
+  .occasion-number {
+    top: 8px;
+    left: 8px;
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+}
 
 /* Products Grid */
 .products-grid {
@@ -1842,7 +1932,6 @@ main {
   .newsletter-form { flex-direction: column; }
   .footer-grid { grid-template-columns: 1fr; gap: var(--spacing-xl); }
   .footer-bottom { flex-direction: column; gap: var(--spacing-md); text-align: center; }
-  .scroll-btn { display: none; }
   .whatsapp-float { width: 50px; height: 50px; font-size: 1.5rem; bottom: 20px; right: 20px; }
   .back-to-top { bottom: 80px; right: 20px; }
   .section { padding: var(--spacing-2xl) 0; }
@@ -1855,8 +1944,6 @@ main {
   .products-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
   .product-actions { opacity: 1; transform: none; }
   .product-action-btn { width: 32px; height: 32px; font-size: 0.8rem; }
-  .occasion-card { flex: 0 0 150px; }
-  .occasion-image { width: 150px; height: 200px; }
   .toast { right: 16px; bottom: 16px; left: 16px; max-width: none; }
 }
 
@@ -2074,8 +2161,18 @@ main {
     background: #FBF7F1;
   }
 
+  .hero-slider,
+  .hero-slide-link,
+  .hero-picture {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
   .hero-slide-image {
-    object-position: center;
+    object-fit: cover;
+    object-position: 50% 15%;
   }
 
   .hero-overlay {
@@ -2086,7 +2183,7 @@ main {
     gap: 2px;
     position: absolute;
     inset: 0;
-    padding: 0 20px 62px;
+    padding: 0 18px 56px;
     z-index: 5;
     pointer-events: none;
     /* Bottom-up wash so the copy stays readable over the photo artwork. */
@@ -2130,20 +2227,7 @@ main {
   }
 
   .hero-overlay-cta {
-    pointer-events: auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 44px;
-    margin-top: 14px;
-    padding: 0 22px;
-    border-radius: 4px;
-    background: #8B6B2E;
-    color: #FFFFFF;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    display: none;
   }
 
   /* ---------- Trust grid ---------- */

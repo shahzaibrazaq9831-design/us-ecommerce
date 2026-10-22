@@ -159,7 +159,7 @@ export default function HeroSlider() {
             width: 825,
             height: 1024,
             sizes: "(max-width: 427px) 100vw, 427px",
-            quality: 80,
+            quality: 85,
           });
 
           return (
@@ -177,17 +177,17 @@ export default function HeroSlider() {
                 draggable={false}
                 tabIndex={index === current ? undefined : -1}
               >
-                <picture>
+                <picture className="hero-picture">
                   <source
                     media="(max-width: 1023px)"
                     srcSet={mobileProps.srcSet}
-                    sizes={mobileProps.sizes}
+                    sizes="(max-width: 427px) 100vw, 427px"
                   />
                   <Image
                     src={slide.image}
                     alt=""
                     fill
-                    loading="eager"
+                    loading={index === 0 ? "eager" : "lazy"}
                     fetchPriority={index === 0 ? "high" : "auto"}
                     sizes="100vw"
                     className="hero-slide-image"
@@ -203,13 +203,13 @@ export default function HeroSlider() {
       </div>
 
       {/* Mobile-only copy panel */}
-      <div className="hero-overlay">
-        <p className="hero-overlay-title">Luxury Bridal Dresses</p>
+      <div className="hero-overlay" aria-hidden="true">
+        {/* <p className="hero-overlay-title">Luxury Bridal Dresses</p> */}
         <p className="hero-overlay-plus" aria-hidden="true">
           +
         </p>
-        <p className="hero-overlay-off">FLAT 50% OFF</p>
-        <Link href="/shop" className="hero-overlay-cta">
+        {/* <p className="hero-overlay-off">FLAT 50% OFF</p> */}
+        <Link href="/shop" className="hero-overlay-cta" aria-hidden="true" tabIndex={-1}>
           Shop Now
         </Link>
       </div>

@@ -151,17 +151,19 @@ export interface Occasion {
   name: string;
   href: string;
   image: string;
+  /** Lookbook index shown on the image (matches the image file number). */
+  number: string;
 }
 
 export const occasions: Occasion[] = [
-  { name: "Barat", href: "/collections", image: "/images/dress-3.jpg" },
-  { name: "Mehndi", href: "/collections", image: "/images/dress-1.jpg" },
-  { name: "Nikkah", href: "/collections", image: "/images/dress-2.jpg" },
-  { name: "Walima", href: "/collections", image: "/images/dress-4.jpg" },
-  { name: "Mayun", href: "/collections", image: "/images/dress-5.jpg" },
-  { name: "Dholki", href: "/collections", image: "/images/dress-6.jpg" },
-  { name: "Engagement", href: "/collections", image: "/images/dress-7.jpg" },
-  { name: "Eid", href: "/collections", image: "/images/dress-8.jpg" },
+  { name: "Barat", href: "/collections", image: "/images/06.png", number: "06" },
+  { name: "Mehndi", href: "/collections", image: "/images/07.png", number: "07" },
+  { name: "Nikkah", href: "/collections", image: "/images/04.png", number: "04" },
+  { name: "Walima", href: "/collections", image: "/images/01.png", number: "01" },
+  { name: "Mayun", href: "/collections", image: "/images/05.png", number: "05" },
+  { name: "Dholki", href: "/collections", image: "/images/08.png", number: "08" },
+  { name: "Engagement", href: "/collections", image: "/images/02.png", number: "02" },
+  { name: "Eid", href: "/collections", image: "/images/03.png", number: "03" },
 ];
 
 export const occasionDescriptions: Record<string, string> = {
@@ -187,16 +189,16 @@ export const categories: Category[] = [
     name: "Bridal Dresses",
     count: 24,
     href: "/shop",
-    image: "/images/dress-2.jpg",
+    image: "/images/01.png",
   },
   {
     name: "Wedding Dresses",
     count: 36,
     href: "/shop",
-    image: "/images/dress-3.jpg",
+    image: "/images/06.png",
   },
-  { name: "Formals", count: 48, href: "/shop", image: "/images/dress-4.jpg" },
-  { name: "Chiffon", count: 32, href: "/shop", image: "/images/dress-1.jpg" },
+  { name: "Formals", count: 48, href: "/shop", image: "/images/02.png" },
+  { name: "Chiffon", count: 32, href: "/shop", image: "/images/05.png" },
 ];
 
 export interface Review {
@@ -228,10 +230,10 @@ export const reviews: Review[] = [
 ];
 
 export const gallery: string[] = [
-  "/images/dress-1.jpg",
-  "/images/dress-2.jpg",
-  "/images/dress-3.jpg",
-  "/images/dress-4.jpg",
-  "/images/dress-5.jpg",
-  "/images/dress-6.jpg",
+  "/images/01.png",
+  "/images/02.png",
+  "/images/03.png",
+  "/images/04.png",
+  "/images/05.png",
+  "/images/06.png",
 ];

@@ -8,9 +8,9 @@ import { siteConfig } from "@/data/site";
 function MobileGroup({ hidden }: { hidden?: boolean }) {
   return (
     <div className="announcement-group" aria-hidden={hidden || undefined}>
-      <span className="announcement-item">Shipped: 10% discount at checkout</span>
+      <span className="announcement-item">Shipped: 10% discount at checkout                         </span>
       <span className="announcement-separator announcement-separator--mid">·</span>
-      <span className="announcement-item">Free worldwide shipping</span>
+      <span className="announcement-item">Free worldwide shipping                               </span>
       <span className="announcement-separator">•</span>
     </div>
   );
