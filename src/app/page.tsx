@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import HeroSlider from "@/components/HeroSlider";
 import TrustGrid from "@/components/TrustGrid";
-import OccasionsCarousel from "@/components/OccasionsCarousel";
+import OccasionCarousel from "@/components/OccasionCarousel";
 import ProductCard from "@/components/ProductCard";
 import Reveal from "@/components/Reveal";
 import NewsletterForm from "@/components/NewsletterForm";
@@ -65,19 +65,7 @@ export default function HomePage() {
       </section>
 
       {/* Shop by Occasion */}
-      <Reveal>
-        <section className="section occasions-section">
-          <div className="container">
-            <div className="section-header">
-              <h2 className="section-title">Shop by Occasion</h2>
-              <p className="section-subtitle">
-                Find your look for the ceremony, the celebration and every gathering in between.
-              </p>
-            </div>
-            <OccasionsCarousel />
-          </div>
-        </section>
-      </Reveal>
+      <OccasionCarousel />
 
       {/* Best Sellers */}
       <Reveal>

@@ -1012,179 +1012,298 @@ main {
   margin-top: var(--spacing-2xl);
 }
 
-/* Occasions */
-.occasions-section {
-  background: var(--color-white);
+/* Shop by Occasion — snap-scrolling collection rail */
+.occasion-carousel-section {
+  background: #F3EEE4;
+  padding: 64px 0;
+  overflow-x: clip;
 }
 
-.occasions-wrapper {
+.occasion-carousel-header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.occasion-carousel-title {
+  font-family: var(--font-heading);
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: #1F3D2B;
+}
+
+.occasion-carousel-subtitle {
+  margin-top: 8px;
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-style: italic;
+  line-height: 1.5;
+  color: #6F6A61;
+}
+
+.occasion-carousel {
   position: relative;
 }
 
-.occasions-grid {
+.occasion-carousel-rail {
   display: flex;
-  gap: var(--spacing-md);
+  gap: 18px;
   overflow-x: auto;
+  overflow-y: hidden;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
-  padding: var(--spacing-md) 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-.occasions-grid::-webkit-scrollbar {
+.occasion-carousel-rail::-webkit-scrollbar {
   display: none;
 }
 
-.occasion-card {
-  /* Phones: exactly two cards in view, so one arrow press = one screen. */
-  flex: 0 0 calc(50% - (var(--spacing-md) / 2));
-  scroll-snap-align: start;
-  text-align: center;
-  transition: transform var(--transition-base);
+/* Direct scrollLeft updates during a mouse drag; re-enabled on release. */
+.occasion-carousel-rail.is-dragging {
+  scroll-behavior: auto;
+  scroll-snap-type: none;
+  cursor: grabbing;
+  user-select: none;
 }
 
-.occasion-card:hover {
-  transform: translateY(-8px);
-}
-
-.occasion-image {
-  width: 100%;
-  aspect-ratio: 7 / 10;
-  border-radius: var(--radius-lg);
+.occasion-tile {
   position: relative;
+  flex: 0 0 230px;
+  width: 230px;
+  aspect-ratio: 4 / 5;
   overflow: hidden;
-  box-shadow: var(--shadow-md);
-  transition: box-shadow var(--transition-base);
-  background: var(--color-gray-100);
+  border-radius: 14px;
+  background: #E4DACA;
+  scroll-snap-align: start;
+  /* Revealed by IntersectionObserver; hidden until the first intersection. */
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 600ms ease-out, transform 600ms ease-out;
 }
 
-.occasion-card:hover .occasion-image {
-  box-shadow: var(--shadow-xl);
+.occasion-tile.is-visible {
+  opacity: 1;
+  transform: none;
 }
 
-/* Lookbook index shown on the image instead of a text label. */
-.occasion-number {
+.occasion-tile-link {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: inherit;
+  color: var(--color-white);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.occasion-tile-link:focus-visible {
+  outline: 3px solid #8B6914;
+  outline-offset: -4px;
+}
+
+.occasion-tile-image {
+  object-fit: cover;
+  object-position: center top;
+  transition: transform 500ms ease-out;
+  -webkit-user-drag: none;
+}
+
+.occasion-tile-gradient {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.65) 0%,
+    rgba(0, 0, 0, 0) 45%
+  );
+}
+
+/* Second wash, faded in on hover/tap for a slightly darker gradient. */
+.occasion-tile-gradient--hover {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.18) 42%,
+    rgba(0, 0, 0, 0) 68%
+  );
+  opacity: 0;
+  transition: opacity 400ms ease-out;
+}
+
+.occasion-tile-content {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px;
+}
+
+.occasion-tile-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.occasion-tile-label {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.occasion-tile-title {
+  font-family: var(--font-body);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--color-white);
+}
+
+.occasion-tile-arrow {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+  color: var(--color-white);
+  transition: transform 300ms ease-out;
+}
+
+.occasion-tile:active .occasion-tile-image {
+  transform: scale(1.08);
+}
+
+.occasion-tile:active .occasion-tile-arrow {
+  transform: translate(3px, -3px);
+}
+
+.occasion-tile:active .occasion-tile-gradient--hover {
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .occasion-tile:hover .occasion-tile-image {
+    transform: scale(1.08);
+  }
+
+  .occasion-tile:hover .occasion-tile-arrow {
+    transform: translate(3px, -3px);
+  }
+
+  .occasion-tile:hover .occasion-tile-gradient--hover {
+    opacity: 1;
+  }
+}
+
+.occasion-carousel-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 5;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-full);
-  background: rgba(26, 26, 26, 0.55);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  color: var(--color-white);
-  font-family: var(--font-heading);
-  font-size: 0.95rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.04em;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
-  transition: background var(--transition-base), transform var(--transition-base);
-}
-
-.occasion-card:hover .occasion-number {
-  background: var(--color-primary);
-  transform: scale(1.05);
-}
-
-.scroll-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
   background: var(--color-white);
-  border-radius: var(--radius-full);
-  box-shadow: var(--shadow-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  color: var(--color-secondary);
-  z-index: 10;
-  transition: all var(--transition-base);
+  color: #1F1F1F;
+  box-shadow: 0 4px 14px rgba(26, 26, 26, 0.16);
+  transform: translateY(-50%);
+  transition: opacity 200ms ease, visibility 200ms ease,
+    box-shadow 200ms ease;
 }
 
-.scroll-btn:hover {
-  background: var(--color-primary);
-  color: var(--color-white);
-  box-shadow: var(--shadow-lg);
+.occasion-carousel-arrow--prev { left: calc(-1 * var(--container-padding)); }
+.occasion-carousel-arrow--next { right: calc(-1 * var(--container-padding)); }
+
+/* The arrows disappear at the first/last card instead of disabling in place. */
+.occasion-carousel-arrow[aria-hidden="true"] {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
-/* Arrows live inside the rail by default so they can never be clipped
-   by the viewport edge; wide screens get the classic outside-the-card look. */
-.scroll-left { left: 4px; }
-.scroll-right { right: 4px; }
+.occasion-carousel-arrow:hover {
+  box-shadow: 0 6px 18px rgba(26, 26, 26, 0.24);
+}
 
-/* Tablet: three cards in view. */
-@media (min-width: 600px) and (max-width: 1024px) {
-  .occasion-card {
-    flex: 0 0 calc(33.3333% - (var(--spacing-md) * 2 / 3));
+.occasion-carousel-arrow:focus-visible {
+  outline: 3px solid #1F3D2B;
+  outline-offset: -3px;
+}
+
+@media (max-width: 1023px) {
+  .occasion-carousel-section {
+    padding: 40px 0;
+  }
+
+  .occasion-carousel-header {
+    margin-bottom: 24px;
+    padding: 0 4px;
+  }
+
+  .occasion-carousel-title {
+    font-size: 26px;
+  }
+
+  .occasion-carousel-subtitle {
+    font-size: 14px;
   }
 }
 
-/* Laptop: four cards in view. */
-@media (min-width: 1025px) {
-  .occasion-card {
-    flex: 0 0 calc(25% - (var(--spacing-md) * 3 / 4));
+/* Phones: swipe only, and a card and a half in view. */
+@media (max-width: 767px) {
+  .occasion-tile {
+    flex-basis: 62vw;
+    width: 62vw;
+  }
+
+  .occasion-carousel-arrow {
+    display: none;
+  }
+
+  .occasion-tile-content {
+    padding: 16px;
   }
 }
 
-/* Wide laptop: five cards in view. */
-@media (min-width: 1281px) {
-  .occasion-card {
-    flex: 0 0 calc(20% - (var(--spacing-md) * 4 / 5));
-  }
-}
-
-/* Tablet and below: compact arrows that stay inside the rail. */
-@media (max-width: 1024px) {
-  .scroll-btn {
-    width: 38px;
-    height: 38px;
-    font-size: 0.85rem;
-    background: rgba(255, 255, 255, 0.92);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
-    box-shadow: var(--shadow-sm);
+@media (prefers-reduced-motion: reduce) {
+  .occasion-tile {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 
-  .scroll-left { left: 6px; }
-  .scroll-right { right: 6px; }
-}
-
-/* Wide screens: pull the arrows out to the edge of the section. */
-@media (min-width: 1025px) {
-  .scroll-left { left: -22px; }
-  .scroll-right { right: -22px; }
-}
-
-/* Phones: smaller arrows and a smaller index badge. */
-@media (max-width: 768px) {
-  .scroll-btn {
-    width: 34px;
-    height: 34px;
-    font-size: 0.8rem;
+  .occasion-carousel-rail,
+  .occasion-carousel-arrow,
+  .occasion-tile-image,
+  .occasion-tile-arrow,
+  .occasion-tile-gradient--hover {
+    transition: none;
+    scroll-behavior: auto;
   }
 
-  .scroll-left { left: 6px; }
-  .scroll-right { right: 6px; }
-
-  .occasion-number {
-    top: 8px;
-    left: 8px;
-    width: 30px;
-    height: 30px;
-    font-size: 0.8rem;
+  .occasion-tile:hover .occasion-tile-image,
+  .occasion-tile:active .occasion-tile-image,
+  .occasion-tile:hover .occasion-tile-arrow,
+  .occasion-tile:active .occasion-tile-arrow {
+    transform: none;
   }
 }
 
@@ -2229,6 +2348,30 @@ main {
   .hero-overlay-cta {
     display: none;
   }
+
+  /* Phone-sized frosted arrows: same look and blur as the desktop controls,
+     just scaled down so both fit inside the narrow portrait hero. */
+  .hero-arrow {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  /* Keep the 44px tap target without making the visible circle bigger. */
+  .hero-arrow::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+  }
+
+  .hero-arrow svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .hero-arrow-prev { left: 8px; }
+  .hero-arrow-next { right: 8px; }
 
   /* ---------- Trust grid ---------- */
   .trust-grid {
