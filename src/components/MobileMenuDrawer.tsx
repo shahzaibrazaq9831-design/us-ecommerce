@@ -4,9 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Heart, MessageCircle, Search, User, X } from "lucide-react";
+import { ChevronDown, Heart, Search, User, X } from "lucide-react";
 import CurrencySelector from "./CurrencySelector";
-import { navItems, siteConfig, type NavItem } from "@/data/site";
+import { navItems, type NavItem } from "@/data/site";
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -251,16 +251,6 @@ export default function MobileMenuDrawer({ open, onClose }: { open: boolean; onC
               <Heart size={17} strokeWidth={1.4} aria-hidden="true" />
               Wishlist
             </Link>
-            <a
-              href={siteConfig.whatsapp}
-              className="m-drawer-foot-link"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={onClose}
-            >
-              <MessageCircle size={17} strokeWidth={1.4} aria-hidden="true" />
-              Chat on WhatsApp
-            </a>
           </div>
         </div>
       </aside>

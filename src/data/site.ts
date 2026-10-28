@@ -4,14 +4,16 @@
  * occasions, categories, reviews and gallery across the whole site.
  */
 
+export const stylingAssistanceMessage =
+  "Hello Damsa Coture, I would like some styling assistance.";
+
 export const siteConfig = {
   name: "Damsa Coture",
   tagline: "Luxury Designer-Inspired Dresses",
   company: "PPD GLOBAL LLC",
   email: "support@premiumpakistanidresses.com",
   phone: "+92 320 0909666",
-  whatsapp:
-    "https://wa.me/923200909666?text=Hello%20Premium%20Pakistani%20Dresses%2C%20I%20would%20like%20some%20styling%20assistance.",
+  whatsapp: `https://wa.me/923200909666?text=${encodeURIComponent(stylingAssistanceMessage)}`,
   promoCode: "PPD10",
   promoDiscount: "10%",
   copyrightYear: "2026",

@@ -123,46 +123,46 @@ export default function RecentReviewPopup() {
     <aside
       aria-label="New customer review"
       role="region"
-      className="fixed bottom-3 left-3 z-40 w-[calc(100vw-6rem)] max-w-[23rem] cr-popup-enter rounded-2xl border border-emerald/10 bg-white p-3 text-[var(--cr-ink)] shadow-[0_12px_40px_-12px_rgba(23,60,53,0.24)] sm:left-5 sm:bottom-4 sm:w-[23rem] sm:p-4"
+      className="cr-popup cr-popup-enter"
     >
       <button
         type="button"
         onClick={dismiss}
-        className="absolute top-1 right-1 inline-flex size-8 items-center justify-center rounded-full border border-transparent bg-transparent text-[var(--cr-muted)]/70 transition-colors hover:bg-[#f4efe6] hover:text-[var(--cr-ink)]"
+        className="cr-popup-dismiss"
         aria-label="Dismiss review notification"
       >
-        <X size={3.5} aria-hidden="true" />
+        <X size={18} aria-hidden="true" />
       </button>
 
-      <div className="flex items-center gap-3 sm:gap-3.5">
-        <div className="relative h-20 w-14 shrink-0 overflow-hidden rounded-lg bg-[var(--cr-cream)] sm:h-28 sm:w-20">
+      <div className="cr-popup-content">
+        <div className="cr-popup-image">
           <Image
             src={review.image}
             alt={`Customer photo of ${review.author}`}
             fill
             sizes="(min-width: 640px) 80px, 64px"
-            className="object-cover"
           />
         </div>
-        <div className="min-w-0 flex-1 text-[0.8125rem] leading-snug">
-          <p className="pr-5 leading-relaxed text-[var(--cr-muted)]">
-            <strong className="font-bold text-[var(--cr-ink)]">
-              {review.author} <span className="font-normal">left a </span>
-              <span className="whitespace-nowrap">{review.rating}-star review</span>
+        <div className="cr-popup-copy">
+          <p className="cr-popup-summary">
+            <strong>
+              {review.author} left a{" "}
+              <span className="cr-popup-review-rating">{review.rating}-star review</span>
             </strong>
           </p>
           {review.verified && (
-            <p className="mt-1 flex items-center gap-1 text-[0.75rem] font-medium text-[var(--cr-emerald)]">
+            <p className="cr-popup-verified">
               <i className="fas fa-check-circle" aria-hidden="true" />
               Verified purchase
             </p>
           )}
-          <p
-            className="mt-2 truncate text-xs font-semibold text-[var(--cr-emerald)] underline underline-offset-2 decoration-transparent hover:decoration-current cursor-pointer"
+          <button
+            type="button"
+            className="cr-popup-link"
             onClick={goToReviews}
           >
             Read all reviews
-          </p>
+          </button>
         </div>
       </div>
     </aside>
