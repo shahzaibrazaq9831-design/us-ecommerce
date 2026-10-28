@@ -6,6 +6,7 @@ import OccasionCarousel from "@/components/OccasionCarousel";
 import ProductCard from "@/components/ProductCard";
 import Reveal from "@/components/Reveal";
 import NewsletterForm from "@/components/NewsletterForm";
+import ReviewsSection from "@/components/ReviewsSection";
 import { products } from "@/data/products";
 import { categories, reviews, gallery } from "@/data/site";
 
@@ -136,34 +137,7 @@ export default function HomePage() {
       </Reveal>
 
       {/* Reviews */}
-      <Reveal>
-        <section className="section reviews-section">
-          <div className="container">
-            <div className="section-header">
-              <h2 className="section-title">What Our Customers Say</h2>
-              <p className="section-subtitle">Real reviews from real customers</p>
-            </div>
-            <div className="reviews-slider">
-              {reviews.map((r) => (
-                <div key={r.author} className="review-card">
-                  <div className="review-stars">
-                    {"★".repeat(Math.round(r.rating))}
-                    {"☆".repeat(5 - Math.round(r.rating))}
-                  </div>
-                  <p className="review-text">"{r.text}"</p>
-                  <div className="review-author">
-                    <div className="review-avatar">{r.initial}</div>
-                    <div>
-                      <strong>{r.author}</strong>
-                      <span>Verified Buyer</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </Reveal>
+      <ReviewsSection reviews={reviews} />
 
       {/* Instagram */}
       <Reveal>

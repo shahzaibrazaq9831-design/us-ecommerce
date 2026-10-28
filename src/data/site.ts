@@ -202,30 +202,151 @@ export const categories: Category[] = [
 ];
 
 export interface Review {
+  id: string;
+  rating: number;
   text: string;
   author: string;
-  initial: string;
-  rating: number;
+  verified: boolean;
+  /** ISO date (YYYY-MM-DD) shown under the author name. */
+  date: string;
+  /** Customer-submitted photo shown at the top of the card. */
+  image: string;
+  product: string;
+  productHref: string;
 }
 
 export const reviews: Review[] = [
   {
-    text: "Absolutely stunning dress! The quality exceeded my expectations and the stitching was perfect. Got so many compliments at my sister's wedding.",
-    author: "Ayesha K.",
-    initial: "A",
+    id: "fiza-zafar",
     rating: 5,
+    text: "I wore this dress on my brother's wedding and honestly everyone asked me where i bought this dress from. i am very happy with the dress and its quality.",
+    author: "Fiza Zafar",
+    verified: true,
+    date: "2026-10-21",
+    image: "/images/reviews/review-01.png",
+    product: "Maria.B - Elaria Style",
+    productHref: "/shop",
   },
   {
-    text: "Ordered for my daughter's mehndi — the color was exactly as shown and delivery was faster than expected. Will definitely order again!",
-    author: "Fatima R.",
-    initial: "F",
+    id: "shiza-iqbal",
     rating: 5,
+    text: "Absolutely love thiss dress. the color and the design and the quality is exceptional and very good customer service. i highly recommend buying from here",
+    author: "Shiza Iqbal",
+    verified: true,
+    date: "2026-10-19",
+    image: "/images/reviews/review-02.jpg",
+    product: "Ahlah",
+    productHref: "/shop",
   },
   {
-    text: "Beautiful fabric and elegant design. The custom stitching option was a lifesaver. Customer service was very helpful throughout.",
-    author: "Zainab M.",
-    initial: "Z",
-    rating: 4.5,
+    id: "meera-patel",
+    rating: 5,
+    text: "I am surprised they stitched it according to my requirement without charging me extra. The dress turned out be very beautiful. I am satisfied with their work.",
+    author: "Meera Patel",
+    verified: true,
+    date: "2026-10-15",
+    image: "/images/reviews/review-03.jpg",
+    product: "Ronaq Jahan",
+    productHref: "/shop",
+  },
+  {
+    id: "muskaan-ali",
+    rating: 5,
+    text: "Mein order krne se pehle dar rhi thi ke scam na ho jaye kyun ke mere sath pehle bhi huwa tha photo mein dikhate kuch or hain bhejte kuch or lekin is brand ne jo dikhaya hai wohi bheja hai bilkul original jaisi quality hai is dress ki",
+    author: "Muskaan Ali",
+    verified: true,
+    date: "2026-10-15",
+    image: "/images/reviews/review-04.jpg",
+    product: "Gul-e-khaas",
+    productHref: "/shop",
+  },
+  {
+    id: "ayesha-noor",
+    rating: 5,
+    text: "They got the best replicas in the market\nreally loved the stitching and the finishing of the dress. it fits me perfectly.",
+    author: "Ayesha Noor",
+    verified: true,
+    date: "2026-10-15",
+    image: "/images/reviews/review-05.jpg",
+    product: "3-Piece Embroidered Suit",
+    productHref: "/shop",
+  },
+  {
+    id: "malaika-khan",
+    rating: 5,
+    text: "I have purchased alot of Ethnc dreses but these Ethnc copies are unbelievable.\nI cannot figure out if these are copies or original and you are getting 3 piece outfit at half the price of Ethnc 1 piece suit price omg",
+    author: "Malaika Khan",
+    verified: true,
+    date: "2026-10-13",
+    image: "/images/reviews/review-06.jpg",
+    product: "3-Piece Embroidered Suit",
+    productHref: "/shop",
+  },
+  {
+    id: "anonymous",
+    rating: 5,
+    text: "Bought vintage zohra from premium pakistani dresses. The quality is amazing and the fabric feels very soft and high quality. Highly recommended",
+    author: "Anonymous",
+    verified: true,
+    date: "2026-10-03",
+    image: "/images/reviews/review-07.jpg",
+    product: "Zohra",
+    productHref: "/shop",
+  },
+  {
+    id: "sania-amin",
+    rating: 5,
+    text: "The color the design the work! I cannot believe it's exactly same as the original designer dress. I am never wasting money on original now",
+    author: "Sania Amin",
+    verified: true,
+    date: "2026-10-01",
+    image: "/images/reviews/review-08.jpg",
+    product: "Nawal",
+    productHref: "/shop",
+  },
+  {
+    id: "fatima-ijaz",
+    rating: 5,
+    text: "I loved this dress . The look is exactly like the model pictures everyone complimented me \u{1F60D}",
+    author: "Fatima Ijaz",
+    verified: true,
+    date: "2026-10-01",
+    image: "/images/reviews/review-09.jpg",
+    product: "Dark Emerald",
+    productHref: "/shop",
+  },
+  {
+    id: "zoya-ali",
+    rating: 5,
+    text: "Satisfied with their custom stitching \u2764\uFE0F",
+    author: "Zoya Ali",
+    verified: true,
+    date: "2026-10-01",
+    image: "/images/reviews/review-10.jpg",
+    product: "Reverie",
+    productHref: "/shop",
+  },
+  {
+    id: "sana-malik",
+    rating: 5,
+    text: "Parcel time pe mil gaya aur dress bohat achi condition mein thi. Satisfied with my order.",
+    author: "Sana Malik",
+    verified: true,
+    date: "2026-10-01",
+    image: "/images/reviews/review-11.jpg",
+    product: "Ciel",
+    productHref: "/shop",
+  },
+  {
+    id: "ananya-kapoor",
+    rating: 5,
+    text: "Kafi he clean dres hai mujhe to personally bhot acha laga hai oper se inki service bhi bhot achi hai",
+    author: "Ananya Kapoor",
+    verified: true,
+    date: "2026-10-01",
+    image: "/images/reviews/review-12.jpg",
+    product: "Aurea",
+    productHref: "/shop",
   },
 ];
 

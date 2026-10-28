@@ -159,7 +159,7 @@ export default function HeroSlider() {
             width: 825,
             height: 1024,
             sizes: "(max-width: 427px) 100vw, 427px",
-            quality: 85,
+            quality: 75,
           });
 
           return (
