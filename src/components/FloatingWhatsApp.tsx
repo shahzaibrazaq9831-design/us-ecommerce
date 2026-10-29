@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./FloatingWhatsApp.module.css";
 
 const WHATSAPP_NUMBER = "447476469395";
-const WHATSAPP_MESSAGE = "Hello I need a project estimate";
+const WHATSAPP_MESSAGE =
+  "Hello Damsa outure, I would like some styling assistance.";
 
 const BUTTON_SIZE = 56;
 const EDGE_GAP = 20;
@@ -86,10 +87,7 @@ function readStoredPosition(): Position | null {
 
 function savePosition(position: Position) {
   try {
-    window.localStorage.setItem(
-      POSITION_STORAGE_KEY,
-      JSON.stringify(position)
-    );
+    window.localStorage.setItem(POSITION_STORAGE_KEY, JSON.stringify(position));
   } catch {
     // The button keeps working when storage is unavailable.
   }
@@ -97,7 +95,7 @@ function savePosition(position: Position) {
 
 function whatsappUrl() {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-    WHATSAPP_MESSAGE
+    WHATSAPP_MESSAGE,
   )}`;
 }
 
@@ -139,7 +137,7 @@ export default function FloatingWhatsApp() {
           : `translate3d(${position.x}px, ${position.y}px, 0) scale(${scale})`;
       element.style.opacity = String(visual.opacity ?? 1);
     },
-    []
+    [],
   );
 
   const scheduleFrame = useCallback(
@@ -153,7 +151,7 @@ export default function FloatingWhatsApp() {
         applyButtonVisual(next, { transition: "none" });
       });
     },
-    [applyButtonVisual]
+    [applyButtonVisual],
   );
 
   const openWhatsApp = useCallback(() => {
@@ -179,7 +177,7 @@ export default function FloatingWhatsApp() {
       x: clamp(
         centerX < width / 2 ? EDGE_GAP : width - BUTTON_SIZE - EDGE_GAP,
         0,
-        width - BUTTON_SIZE
+        width - BUTTON_SIZE,
       ),
       y: clamp(current.y, 0, height - BUTTON_SIZE),
     };
@@ -193,10 +191,13 @@ export default function FloatingWhatsApp() {
     renderPositionRef.current = target;
 
     if (snapTimerRef.current) clearTimeout(snapTimerRef.current);
-    snapTimerRef.current = setTimeout(() => {
-      savePosition(target);
-      snapTimerRef.current = null;
-    }, reduceMotion ? 0 : SNAP_DURATION_MS);
+    snapTimerRef.current = setTimeout(
+      () => {
+        savePosition(target);
+        snapTimerRef.current = null;
+      },
+      reduceMotion ? 0 : SNAP_DURATION_MS,
+    );
   }, []);
 
   const hideButton = useCallback(() => {
@@ -223,7 +224,7 @@ export default function FloatingWhatsApp() {
         fadeTargetOut();
         unmountTimerRef.current = setTimeout(
           () => setHidden(true),
-          TARGET_FADE_REDUCED_MS
+          TARGET_FADE_REDUCED_MS,
         );
       }, TARGET_FADE_REDUCED_MS);
       return;
@@ -241,7 +242,7 @@ export default function FloatingWhatsApp() {
       fadeTargetOut();
       unmountTimerRef.current = setTimeout(
         () => setHidden(true),
-        TARGET_FADE_DURATION_MS
+        TARGET_FADE_DURATION_MS,
       );
     }, HIDE_DURATION_MS);
   }, [getHideTargetCenter]);
@@ -291,7 +292,7 @@ export default function FloatingWhatsApp() {
         snapToEdge();
       }
     },
-    [hideButton, snapToEdge]
+    [hideButton, snapToEdge],
   );
 
   useEffect(() => {
