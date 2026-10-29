@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { siteConfig } from "@/data/site";
 
-const POSITION_STORAGE_KEY = "damsa-whatsapp-widget";
 const WIDGET_SIZE = 60;
+// The drop target is only rendered on phone widths (see globals.css).
+const DROP_TARGET_MAX_WIDTH = 768;
 const COMPACT_DELAY_MS = 3500;
 const INTRO_DELAY_MS = 1400;
 const INTRO_DURATION_MS = 800;
@@ -13,14 +14,9 @@ function isMobileViewport(): boolean {
   return window.innerWidth <= 1023;
 }
 
-function storageKey(isMobile = isMobileViewport()): string {
-  return `${POSITION_STORAGE_KEY}-${isMobile ? "mobile" : "desktop"}`;
-}
-
 interface WidgetState {
   x: number;
   y: number;
-  hidden: boolean;
 }
 
 interface DragStart {
@@ -47,11 +43,9 @@ function getChatPanelPosition(widget: WidgetState): { left: number; top: number 
 
 function defaultPosition(): WidgetState {
   const size = isMobileViewport() ? 52 : WIDGET_SIZE;
-  const bottomGap = isMobileViewport() ? 20 : 24;
   return {
     x: Math.max(8, window.innerWidth - size - 24),
-    y: Math.max(8, window.innerHeight - size - bottomGap),
-    hidden: false,
+    y: Math.max(8, window.innerHeight - size - 24),
   };
 }
 
@@ -62,58 +56,33 @@ function clampPosition(x: number, y: number): Pick<WidgetState, "x" | "y"> {
   };
 }
 
-function readWidgetState(): WidgetState {
-  try {
-    const saved = localStorage.getItem(storageKey());
-    if (saved) {
-      const parsed = JSON.parse(saved) as Partial<WidgetState>;
-      const position = clampPosition(
-        typeof parsed.x === "number" ? parsed.x : defaultPosition().x,
-        typeof parsed.y === "number" ? parsed.y : defaultPosition().y
-      );
-      return { ...position, hidden: parsed.hidden === true };
-    }
-  } catch {
-    return defaultPosition();
-  }
-  return defaultPosition();
-}
-
 export default function WhatsAppFloat() {
-  const [widget, setWidget] = useState<WidgetState>({ x: 0, y: 0, hidden: false });
+  const [widget, setWidget] = useState<WidgetState>({ x: 0, y: 0 });
   const [ready, setReady] = useState(false);
   const [compact, setCompact] = useState(false);
   const [intro, setIntro] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [hideTargetActive, setHideTargetActive] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [messageDraft, setMessageDraft] = useState("");
   const dragStartRef = useRef<DragStart | null>(null);
   const draggedRef = useRef(false);
   const suppressClickRef = useRef(false);
   const hideTargetRef = useRef<HTMLDivElement>(null);
-  const mobileViewportRef = useRef(false);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const compactTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    mobileViewportRef.current = isMobileViewport();
-    const restored = readWidgetState();
     const frame = window.requestAnimationFrame(() => {
-      setWidget(restored);
+      setWidget(defaultPosition());
       setReady(true);
     });
 
+    // The widget always returns to the bottom-right corner on reload, so a
+    // resize only needs to keep a dragged widget inside the viewport.
     const onResize = () => {
-      const isMobile = isMobileViewport();
-      if (isMobile !== mobileViewportRef.current) {
-        mobileViewportRef.current = isMobile;
-        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-        setWidget(readWidgetState());
-        return;
-      }
       setWidget((current) => ({ ...current, ...clampPosition(current.x, current.y) }));
     };
     window.addEventListener("resize", onResize);
@@ -124,22 +93,7 @@ export default function WhatsAppFloat() {
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => {
-      try {
-        localStorage.setItem(storageKey(mobileViewportRef.current), JSON.stringify(widget));
-      } catch {
-        // The widget remains usable when browser storage is disabled.
-      }
-    }, 180);
-    return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    };
-  }, [ready, widget]);
-
-  useEffect(() => {
-    if (!ready || widget.hidden || chatOpen) return;
+    if (!ready || hidden || chatOpen) return;
 
     introTimerRef.current = setTimeout(() => {
       setCompact(false);
@@ -154,7 +108,7 @@ export default function WhatsAppFloat() {
       if (introTimerRef.current) clearTimeout(introTimerRef.current);
       if (compactTimerRef.current) clearTimeout(compactTimerRef.current);
     };
-  }, [ready, widget.hidden, chatOpen]);
+  }, [ready, hidden, chatOpen]);
 
   const wakeWidget = useCallback(() => {
     if (introTimerRef.current) clearTimeout(introTimerRef.current);
@@ -169,7 +123,7 @@ export default function WhatsAppFloat() {
   }, []);
 
   useEffect(() => {
-    if (!ready || widget.hidden || chatOpen) return;
+    if (!ready || hidden || chatOpen) return;
     idleTimerRef.current = setTimeout(
       () => setCompact(true),
       COMPACT_DELAY_MS
@@ -177,7 +131,7 @@ export default function WhatsAppFloat() {
     return () => {
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
-  }, [ready, widget.hidden, chatOpen]);
+  }, [ready, hidden, chatOpen]);
 
   const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     if (!ready || !event.isPrimary || event.button !== 0) return;
@@ -189,6 +143,13 @@ export default function WhatsAppFloat() {
       widgetY: widget.y,
     };
     draggedRef.current = false;
+    // Keep receiving pointer events even when the cursor leaves the button or
+    // the window, so the drag can't be swallowed by the browser.
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Pointer capture is unavailable in some older browsers.
+    }
     setDragging(true);
     setHideTargetActive(false);
     wakeWidget();
@@ -203,7 +164,7 @@ export default function WhatsAppFloat() {
 
       const deltaX = event.clientX - start.pointerX;
       const deltaY = event.clientY - start.pointerY;
-      if (!draggedRef.current && Math.hypot(deltaX, deltaY) < 6) return;
+      if (!draggedRef.current && Math.hypot(deltaX, deltaY) < 4) return;
 
       event.preventDefault();
       draggedRef.current = true;
@@ -215,7 +176,7 @@ export default function WhatsAppFloat() {
 
       const target = hideTargetRef.current?.getBoundingClientRect();
       setHideTargetActive(
-        window.innerWidth <= 1023 &&
+        window.innerWidth <= DROP_TARGET_MAX_WIDTH &&
           !!target &&
           event.clientX >= target.left &&
           event.clientX <= target.right &&
@@ -232,7 +193,7 @@ export default function WhatsAppFloat() {
       const droppedOnHideTarget =
         event.type === "pointerup" &&
         draggedRef.current &&
-        window.innerWidth <= 1023 &&
+        window.innerWidth <= DROP_TARGET_MAX_WIDTH &&
         !!target &&
         event.clientX >= target.left &&
         event.clientX <= target.right &&
@@ -242,8 +203,15 @@ export default function WhatsAppFloat() {
       dragStartRef.current = null;
       setDragging(false);
       setHideTargetActive(false);
+      try {
+        if (event.target instanceof Element && event.target.hasPointerCapture(event.pointerId)) {
+          event.target.releasePointerCapture(event.pointerId);
+        }
+      } catch {
+        // Ignore browsers without pointer capture support.
+      }
       if (droppedOnHideTarget) {
-        setWidget((current) => ({ ...current, hidden: true }));
+        setHidden(true);
       }
     };
 
@@ -287,127 +255,107 @@ export default function WhatsAppFloat() {
     return <div className="whatsapp-widget" aria-hidden="true" />;
   }
 
+  // Dropping the bubble on the hidden cross removes it until the next reload.
+  if (hidden) return null;
+
   return (
     <div
-      className={`whatsapp-widget is-ready${dragging ? " is-dragging" : ""}${widget.hidden ? " is-hidden" : ""}`}
+      className={`whatsapp-widget is-ready${dragging ? " is-dragging" : ""}`}
       style={{ left: widget.x, top: widget.y }}
     >
-      {!widget.hidden ? (
-        <>
-          {chatOpen && (
-            <section
-              className="whatsapp-chat-panel"
-              style={chatPosition}
-              role="dialog"
-              aria-label="Chat with Damsa Coture"
-            >
-              <header className="whatsapp-chat-header">
-                <span className="whatsapp-chat-avatar" aria-hidden="true">
-                  <i className="fab fa-whatsapp" />
-                </span>
-                <span className="whatsapp-chat-title">
-                  <strong>Damsa Coture</strong>
-                  <small>We usually reply on WhatsApp</small>
-                </span>
-                <button
-                  type="button"
-                  className="whatsapp-chat-close"
-                  onClick={() => setChatOpen(false)}
-                  aria-label="Close chat"
-                >
-                  <i className="fas fa-times" aria-hidden="true" />
-                </button>
-              </header>
-              <div className="whatsapp-chat-messages" aria-live="polite">
-                <p className="whatsapp-chat-message">
-                  Hello! Welcome to Damsa Coture. How can we help with styling,
-                  sizing, or an order?
-                </p>
-                <div className="whatsapp-chat-shortcuts">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setMessageDraft(
-                        "Hello Damsa Coture, I would like some styling assistance."
-                      )
-                    }
-                  >
-                    Styling assistance
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setMessageDraft("Hello Damsa Coture, I need help with an order.")}
-                  >
-                    Order support
-                  </button>
-                </div>
-                <p className="whatsapp-chat-note">
-                  Your message will continue in WhatsApp.
-                </p>
-              </div>
-              <form className="whatsapp-chat-compose" onSubmit={handleMessageSubmit}>
-                <input
-                  type="text"
-                  value={messageDraft}
-                  onChange={(event) => setMessageDraft(event.target.value)}
-                  placeholder="Type your message..."
-                  aria-label="Your message"
-                />
-                <button
-                  type="submit"
-                  disabled={!messageDraft.trim()}
-                  aria-label="Continue to WhatsApp"
-                  title="Continue to WhatsApp"
-                >
-                  <i className="fas fa-paper-plane" aria-hidden="true" />
-                </button>
-              </form>
-            </section>
-          )}
-          <button
-            type="button"
-            className={`whatsapp-float${compact ? " is-compact" : ""}${intro ? " is-intro" : ""}${chatOpen ? " is-open" : ""}`}
-            onPointerDown={handlePointerDown}
-            onClick={handleClick}
-            onFocus={wakeWidget}
-            aria-label={chatOpen ? "Close Damsa Coture chat" : "Open Damsa Coture chat"}
-            aria-expanded={chatOpen}
-            title="Drag to move. Click to open support chat."
-          >
-            <i
-              className={chatOpen ? "fas fa-times" : "fab fa-whatsapp"}
-              aria-hidden="true"
-            />
-          </button>
-          <button
-            type="button"
-            className="whatsapp-widget-hide"
-            onClick={() => setWidget((current) => ({ ...current, hidden: true }))}
-            aria-label="Hide WhatsApp button"
-            title="Hide WhatsApp button"
-          >
-            <i className="fas fa-minus" aria-hidden="true" />
-          </button>
-          <div
-            ref={hideTargetRef}
-            className={`whatsapp-widget-drop-target${hideTargetActive ? " is-active" : ""}`}
-            aria-hidden="true"
-          >
-            <i className="fas fa-times" />
-          </div>
-        </>
-      ) : (
-        <button
-          type="button"
-          className="whatsapp-widget-restore"
-          onClick={() => setWidget((current) => ({ ...current, hidden: false }))}
-          aria-label="Show WhatsApp button"
-          title="Show WhatsApp button"
+      {chatOpen && (
+        <section
+          className="whatsapp-chat-panel"
+          style={chatPosition}
+          role="dialog"
+          aria-label="Chat with Damsa Coture"
         >
-          <i className="fab fa-whatsapp" aria-hidden="true" />
-          <span>Show chat</span>
-        </button>
+          <header className="whatsapp-chat-header">
+            <span className="whatsapp-chat-avatar" aria-hidden="true">
+              <i className="fab fa-whatsapp" />
+            </span>
+            <span className="whatsapp-chat-title">
+              <strong>Damsa Coture</strong>
+              <small>We usually reply on WhatsApp</small>
+            </span>
+            <button
+              type="button"
+              className="whatsapp-chat-close"
+              onClick={() => setChatOpen(false)}
+              aria-label="Close chat"
+            >
+              <i className="fas fa-times" aria-hidden="true" />
+            </button>
+          </header>
+          <div className="whatsapp-chat-messages" aria-live="polite">
+            <p className="whatsapp-chat-message">
+              Hello! Welcome to Damsa Coture. How can we help with styling,
+              sizing, or an order?
+            </p>
+            <div className="whatsapp-chat-shortcuts">
+              <button
+                type="button"
+                onClick={() =>
+                  setMessageDraft(
+                    "Hello Damsa Coture, I would like some styling assistance."
+                  )
+                }
+              >
+                Styling assistance
+              </button>
+              <button
+                type="button"
+                onClick={() => setMessageDraft("Hello Damsa Coture, I need help with an order.")}
+              >
+                Order support
+              </button>
+            </div>
+            <p className="whatsapp-chat-note">
+              Your message will continue in WhatsApp.
+            </p>
+          </div>
+          <form className="whatsapp-chat-compose" onSubmit={handleMessageSubmit}>
+            <input
+              type="text"
+              value={messageDraft}
+              onChange={(event) => setMessageDraft(event.target.value)}
+              placeholder="Type your message..."
+              aria-label="Your message"
+            />
+            <button
+              type="submit"
+              disabled={!messageDraft.trim()}
+              aria-label="Continue to WhatsApp"
+              title="Continue to WhatsApp"
+            >
+              <i className="fas fa-paper-plane" aria-hidden="true" />
+            </button>
+          </form>
+        </section>
       )}
+      <button
+        type="button"
+        className={`whatsapp-float${compact ? " is-compact" : ""}${intro ? " is-intro" : ""}${chatOpen ? " is-open" : ""}`}
+        onPointerDown={handlePointerDown}
+        onClick={handleClick}
+        onFocus={wakeWidget}
+        draggable={false}
+        aria-label={chatOpen ? "Close Damsa Coture chat" : "Open Damsa Coture chat"}
+        aria-expanded={chatOpen}
+      >
+        <i
+          className={chatOpen ? "fas fa-times" : "fab fa-whatsapp"}
+          aria-hidden="true"
+        />
+      </button>
+      <div
+        ref={hideTargetRef}
+        className={`whatsapp-widget-drop-target${hideTargetActive ? " is-active" : ""}`}
+        aria-hidden="true"
+      >
+        <i className="fas fa-times" />
+        <span className="whatsapp-widget-drop-label">Drop to hide</span>
+      </div>
     </div>
   );
 }

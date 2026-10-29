@@ -1,0 +1,148 @@
+.button {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #25d366;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22),
+    0 2px 8px rgba(0, 0, 0, 0.12);
+  cursor: grab;
+  opacity: 1;
+  visibility: hidden;
+  transform: translate3d(0, 0, 0);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform;
+}
+
+.button.ready {
+  visibility: visible;
+}
+
+.button.dragging {
+  cursor: grabbing;
+}
+
+.button:focus-visible {
+  outline: 3px solid #128c7e;
+  outline-offset: 3px;
+}
+
+.logo {
+  display: block;
+  width: 32px;
+  height: 32px;
+  pointer-events: none;
+}
+
+.onlineDot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #22c55e;
+  pointer-events: none;
+}
+
+.onlineDot::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: 1;
+  border: 2px solid #fff;
+  border-radius: 50%;
+}
+
+.onlineDot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: #22c55e;
+  animation: onlinePulse 2.4s ease-out infinite;
+}
+
+@keyframes onlinePulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  70%,
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.hideTarget {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  z-index: 2147482999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  background: rgba(60, 60, 60, 0.35);
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(-50%, 20px, 0) scale(0.8);
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  will-change: transform, opacity;
+}
+
+.hideTargetVisible {
+  opacity: 1;
+  transform: translate3d(-50%, 0, 0) scale(1);
+}
+
+.hideTargetActive {
+  background: rgba(40, 40, 40, 0.5);
+  transform: translate3d(-50%, 0, 0) scale(1.15);
+}
+
+.hideTargetIcon {
+  display: block;
+  width: 28px;
+  height: 28px;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onlineDot::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  .hideTarget,
+  .hideTargetVisible,
+  .hideTargetActive {
+    transform: translate3d(-50%, 0, 0);
+    transition: opacity 120ms ease;
+  }
+
+  .hideTargetActive {
+    background: rgba(40, 40, 40, 0.5);
+  }
+}

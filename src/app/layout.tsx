@@ -12,6 +12,7 @@ import Header from "@/components/Header";
 import OfferStrip from "@/components/OfferStrip";
 import Footer from "@/components/Footer";
 import FloatingElements from "@/components/FloatingElements";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import { Suspense } from "react";
 
 const playfair = Playfair_Display({
@@ -62,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main>{children}</main>
             <Footer />
             <FloatingElements />
+            <FloatingWhatsApp />
           </CartProvider>
         </CurrencyProvider>
       </body>

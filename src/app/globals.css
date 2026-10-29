@@ -2810,6 +2810,7 @@ main {
   width: 60px;
   height: 60px;
   visibility: hidden;
+  touch-action: none;
 }
 
 .whatsapp-widget.is-ready {
@@ -2835,6 +2836,7 @@ main {
   z-index: 1;
   touch-action: none;
   user-select: none;
+  -webkit-user-drag: none;
   cursor: grab;
   transition: width 260ms ease, height 260ms ease, box-shadow 260ms ease,
     transform 180ms ease;
@@ -3050,68 +3052,8 @@ main {
   }
 }
 
-.whatsapp-widget-hide {
-  position: absolute;
-  top: -3px;
-  right: -3px;
-  z-index: 2;
-  display: inline-flex;
-  width: 21px;
-  height: 21px;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  background: #355a50;
-  color: #fff;
-  font-size: 0.625rem;
-  opacity: 0;
-  transition: opacity 160ms ease, transform 160ms ease;
-}
-
-.whatsapp-widget:hover .whatsapp-widget-hide,
-.whatsapp-widget-hide:focus-visible {
-  opacity: 1;
-}
-
-.whatsapp-widget-hide:hover {
-  transform: scale(1.08);
-}
-
 .whatsapp-widget-drop-target {
   display: none;
-}
-
-@media (hover: none) {
-  .whatsapp-widget-hide {
-    display: none;
-  }
-}
-
-.whatsapp-widget-restore {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  display: inline-flex;
-  width: max-content;
-  min-height: 40px;
-  align-items: center;
-  gap: 8px;
-  padding: 0 14px;
-  transform: translate(50%, -50%);
-  border-radius: 999px;
-  background: #16834b;
-  color: #fff;
-  box-shadow: 0 4px 18px rgba(22, 131, 75, 0.28);
-  font-size: 0.8rem;
-  font-weight: 600;
-  white-space: nowrap;
-  touch-action: none;
-  animation: whatsapp-restore-in 260ms ease-out both;
-}
-
-.whatsapp-widget-restore i {
-  font-size: 1.2rem;
 }
 
 .whatsapp-float:hover {
@@ -3119,33 +3061,16 @@ main {
   box-shadow: 0 8px 30px rgba(37, 211, 102, 0.5);
 }
 
-@keyframes whatsapp-restore-in {
-  from {
-    opacity: 0;
-    transform: translateY(calc(-50% + 10px)) scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-  }
-}
-
-@keyframes whatsapp-restore-centered-in {
-  from {
-    opacity: 0;
-    transform: translate(50%, calc(-50% + 10px)) scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: translate(50%, -50%) scale(1);
-  }
+/* Lifted look while the bubble is being dragged. */
+.whatsapp-widget.is-dragging .whatsapp-float {
+  transform: scale(1.1);
+  box-shadow: 0 12px 34px rgba(37, 211, 102, 0.45);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .whatsapp-float,
-  .whatsapp-widget-hide,
-  .whatsapp-widget-restore,
   .whatsapp-widget-drop-target,
+  .whatsapp-widget-drop-label,
   .whatsapp-chat-panel {
     animation: none;
     transition: none;
@@ -3392,51 +3317,64 @@ main {
   .whatsapp-widget { width: 52px; height: 52px; }
   .whatsapp-float { width: 52px; height: 52px; font-size: 1.6rem; }
   .whatsapp-float.is-compact { width: 42px; height: 42px; }
-  .whatsapp-widget-restore { min-height: 38px; padding: 0 12px; }
-  .whatsapp-widget.is-hidden {
-    top: auto !important;
-    bottom: calc(18px + env(safe-area-inset-bottom));
-    left: 50% !important;
-    transform: translateX(-50%);
-  }
-
-  .whatsapp-widget.is-hidden .whatsapp-widget-restore {
-    right: 50%;
-    transform: translate(50%, -50%);
-    animation-name: whatsapp-restore-centered-in;
-  }
-
+  /* "Drop to hide" target: a black circle that appears at the bottom centre
+     while the bubble is dragged, matching the reference storefront. */
   .whatsapp-widget-drop-target {
     position: fixed;
     right: auto;
-    bottom: calc(18px + env(safe-area-inset-bottom));
+    bottom: calc(20px + env(safe-area-inset-bottom));
     left: 50%;
     display: inline-flex;
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     align-items: center;
     justify-content: center;
     transform: translate(-50%, 16px) scale(0.8);
-    border: 2px solid rgba(255, 255, 255, 0.95);
+    border: 0;
     border-radius: 50%;
-    background: #45494e;
+    background: rgba(17, 17, 17, 0.86);
     color: #fff;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.24);
-    font-size: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.26);
+    font-size: 1.15rem;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 180ms ease, transform 180ms ease, background-color 180ms ease;
+    transition: opacity 160ms ease-out, transform 160ms ease-out,
+      background-color 160ms ease-out, box-shadow 160ms ease-out;
   }
 
   .whatsapp-widget.is-dragging .whatsapp-widget-drop-target {
     transform: translate(-50%, 0) scale(1);
-    opacity: 1;
+    opacity: 0.92;
     pointer-events: auto;
   }
 
   .whatsapp-widget-drop-target.is-active {
-    transform: translate(-50%, 0) scale(1.12);
-    background: #c83f49;
+    transform: translate(-50%, 0) scale(1.08);
+    background: rgba(0, 0, 0, 0.94);
+    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0.09),
+      0 12px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .whatsapp-widget-drop-label {
+    position: absolute;
+    top: -26px;
+    left: 50%;
+    padding: 3px 8px;
+    transform: translateX(-50%) translateY(4px);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 160ms ease-out, transform 160ms ease-out;
+  }
+
+  .whatsapp-widget-drop-target.is-active .whatsapp-widget-drop-label {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
   }
   .back-to-top { bottom: 80px; right: 20px; }
   .section { padding: var(--spacing-2xl) 0; }
