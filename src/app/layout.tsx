@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import {
   Playfair_Display,
   Inter,
@@ -7,6 +8,7 @@ import {
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
+import { getExchangeRates, resolveCurrency } from "@/lib/currency";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import Header from "@/components/Header";
 import OfferStrip from "@/components/OfferStrip";
@@ -53,20 +55,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <CurrencyProvider>
-          <CartProvider>
-            <AnnouncementBar />
-            <Suspense fallback={<header className="header" />}>
-              <Header />
-            </Suspense>
-            <OfferStrip />
-            <main>{children}</main>
-            <Footer />
-            <FloatingElements />
-            <FloatingWhatsApp />
-          </CartProvider>
-        </CurrencyProvider>
+        <Suspense fallback={null}>
+          <CurrencyInit>{children}</CurrencyInit>
+        </Suspense>
       </body>
     </html>
+  );
+}
+
+async function CurrencyInit({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const initialCurrency = resolveCurrency(cookieStore.get("currency")?.value);
+  const rates = await getExchangeRates();
+  return (
+    <CurrencyProvider initialCurrency={initialCurrency} rates={rates}>
+      <CartProvider>
+        <AnnouncementBar />
+        <Suspense fallback={<header className="header" />}>
+          <Header />
+        </Suspense>
+        <OfferStrip />
+        <main>{children}</main>
+        <Footer />
+        <FloatingElements />
+        <FloatingWhatsApp />
+      </CartProvider>
+    </CurrencyProvider>
   );
 }

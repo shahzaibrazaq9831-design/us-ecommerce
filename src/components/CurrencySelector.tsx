@@ -1,39 +1,28 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Search, ChevronDown, Check } from "lucide-react";
-import { countries, type Country } from "@/data/countries";
+import { ChevronDown, Check } from "lucide-react";
+import { CURRENCIES, getCurrencyByCode } from "@/lib/currency";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useCart } from "@/context/CartContext";
 
 type CurrencySelectorVariant = "header" | "drawer";
 
 export default function CurrencySelector({ variant = "header" }: { variant?: CurrencySelectorVariant }) {
-  const { country, setCountry } = useCurrency();
+  const { currency, setCurrency } = useCurrency();
   const { showToast } = useCart();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
-  const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const [showActive, setShowActive] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const filtered = countries.filter((c) => {
-    if (!query) return true;
-    const q = query.toLowerCase();
-    return (
-      c.name.toLowerCase().includes(q) ||
-      c.currency.toLowerCase().includes(q) ||
-      c.code.toLowerCase().includes(q) ||
-      (c.label || "").toLowerCase().includes(q)
-    );
-  });
+  const activeCurrency = getCurrencyByCode(currency) ?? CURRENCIES[0];
+  const filtered = CURRENCIES;
 
   const resetList = useCallback(() => {
-    setQuery("");
     setActiveIndex(0);
     setShowActive(false);
   }, []);
@@ -52,10 +41,10 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
   const openPanel = useCallback(() => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     setClosing(false);
-    setActiveIndex(Math.max(countries.findIndex((c) => c.code === country.code), 0));
+    setActiveIndex(Math.max(CURRENCIES.findIndex((c) => c.code === currency), 0));
     setShowActive(false);
     setOpen(true);
-  }, [country.code]);
+  }, [currency]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -89,7 +78,7 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
 
   useEffect(() => {
     if (!open) return;
-    const timer = setTimeout(() => inputRef.current?.focus(), 40);
+    const timer = setTimeout(() => listRef.current?.focus(), 40);
     // Keep the current selection visible without scrolling the page.
     const frame = requestAnimationFrame(() => {
       const list = listRef.current;
@@ -117,6 +106,19 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
     }
   };
 
+  const selectCurrency = (code: string) => {
+    const c = getCurrencyByCode(code);
+    if (!c) return;
+    // Build the message from the currency that was just picked (never from state,
+    // which hasn't updated yet), so the toast always names the new currency.
+    const changed = c.code !== currency;
+    setCurrency(c.code);
+    if (changed) {
+      showToast(`Currency changed to ${c.name} (${c.code}).`);
+    }
+    closePanel();
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!open || filtered.length === 0) return;
     if (e.key === "ArrowDown") {
@@ -130,20 +132,9 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (filtered[activeIndex]) {
-        selectCountry(filtered[activeIndex]);
+        selectCurrency(filtered[activeIndex].code);
       }
     }
-  };
-
-  const selectCountry = (c: Country) => {
-    // Build the message from the country that was just picked (never from state,
-    // which hasn't updated yet), so the toast always names the new country.
-    const changed = c.code !== country.code;
-    setCountry(c);
-    if (changed) {
-      showToast(`Country and currency changed to ${c.name} (${c.currency}).`);
-    }
-    closePanel();
   };
 
   const isDrawer = variant === "drawer";
@@ -160,15 +151,15 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
         className={`currency-trigger${isDrawer ? " currency-trigger--drawer" : ""}`}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={`Change currency. Current: ${country.currency} (${country.name})`}
+        aria-label={`Change currency. Current: ${activeCurrency.code} (${activeCurrency.name})`}
       >
-        <img src={`https://flagcdn.com/w40/${country.iso2}.png`} alt="" aria-hidden="true" />
+        <img src={`https://flagcdn.com/w40/${activeCurrency.flag}.png`} alt="" aria-hidden="true" />
         {isDrawer ? (
           <span className="currency-trigger-label">
-            {country.name} ({country.currency})
+            {activeCurrency.name} ({activeCurrency.code})
           </span>
         ) : (
-          <span className="currency-trigger-code">{country.currency}</span>
+          <span className="currency-trigger-code">{activeCurrency.code}</span>
         )}
         <ChevronDown size={12} strokeWidth={2} aria-hidden="true" className={open ? "currency-chevron is-open" : "currency-chevron"} />
       </button>
@@ -180,31 +171,12 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
           role="dialog"
           aria-label="Choose a country and currency"
         >
-          <div className="currency-search">
-            <div className="currency-search-inner">
-              <Search size={14} strokeWidth={2} aria-hidden="true" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setActiveIndex(0);
-                }}
-                placeholder="Search countries"
-                aria-label="Search countries"
-                autoComplete="off"
-                spellCheck={false}
-              />
-            </div>
-          </div>
-
-          <ul ref={listRef} className="currency-list" role="listbox" aria-label="Countries">
+          <ul ref={listRef} tabIndex={-1} className="currency-list" role="listbox" aria-label="Countries">
             {filtered.length === 0 ? (
-              <li className="currency-empty">No countries found</li>
+              <li className="currency-empty">No currencies found</li>
             ) : (
               filtered.map((c, idx) => {
-                const isSelected = c.code === country.code;
+                const isSelected = c.code === currency;
                 const isActive = idx === activeIndex;
                 return (
                   <li
@@ -216,13 +188,13 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
                       setActiveIndex(idx);
                       setShowActive(false);
                     }}
-                    onClick={() => selectCountry(c)}
+                    onClick={() => selectCurrency(c.code)}
                     className={`currency-option${isActive && showActive ? " is-active" : ""}`}
-                    title={c.label || `${c.name} (${c.currency})`}
+                    title={`${c.name} (${c.code})`}
                   >
-                    <img src={`https://flagcdn.com/w40/${c.iso2}.png`} alt="" aria-hidden="true" />
+                    <img src={`https://flagcdn.com/w40/${c.flag}.png`} alt="" aria-hidden="true" />
                     <span className="currency-option-label">
-                      {c.name} ({c.currency})
+                      {c.name} ({c.code})
                     </span>
                     {isSelected ? <Check size={12} strokeWidth={2.5} aria-hidden="true" /> : null}
                   </li>
