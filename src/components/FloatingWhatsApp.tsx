@@ -81,6 +81,7 @@ export default function FloatingWhatsApp() {
   const [dragging, setDragging] = useState(false);
   const [targetVisible, setTargetVisible] = useState(false);
   const [targetActive, setTargetActive] = useState(false);
+  const [targetDropping, setTargetDropping] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [coarsePointer, setCoarsePointer] = useState(false);
   const [bounceKey, setBounceKey] = useState(0);
@@ -243,6 +244,7 @@ export default function FloatingWhatsApp() {
         setTargetVisible(false);
         targetActiveRef.current = false;
         setTargetActive(false);
+        setTargetDropping(false);
       }
 
       try {
@@ -263,6 +265,7 @@ export default function FloatingWhatsApp() {
       }, 400);
 
       if (hideOnTarget) {
+        setTargetDropping(true);
         hideButton();
       } else {
         snapToEdge();
@@ -461,6 +464,7 @@ export default function FloatingWhatsApp() {
     suppressClickRef.current = false;
     targetActiveRef.current = false;
     setTargetActive(false);
+    setTargetDropping(false);
 
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -502,7 +506,9 @@ export default function FloatingWhatsApp() {
           ref={hideTargetRef}
           className={`${styles.hideTarget}${
             targetVisible ? ` ${styles.hideTargetVisible}` : ""
-          }${targetActive ? ` ${styles.hideTargetActive}` : ""}`}
+          }${targetActive ? ` ${styles.hideTargetActive}` : ""}${
+            targetDropping ? ` ${styles.hideTargetDropping}` : ""
+          }`}
           aria-hidden="true"
         >
           <svg
@@ -513,7 +519,7 @@ export default function FloatingWhatsApp() {
             strokeWidth="2"
             strokeLinecap="round"
           >
-            <path d="M6 6l12 12M18 6L6 18" />
+            <path d="M3 3l18 18M21 3L3 21" />
           </svg>
         </div>
       )}
