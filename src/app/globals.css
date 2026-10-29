@@ -641,6 +641,14 @@ main {
   width: 60%;
 }
 
+.nav-list > li.nav-dropdown > a .fa-chevron-down {
+  transition: transform 0.2s ease;
+}
+
+.nav-list > li.nav-dropdown.open > a .fa-chevron-down {
+  transform: rotate(180deg);
+}
+
 .nav-dropdown .dropdown {
   position: absolute;
   top: 100%;
@@ -652,14 +660,22 @@ main {
   opacity: 0;
   visibility: hidden;
   transform: translateY(10px);
+  transform-origin: top;
   transition: all var(--transition-base);
   padding: var(--spacing-sm) 0;
 }
 
-.nav-dropdown:hover .dropdown {
+/* Opens with the same panel animation as the currency dropdown. */
+.nav-dropdown.open .dropdown {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+  animation: currencyPanelIn 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Closing reuses the currency panel fade-out, then removes the panel. */
+.nav-dropdown.closing .dropdown {
+  animation: currencyPanelOut 0.15s ease-in forwards;
 }
 
 .dropdown li a {
@@ -744,6 +760,7 @@ main {
    ============================================ */
 .hero {
   position: relative;
+  scroll-margin-top: var(--header-height);
   /* Box matches the artwork's 16:9 ratio so the full image is always
      visible, same as the reference store (no zoom, no cropped edges) */
   aspect-ratio: 16 / 9;
@@ -1372,6 +1389,32 @@ main {
   .occasion-tile:hover .occasion-tile-arrow,
   .occasion-tile:active .occasion-tile-arrow {
     transform: none;
+  }
+
+  /* Navigation: no movement, instant state changes. */
+  .nav-list > li > a::after,
+  .nav-list > li.nav-dropdown > a .fa-chevron-down {
+    transition: none;
+  }
+
+  .nav-list > li > a:hover::after,
+  .nav-list > li.active > a::after {
+    width: 60%;
+  }
+
+  .nav-list > li.nav-dropdown.open > a .fa-chevron-down {
+    transform: none;
+  }
+
+  .nav-dropdown .dropdown,
+  .nav-dropdown.open .dropdown,
+  .nav-dropdown.closing .dropdown {
+    animation: none;
+  }
+
+  .nav-dropdown.closing .dropdown {
+    opacity: 0;
+    visibility: hidden;
   }
 }
 

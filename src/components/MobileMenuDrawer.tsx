@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Heart, Search, User, X } from "lucide-react";
 import CurrencySelector from "./CurrencySelector";
-import { navItems, type NavItem } from "@/data/site";
+import { navItems, type NavItem } from "@/lib/nav";
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -177,7 +177,7 @@ export default function MobileMenuDrawer({ open, onClose }: { open: boolean; onC
       >
         <div className="m-drawer-head">
           <Link
-            href="/"
+            href="/#hero"
             className="m-drawer-logo"
             onClick={onClose}
             aria-label="Damsa Coture"
@@ -233,7 +233,6 @@ export default function MobileMenuDrawer({ open, onClose }: { open: boolean; onC
                     <div className="m-drawer-row">
                       <Link href={item.href} className="m-drawer-link" onClick={onClose}>
                         {item.label}
-                        {item.isNew ? <span className="m-drawer-badge">New</span> : null}
                       </Link>
                     </div>
                   </li>

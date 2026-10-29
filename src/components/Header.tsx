@@ -3,9 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Menu, Search, ShoppingBag } from "lucide-react";
-import { navItems } from "@/data/site";
+import { navItems } from "@/lib/nav";
 import { useCart } from "@/context/CartContext";
 import SearchOverlay from "./SearchOverlay";
 import CurrencySelector from "./CurrencySelector";
@@ -18,12 +18,18 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
+  const [collectionsOpen, setCollectionsOpen] = useState(false);
+  const [collectionsClosing, setCollectionsClosing] = useState(false);
+  const collectionsCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const collectionsPanelRef = useRef<HTMLUListElement>(null);
 
   // Close any open menus when navigating (adjusted during render, not in an effect).
   if (lastPathname !== pathname) {
     setLastPathname(pathname);
     setMobileOpen(false);
     setSearchOpen(false);
+    setCollectionsOpen(false);
+    setCollectionsClosing(false);
   }
 
   useEffect(() => {
@@ -32,6 +38,58 @@ export default function Header() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const clearCollectionsCloseTimer = () => {
+    if (collectionsCloseTimer.current) {
+      clearTimeout(collectionsCloseTimer.current);
+      collectionsCloseTimer.current = null;
+    }
+  };
+
+  const openCollections = () => {
+    clearCollectionsCloseTimer();
+    setCollectionsClosing(false);
+    setCollectionsOpen(true);
+  };
+
+  const closeCollections = () => {
+    if (!collectionsOpen) return;
+    setCollectionsClosing(true);
+    clearCollectionsCloseTimer();
+    // Small delay so the panel does not flicker when the pointer moves
+    // between the trigger and the panel.
+    collectionsCloseTimer.current = setTimeout(() => {
+      setCollectionsClosing(false);
+      setCollectionsOpen(false);
+    }, 120);
+  };
+
+  useEffect(
+    () => () => {
+      if (collectionsCloseTimer.current) clearTimeout(collectionsCloseTimer.current);
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!collectionsOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeCollections();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [collectionsOpen, closeCollections]);
+
+  const handleCollectionsBlur = (event: React.FocusEvent<HTMLLIElement>) => {
+    const nextTarget = event.relatedTarget as Node | null;
+    const panel = collectionsPanelRef.current;
+    // Focus moving into the panel itself should not close it.
+    if (nextTarget && panel?.contains(nextTarget)) return;
+    closeCollections();
+  };
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -52,7 +110,7 @@ export default function Header() {
               <i className="fas fa-search" />
             </button>
           </div>
-          <Link href="/" className="logo header-logo" aria-label="Damsa Coture">
+          <Link href="/#hero" className="logo header-logo" aria-label="Damsa Coture">
             <Image
               src="/images/logo-damsa.webp"
               alt="Damsa Coture"
@@ -100,7 +158,7 @@ export default function Header() {
             <Menu size={22} strokeWidth={1.5} aria-hidden="true" />
           </button>
 
-          <Link href="/" className="m-header-logo" aria-label="Damsa Coture">
+          <Link href="/#hero" className="m-header-logo" aria-label="Damsa Coture">
             <Image
               src="/images/logo-damsa.webp"
               alt="Damsa Coture"
@@ -134,24 +192,36 @@ export default function Header() {
 
         <nav className="main-nav">
           <ul className="nav-list">
-            {navItems
-              .filter((item) => !item.desktopHidden)
-              .map((item) => (
+            {navItems.map((item) => {
+              const isCollections = Boolean(item.children && item.children.length > 0);
+              const isItemActive = isActive(item.href);
+
+              return (
                 <li
                   key={item.label}
-                  className={`${item.children ? "nav-dropdown" : ""}${isActive(item.href) ? " active" : ""}`}
+                  className={`${isCollections ? "nav-dropdown" : ""}${isItemActive ? " active" : ""}${
+                    isCollections && collectionsOpen ? " open" : ""
+                  }${isCollections && collectionsClosing ? " closing" : ""}`}
+                  onMouseEnter={isCollections ? openCollections : undefined}
+                  onMouseLeave={isCollections ? closeCollections : undefined}
+                  onFocus={isCollections ? openCollections : undefined}
+                  onBlur={isCollections ? handleCollectionsBlur : undefined}
                 >
-                  <Link href={item.href}>
+                  <Link
+                    href={item.href}
+                    aria-haspopup={isCollections ? "true" : undefined}
+                    aria-expanded={isCollections ? collectionsOpen : undefined}
+                  >
                     {item.label}
-                    {item.children ? (
+                    {isCollections ? (
                       <i
                         className="fas fa-chevron-down"
                         style={{ fontSize: "0.7rem" }}
                       />
                     ) : null}
                   </Link>
-                  {item.children ? (
-                    <ul className="dropdown">
+                  {isCollections && item.children ? (
+                    <ul className="dropdown" ref={collectionsPanelRef}>
                       {item.children.map((child) => (
                         <li key={child.label}>
                           <Link href={child.href}>{child.label}</Link>
@@ -160,7 +230,8 @@ export default function Header() {
                     </ul>
                   ) : null}
                 </li>
-              ))}
+              );
+            })}
           </ul>
         </nav>
       </header>

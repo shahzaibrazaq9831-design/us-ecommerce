@@ -134,6 +134,7 @@ export default function HeroSlider() {
 
   return (
     <section
+      id="hero"
       className={`hero${running ? "" : " paused"}${autoPlay ? "" : " no-autoplay"}`}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}

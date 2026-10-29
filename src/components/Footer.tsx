@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { siteConfig, navItems } from "@/data/site";
+import { siteConfig } from "@/data/site";
 
 export default function Footer() {
   const shopLinks = [
@@ -28,7 +28,7 @@ export default function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div className="footer-brand">
-            <Link href="/" className="logo">
+            <Link href="/#hero" className="logo">
               {siteConfig.name}
             </Link>
             <p>

@@ -8,7 +8,9 @@ import { siteConfig } from "@/data/site";
 function MobileGroup({ hidden }: { hidden?: boolean }) {
   return (
     <div className="announcement-group" aria-hidden={hidden || undefined}>
-      <span className="announcement-item">Shipped: 10% discount at checkout</span>
+      <span className="announcement-item">
+        Shipped: 10% discount at checkout
+      </span>
       <span className="announcement-separator announcement-separator--mid"></span>
       <span className="announcement-item">Free worldwide shipping </span>
       <span className="announcement-separator"></span>
@@ -24,9 +26,7 @@ export default function AnnouncementBar() {
         <div className="announcement-group announcement-group--desktop">
           <span>Free Worldwide Delivery on All Orders</span>
           <span className="announcement-separator"></span>
-          <span>
-            Use Code <strong>{siteConfig.promoCode}</strong> for {siteConfig.promoDiscount} Off First Prepaid Order
-          </span>
+          <span>Free Shipping Worldwide within 2 weeks</span>
           <span className="announcement-separator"></span>
           <span>7-Day Returns | Made-to-Order Stitching Available</span>
           <span className="announcement-separator"></span>
@@ -35,10 +35,11 @@ export default function AnnouncementBar() {
           className="announcement-group announcement-group--desktop"
           aria-hidden="true"
         >
-          <span>Free Worldwide Delivery on All Orders</span>
+          <span>Buy 2 Dresses Get Extra 10% Off</span>
           <span className="announcement-separator"></span>
           <span>
-            Use Code <strong>{siteConfig.promoCode}</strong> for {siteConfig.promoDiscount} Off First Prepaid Order
+            Use Code <strong>{siteConfig.promoCode}</strong> for{" "}
+            {siteConfig.promoDiscount} Off First Prepaid Order
           </span>
           <span className="announcement-separator"></span>
           <span>7-Day Returns | Made-to-Order Stitching Available</span>
