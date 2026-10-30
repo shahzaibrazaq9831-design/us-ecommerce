@@ -1138,6 +1138,13 @@ main {
   user-select: none;
 }
 
+/* The arrow tween drives scrollLeft itself, so native smoothing and snap
+   must stay off until it lands on the next card. */
+.occasion-carousel-rail.is-animating {
+  scroll-behavior: auto;
+  scroll-snap-type: none;
+}
+
 .occasion-tile {
   position: relative;
   flex: 0 0 230px;

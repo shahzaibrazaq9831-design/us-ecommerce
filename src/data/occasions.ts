@@ -7,55 +7,55 @@ export interface Occasion {
 
 /**
  * Occasions shown in the home-page carousel, in display order.
- * Artwork lives in /public/occasions and is named after the slug.
+ * Artwork lives in /public/occasions; each file is named after the product photo.
  */
 export const occasions: Occasion[] = [
   {
     title: "Barat",
     slug: "barat",
-    image: "/occasions/barat.webp",
+    image: "/occasions/barat-sarang.webp",
     href: "/collections/barat",
   },
   {
     title: "Mehndi",
     slug: "mehndi",
-    image: "/occasions/mehndi.webp",
+    image: "/occasions/mehndi-kesar.webp",
     href: "/collections/mehndi",
   },
   {
     title: "Nikkah",
     slug: "nikkah",
-    image: "/occasions/nikkah.webp",
+    image: "/occasions/nikkah-opulent.webp",
     href: "/collections/nikkah",
   },
   {
     title: "Walima",
     slug: "walima",
-    image: "/occasions/walima.webp",
+    image: "/occasions/walima-iriana.webp",
     href: "/collections/walima",
   },
   {
     title: "Mayun",
     slug: "mayun",
-    image: "/occasions/mayun.webp",
+    image: "/occasions/mayun-arasti.webp",
     href: "/collections/mayun",
   },
   {
     title: "Dholki",
     slug: "dholki",
-    image: "/occasions/dholki.webp",
+    image: "/occasions/dholki-shocking.webp",
     href: "/collections/dholki",
   },
   {
     title: "Engagement",
     slug: "engagement",
-    image: "/occasions/engagement.webp",
+    image: "/occasions/engagement-zeena.webp",
     href: "/collections/engagement",
   },
   {
     title: "Eid",
     slug: "eid",
-    image: "/occasions/eid.webp",
+    image: "/occasions/eid-noreen.webp",
     href: "/collections/eid",
   },
 ];

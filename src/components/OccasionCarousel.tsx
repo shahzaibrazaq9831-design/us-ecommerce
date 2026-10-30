@@ -16,6 +16,9 @@ import { occasions } from "@/data/occasions";
 /** Pixels the mouse must travel before a press becomes a drag, not a click. */
 const DRAG_THRESHOLD = 6;
 
+/** Length of the arrow/nudge scroll tween. Short so a click feels instant. */
+const SCROLL_DURATION_MS = 200;
+
 function prefersReducedMotion() {
   return (
     typeof window !== "undefined" &&
@@ -27,15 +30,72 @@ export default function OccasionCarousel() {
   const railRef = useRef<HTMLDivElement>(null);
   /** Set while a drag ends so the release does not open the card underneath. */
   const suppressClick = useRef(false);
+  /** Active requestAnimationFrame id for the fast scroll tween. */
+  const animationRef = useRef<number | null>(null);
+  /** Where the tween is heading, so rapid clicks keep stepping one card. */
+  const targetRef = useRef(0);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
+
+  // Stop a running tween if the section unmounts.
+  useEffect(
+    () => () => {
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    },
+    []
+  );
 
   const updateEdges = useCallback(() => {
     const rail = railRef.current;
     if (!rail) return;
+    // Keep the step target in sync with native touch/wheel scrolling.
+    if (animationRef.current === null) targetRef.current = rail.scrollLeft;
     const maxScroll = rail.scrollWidth - rail.clientWidth;
     setAtStart(rail.scrollLeft <= 2);
     setAtEnd(rail.scrollLeft >= maxScroll - 2);
+  }, []);
+
+  /** Tween the rail to an exact offset with a snappy ease-out curve. */
+  const animateTo = useCallback((target: number) => {
+    const rail = railRef.current;
+    if (!rail) return;
+
+    if (animationRef.current !== null) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+    rail.classList.remove("is-animating");
+
+    const maxScroll = rail.scrollWidth - rail.clientWidth;
+    const clamped = Math.min(Math.max(target, 0), maxScroll);
+    const startLeft = rail.scrollLeft;
+    const distance = clamped - startLeft;
+
+    if (prefersReducedMotion() || Math.abs(distance) < 1) {
+      rail.scrollLeft = clamped;
+      return;
+    }
+
+    // Turn off native smooth scrolling and snapping while we drive scrollLeft.
+    rail.classList.add("is-animating");
+
+    const startedAt = performance.now();
+    const tick = (now: number) => {
+      const progress = Math.min((now - startedAt) / SCROLL_DURATION_MS, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      rail.scrollLeft = startLeft + distance * eased;
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(tick);
+        return;
+      }
+      animationRef.current = null;
+      rail.classList.remove("is-animating");
+    };
+
+    animationRef.current = requestAnimationFrame(tick);
   }, []);
 
   // Keep the arrow visibility in sync with scrolling, resizing and content changes.
@@ -86,20 +146,29 @@ export default function OccasionCarousel() {
   }, []);
 
   /** Move the rail by exactly one card plus the gap between cards. */
-  const scrollByCard = useCallback((direction: "prev" | "next") => {
-    const rail = railRef.current;
-    if (!rail) return;
-    const card = rail.querySelector<HTMLElement>(".occasion-tile");
-    if (!card) return;
+  const scrollByCard = useCallback(
+    (direction: "prev" | "next") => {
+      const rail = railRef.current;
+      if (!rail) return;
+      const card = rail.querySelector<HTMLElement>(".occasion-tile");
+      if (!card) return;
 
-    const gap = parseFloat(window.getComputedStyle(rail).columnGap) || 0;
-    const step = card.getBoundingClientRect().width + gap;
+      const gap = parseFloat(window.getComputedStyle(rail).columnGap) || 0;
+      const step = card.getBoundingClientRect().width + gap;
+      const maxScroll = rail.scrollWidth - rail.clientWidth;
+      const target = Math.min(
+        Math.max(
+          targetRef.current + (direction === "next" ? step : -step),
+          0
+        ),
+        maxScroll
+      );
 
-    rail.scrollBy({
-      left: direction === "next" ? step : -step,
-      behavior: prefersReducedMotion() ? "auto" : "smooth",
-    });
-  }, []);
+      targetRef.current = target;
+      animateTo(target);
+    },
+    [animateTo]
+  );
 
   // Desktop mouse drag. Touch devices keep native swipe scrolling.
   const handlePointerDown = useCallback(
@@ -110,6 +179,14 @@ export default function OccasionCarousel() {
       const startX = event.clientX;
       const startLeft = rail.scrollLeft;
       let moved = false;
+
+      // A drag takes over from any in-flight arrow animation.
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+        rail.classList.remove("is-animating");
+      }
+      targetRef.current = startLeft;
 
       const handleMove = (moveEvent: globalThis.PointerEvent) => {
         const delta = moveEvent.clientX - startX;
@@ -145,17 +222,15 @@ export default function OccasionCarousel() {
           Math.max(Math.round(rail.scrollLeft / step), 0) * step,
           maxScroll
         );
-        rail.scrollTo({
-          left: target,
-          behavior: prefersReducedMotion() ? "auto" : "smooth",
-        });
+        targetRef.current = target;
+        animateTo(target);
       };
 
       window.addEventListener("pointermove", handleMove, { passive: false });
       window.addEventListener("pointerup", handleEnd);
       window.addEventListener("pointercancel", handleEnd);
     },
-    []
+    [animateTo]
   );
 
   const handleClickCapture = (event: ReactMouseEvent<HTMLDivElement>) => {
