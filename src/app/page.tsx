@@ -3,17 +3,18 @@ import Image from "next/image";
 import HeroSlider from "@/components/HeroSlider";
 import TrustGrid from "@/components/TrustGrid";
 import OccasionCarousel from "@/components/OccasionCarousel";
-import ProductCard from "@/components/ProductCard";
+import ProductRail from "@/components/ProductRail";
 import Reveal from "@/components/Reveal";
 import NewsletterForm from "@/components/NewsletterForm";
 import ReviewsSection from "@/components/ReviewsSection";
-import { products } from "@/data/products";
+import {
+  newArrivalProducts,
+  luxuryFormalProducts,
+  bestSellingProducts,
+} from "@/data/collections";
 import { categories, reviews, gallery } from "@/data/site";
 
 export default function HomePage() {
-  const bestSellers = products.filter((p) => p.badge === "bestseller").slice(0, 4);
-  const newArrivals = products.filter((p) => p.badge === "new").slice(0, 4);
-
   return (
     <>
       <HeroSlider />
@@ -66,50 +67,38 @@ export default function HomePage() {
       </section>
 
       {/* Shop by Occasion */}
-      <OccasionCarousel />
+      <Reveal>
+        <OccasionCarousel />
+      </Reveal>
 
       {/* New Arrivals */}
       <Reveal>
-        <section className="section new-arrivals-section">
-          <div className="container">
-            <div className="section-header">
-              <h2 className="section-title">New Arrivals</h2>
-              <p className="section-subtitle">Fresh styles just landed — be the first to wear them</p>
-            </div>
-            <div className="products-grid">
-              {newArrivals.map((product) => (
-                <ProductCard key={product.slug} product={product} />
-              ))}
-            </div>
-            <div className="section-cta">
-              <Link href="/shop" className="btn btn-outline">
-                View All New Arrivals
-              </Link>
-            </div>
-          </div>
-        </section>
+        <ProductRail
+          id="new-arrivals"
+          title="New Arrivals"
+          viewAllHref="/shop"
+          products={newArrivalProducts}
+        />
+      </Reveal>
+
+      {/* Luxury Formals */}
+      <Reveal>
+        <ProductRail
+          id="luxury-formals"
+          title="Luxury Formals"
+          viewAllHref="/shop"
+          products={luxuryFormalProducts}
+        />
       </Reveal>
 
       {/* Best Sellers */}
       <Reveal>
-        <section className="section best-sellers-section">
-          <div className="container">
-            <div className="section-header">
-              <h2 className="section-title">Best Sellers</h2>
-              <p className="section-subtitle">Our most loved pieces, handpicked for you</p>
-            </div>
-            <div className="products-grid">
-              {bestSellers.map((product) => (
-                <ProductCard key={product.slug} product={product} />
-              ))}
-            </div>
-            <div className="section-cta">
-              <Link href="/shop" className="btn btn-outline">
-                View All Best Sellers
-              </Link>
-            </div>
-          </div>
-        </section>
+        <ProductRail
+          id="best-selling"
+          title="Best Selling"
+          viewAllHref="/shop"
+          products={bestSellingProducts}
+        />
       </Reveal>
 
       {/* Categories */}
