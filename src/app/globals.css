@@ -13,6 +13,8 @@
   --color-secondary: #2C2C2C;
   --color-accent: #C9A96E;
   --color-gold: #D4AF37;
+  --color-feature-icon: #A67C52;
+  --color-feature-icon-hover: #8A5F3A;
   --color-cream: #FAF8F5;
   --color-white: #FFFFFF;
   --color-black: #1A1A1A;
@@ -1049,6 +1051,159 @@ main {
   line-height: 1.5;
 }
 
+/* Features section — rebuilt reference-style bar (thin line icons, centred,
+   whole card clickable). 4 cols desktop / 2 tablet / 1 mobile. */
+.features-section {
+  background: var(--color-cream);
+  padding: 44px 0;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.features-section-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-lg);
+}
+
+.feature-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: var(--spacing-md) var(--spacing-sm);
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+  transition: background-color var(--transition-fast);
+}
+
+.feature-card:hover {
+  background: var(--color-white);
+}
+
+.feature-card:focus-visible {
+  outline: 2px solid var(--color-feature-icon);
+  outline-offset: 2px;
+}
+
+.feature-card-icon {
+  position: relative;
+  display: inline-flex;
+  color: var(--color-feature-icon);
+  transition: color var(--transition-fast);
+}
+
+.feature-card:hover .feature-card-icon,
+.feature-card:focus-visible .feature-card-icon {
+  color: var(--color-feature-icon-hover);
+}
+
+/* Small secondary glyph composed at the main icon's corner (e.g. globe). */
+.feature-card-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -12px;
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--color-cream);
+  color: var(--color-feature-icon);
+  transition: color var(--transition-fast);
+}
+
+.feature-card:hover .feature-card-badge,
+.feature-card:focus-visible .feature-card-badge {
+  color: var(--color-feature-icon-hover);
+  background: var(--color-white);
+}
+
+.feature-card-title {
+  font-size: 1rem; /* ~16px */
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-secondary);
+}
+
+.feature-card-description {
+  font-size: 0.875rem; /* ~14px */
+  line-height: 1.55;
+  color: var(--color-gray-600);
+  max-width: 260px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Shared info-page layout (/shipping, /returns, /made-to-order, /support) */
+.info-page-container {
+  max-width: 900px;
+}
+
+.info-page-body {
+  display: grid;
+  gap: var(--spacing-lg);
+  color: var(--color-gray-700);
+  line-height: 1.75;
+}
+
+.info-section h2 {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-secondary);
+  margin-bottom: 6px;
+}
+
+.info-section p {
+  margin: 0;
+}
+
+.info-section a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.info-section ul {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+  list-style: disc;
+}
+
+.info-page-cta {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-xl);
+}
+
+.info-table-wrap {
+  overflow-x: auto;
+  margin-top: 6px;
+}
+
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background: var(--color-white);
+}
+
+.info-table th,
+.info-table td {
+  border: 1px solid var(--color-gray-200);
+  padding: 10px 14px;
+  text-align: center;
+}
+
+.info-table thead th {
+  background: var(--color-cream);
+  font-weight: 700;
+  color: var(--color-secondary);
+}
+
 /* Sections */
 .section {
   padding: var(--spacing-3xl) 0;
@@ -1232,6 +1387,29 @@ main {
 
 .product-rail-wrap {
   position: relative;
+}
+
+/* Thin scroll-progress line below the rail. Hidden on desktop where the
+   hover arrows are used; shown on mobile/touch in place of the arrows. */
+.product-rail-progress {
+  display: none;
+  position: relative;
+  height: 2px;
+  margin: 18px 4px 0;
+  border-radius: 999px;
+  background: rgba(31, 61, 43, 0.16);
+  overflow: hidden;
+  transition: opacity 200ms ease;
+}
+
+.product-rail-progress-thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 40%;
+  border-radius: 999px;
+  background: #1F3D2B;
 }
 
 .product-rail {
@@ -1477,15 +1655,22 @@ main {
   pointer-events: none;
 }
 
+/* Mobile / touch: no arrow buttons — the image swipes with a finger and a
+   thin progress line below the rail shows the position, like the reference
+   storefront. */
 @media (hover: none), (max-width: 767px) {
-  .gallery-card-arrow,
-  .product-rail-arrow {
+  .gallery-card-arrow {
     opacity: 1;
     visibility: visible;
   }
 
-  .product-rail-arrow--prev { left: 0; }
-  .product-rail-arrow--next { right: 0; }
+  .product-rail-arrow {
+    display: none;
+  }
+
+  .product-rail-progress {
+    display: block;
+  }
 }
 
 @media (max-width: 1023px) {
@@ -1573,22 +1758,7 @@ main {
     font-size: 12px;
   }
 
-  .product-rail-arrow {
-    width: 32px;
-    height: 32px;
-  }
-
-  .product-rail-arrow svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  /* Keep a comfortable tap target under the visible circle. */
-  .product-rail-arrow::after {
-    content: "";
-    position: absolute;
-    inset: -6px;
-  }
+  /* Rail arrows are hidden on mobile — nothing to size. */
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -6487,5 +6657,33 @@ main {
   .lightbox-hint {
     bottom: 14px;
     font-size: 0.68rem;
+  }
+}
+
+/* Features section — tablet 2 cols, phone 1 col */
+@media (max-width: 1023px) {
+  .features-section-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+  }
+
+  .features-section {
+    padding: 36px 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .features-section-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
+  }
+
+  .features-section {
+    padding: 28px 0;
+  }
+
+  .feature-card-icon svg {
+    width: 40px;
+    height: 40px;
   }
 }

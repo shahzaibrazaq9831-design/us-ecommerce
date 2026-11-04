@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import HeroSlider from "@/components/HeroSlider";
-import TrustGrid from "@/components/TrustGrid";
+import FeaturesSection from "@/components/FeaturesSection";
 import OccasionCarousel from "@/components/OccasionCarousel";
 import ProductRail from "@/components/ProductRail";
 import Reveal from "@/components/Reveal";
@@ -19,54 +19,8 @@ export default function HomePage() {
     <>
       <HeroSlider />
 
-      {/* Compact trust grid (phones only) */}
-      <TrustGrid />
-
-      {/* Features Bar */}
-      <Reveal>
-        <section className="features-bar">
-        <div className="container">
-          <div className="features-grid">
-            <Link href="/shipping" className="feature-item">
-              <div className="feature-icon">
-                <i className="fas fa-shipping-fast" />
-              </div>
-              <div className="feature-text">
-                <h4>Worldwide Shipping</h4>
-                <p>Free standard delivery to destinations available at checkout.</p>
-              </div>
-            </Link>
-            <Link href="/returns" className="feature-item">
-              <div className="feature-icon">
-                <i className="fas fa-undo-alt" />
-              </div>
-              <div className="feature-text">
-                <h4>Clear Returns Process</h4>
-                <p>7-day returns on eligible unstitched dresses, including sale items.</p>
-              </div>
-            </Link>
-            <Link href="/product" className="feature-item">
-              <div className="feature-icon">
-                <i className="fas fa-ruler-combined" />
-              </div>
-              <div className="feature-text">
-                <h4>Made-to-Order Stitching</h4>
-                <p>Choose a standard size or tailoring to your measurements.</p>
-              </div>
-            </Link>
-            <Link href="/contact" className="feature-item">
-              <div className="feature-icon">
-                <i className="fas fa-headset" />
-              </div>
-              <div className="feature-text">
-                <h4>Personal Customer Support</h4>
-                <p>Help with sizing, product details and orders by email or WhatsApp.</p>
-              </div>
-            </Link>
-          </div>
-        </div>
-        </section>
-      </Reveal>
+      {/* Why shop with us — 4-item trust bar */}
+      <FeaturesSection />
 
       {/* Shop by Occasion */}
       <Reveal>

@@ -48,7 +48,8 @@ interface ProductRailProps {
 /**
  * Horizontal product rail with the reference storefront's arrow behaviour:
  * rail arrows stay hidden on desktop until the section is hovered/focused and
- * are always visible on touch screens.
+ * are removed entirely on touch/mobile, where a thin progress line below the
+ * rail hints at the swipe position instead.
  */
 export default function ProductRail({
   id,
@@ -61,6 +62,7 @@ export default function ProductRail({
   ctaLabel,
 }: ProductRailProps) {
   const railRef = useRef<HTMLDivElement>(null);
+  const progressThumbRef = useRef<HTMLDivElement>(null);
   const suppressClick = useRef(false);
   const animationRef = useRef<number | null>(null);
   const targetRef = useRef(0);
@@ -83,6 +85,25 @@ export default function ProductRail({
     const maxScroll = rail.scrollWidth - rail.clientWidth;
     setAtStart(rail.scrollLeft <= 2);
     setAtEnd(rail.scrollLeft >= maxScroll - 2);
+
+    // Keep the mobile progress line in sync with the swipe position.
+    const thumb = progressThumbRef.current;
+    if (thumb) {
+      const track = thumb.parentElement;
+      if (track) {
+        if (maxScroll <= 1) {
+          thumb.style.width = "100%";
+          thumb.style.left = "0%";
+          track.style.opacity = "0";
+        } else {
+          const thumbWidth = (rail.clientWidth / rail.scrollWidth) * 100;
+          const progress = rail.scrollLeft / maxScroll;
+          thumb.style.width = `${thumbWidth}%`;
+          thumb.style.left = `${progress * (100 - thumbWidth)}%`;
+          track.style.opacity = "1";
+        }
+      }
+    }
   }, []);
 
   const animateTo = useCallback((target: number) => {
@@ -335,6 +356,11 @@ export default function ProductRail({
           >
             <ChevronRight size={20} aria-hidden="true" />
           </button>
+
+          {/* Thin scroll-progress line — mobile only, stands in for the arrows */}
+          <div className="product-rail-progress" aria-hidden="true">
+            <div className="product-rail-progress-thumb" ref={progressThumbRef} />
+          </div>
         </div>
       </div>
     </section>
