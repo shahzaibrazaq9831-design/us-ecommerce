@@ -5,6 +5,7 @@ import Image from "next/image";
 import { X } from "lucide-react";
 import type { Review } from "@/data/site";
 import { reviews } from "@/data/site";
+import { hasOpenModal } from "@/lib/overlay";
 
 const STORAGE_SEEN = "cr_seen_reviews";
 const STORAGE_COUNT = "cr_popup_shown";
@@ -41,9 +42,8 @@ export default function RecentReviewPopup() {
   useEffect(() => {
     if (isExcludedPage()) return;
     if (
-      document.querySelector(
-        '[role="dialog"][data-state="open"], [role="region"][aria-label="Cookie choices"]'
-      )
+      hasOpenModal() ||
+      document.querySelector('[role="region"][aria-label="Cookie choices"]')
     ) {
       return;
     }
@@ -70,6 +70,8 @@ export default function RecentReviewPopup() {
     const start = () => {
       timerRef.current = setTimeout(() => {
         if (document.hidden) return;
+        // Let the welcome-offer modal own the screen when it is open.
+        if (hasOpenModal()) return;
         setReview(next);
         setOpen(true);
       }, 2200);
