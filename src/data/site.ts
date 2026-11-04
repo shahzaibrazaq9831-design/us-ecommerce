@@ -43,7 +43,7 @@ export const heroSlides: HeroSlide[] = [
     title: "New Arrivals — Flat 50% Off",
     subtitle: "Freshly dropped designs from our latest collection",
     cta: "Shop Now",
-    href: "/shop",
+    href: "/collections/new-arrivals",
     image: "/images/hero1.png",
     mobileImage: "/images/mobile1.png",
   },

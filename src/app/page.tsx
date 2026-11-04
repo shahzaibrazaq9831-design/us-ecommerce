@@ -76,7 +76,7 @@ export default function HomePage() {
         <ProductRail
           id="new-arrivals"
           title="New Arrivals"
-          viewAllHref="/shop"
+          viewAllHref="/collections/new-arrivals"
           products={newArrivalProducts}
         />
       </Reveal>

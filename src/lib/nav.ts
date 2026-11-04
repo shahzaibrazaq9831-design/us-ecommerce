@@ -16,7 +16,7 @@ export interface NavItem {
 
 export const navItems: NavItem[] = [
   { label: "Home", href: "/" },
-  { label: "New Arrivals", href: "/shop" },
+  { label: "New Arrivals", href: "/collections/new-arrivals" },
   { label: "Best Selling", href: "/shop" },
   {
     label: "Collections",
