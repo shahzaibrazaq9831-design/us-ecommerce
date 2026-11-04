@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useCart } from "@/context/CartContext";
+import { useCart, cartLineKey } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
 
 export default function CartPage() {
@@ -33,7 +33,7 @@ export default function CartPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "40px" }}>
           <div style={{ display: "grid", gap: "16px" }}>
             {cart.map((item) => (
-              <div key={item.slug} style={{ display: "grid", gridTemplateColumns: "120px 1fr auto", gap: "16px", padding: "16px", border: "1px solid var(--color-gray-200)", borderRadius: "var(--radius-lg)" }}>
+              <div key={cartLineKey(item)} style={{ display: "grid", gridTemplateColumns: "120px 1fr auto", gap: "16px", padding: "16px", border: "1px solid var(--color-gray-200)", borderRadius: "var(--radius-lg)" }}>
                 <div style={{ position: "relative", aspectRatio: "3/4" }}>
                   <Image src={item.image} alt={item.name} fill sizes="120px" style={{ objectFit: "cover", borderRadius: "var(--radius-md)" }} />
                 </div>
@@ -42,18 +42,25 @@ export default function CartPage() {
                     {item.name}
                   </Link>
                   <div style={{ color: "var(--color-gray-600)", margin: "6px 0" }}>{item.category}</div>
+                  {(item.size || item.lining || item.notes) && (
+                    <div style={{ fontSize: "0.85rem", color: "var(--color-gray-600)", marginBottom: "6px", display: "grid", gap: "2px" }}>
+                      {item.size && <span>Size: {item.size}</span>}
+                      {item.lining && <span>Lining in sleeves: {item.lining}</span>}
+                      {item.notes && <span>Note: {item.notes}</span>}
+                    </div>
+                  )}
                   <div style={{ fontWeight: 700 }}>{formatPrice(item.price)}</div>
                   <div style={{ display: "flex", gap: "12px", alignItems: "center", marginTop: "12px" }}>
                     <div style={{ display: "flex", alignItems: "center", border: "1px solid var(--color-gray-300)", borderRadius: "var(--radius-md)" }}>
-                      <button onClick={() => updateQuantity(item.slug, item.quantity - 1)} style={{ padding: "8px 12px" }}>
+                      <button onClick={() => updateQuantity(cartLineKey(item), item.quantity - 1)} style={{ padding: "8px 12px" }}>
                         -
                       </button>
                       <span style={{ padding: "8px 16px" }}>{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.slug, item.quantity + 1)} style={{ padding: "8px 12px" }}>
+                      <button onClick={() => updateQuantity(cartLineKey(item), item.quantity + 1)} style={{ padding: "8px 12px" }}>
                         +
                       </button>
                     </div>
-                    <button onClick={() => removeFromCart(item.slug)} style={{ color: "var(--color-error)" }}>
+                    <button onClick={() => removeFromCart(cartLineKey(item))} style={{ color: "var(--color-error)" }}>
                       Remove
                     </button>
                   </div>

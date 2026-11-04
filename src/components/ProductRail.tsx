@@ -9,7 +9,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import GalleryProductCard from "@/components/GalleryProductCard";
 import type { CollectionProduct } from "@/data/collections";
 
@@ -35,6 +35,14 @@ interface ProductRailProps {
   products: CollectionProduct[];
   /** Occasion keeps the cream background and centred header. */
   variant?: "default" | "occasion";
+  /**
+   * "rail" (default) — horizontal scroller with arrows.
+   * "grid" — shows every item in a responsive grid (2 per row on phones,
+   * 3 on tablets, 4 on desktop) with a centred gold pill button below.
+   */
+  layout?: "rail" | "grid";
+  /** Label for the pill button rendered below the grid (grid layout only). */
+  ctaLabel?: string;
 }
 
 /**
@@ -49,6 +57,8 @@ export default function ProductRail({
   viewAllHref,
   products,
   variant = "default",
+  layout = "rail",
+  ctaLabel,
 }: ProductRailProps) {
   const railRef = useRef<HTMLDivElement>(null);
   const suppressClick = useRef(false);
@@ -218,6 +228,48 @@ export default function ProductRail({
     event.preventDefault();
     event.stopPropagation();
   };
+
+  // Grid layout — every item visible at once (no horizontal scroll). The
+  // cards link straight to the product (buy) page; the only link in the
+  // header row is gone, replaced by the gold pill below the grid.
+  if (layout === "grid") {
+    return (
+      <section
+        className="product-rail-section product-rail-section--grid"
+        aria-labelledby={`${id}-heading`}
+      >
+        <div className="container">
+          <div className="product-rail-header">
+            <div className="product-rail-header-copy">
+              <h2 id={`${id}-heading`} className="product-rail-title">
+                {title}
+              </h2>
+              {subtitle && <p className="product-rail-subtitle">{subtitle}</p>}
+            </div>
+          </div>
+
+          <div className="collection-grid product-grid">
+            {products.map((product, index) => (
+              <GalleryProductCard
+                key={product.id}
+                product={product}
+                eager={index < 4}
+              />
+            ))}
+          </div>
+
+          {viewAllHref && (
+            <div className="product-rail-cta-wrap">
+              <Link href={viewAllHref} className="product-rail-cta">
+                {ctaLabel ?? "View All"}
+                <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  }
 
   const isOccasion = variant === "occasion";
 

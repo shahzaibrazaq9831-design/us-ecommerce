@@ -14,7 +14,9 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <article className="product-card">
       <div className="product-image">
-        <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 50vw, 25vw" style={{ objectFit: "cover" }} />
+        <Link href={`/products/${product.slug}`} aria-label={`View ${product.name}`} style={{ position: "absolute", inset: 0 }}>
+          <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 50vw, 25vw" style={{ objectFit: "cover" }} />
+        </Link>
         {product.badge && (
           <span className={`product-badge badge-${product.badge}`}>{product.badge.toUpperCase()}</span>
         )}

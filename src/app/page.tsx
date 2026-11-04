@@ -23,7 +23,8 @@ export default function HomePage() {
       <TrustGrid />
 
       {/* Features Bar */}
-      <section className="features-bar">
+      <Reveal>
+        <section className="features-bar">
         <div className="container">
           <div className="features-grid">
             <Link href="/shipping" className="feature-item">
@@ -64,20 +65,23 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-      </section>
+        </section>
+      </Reveal>
 
       {/* Shop by Occasion */}
       <Reveal>
         <OccasionCarousel />
       </Reveal>
 
-      {/* New Arrivals */}
+      {/* New Arrivals — all 8 shown in a grid, 2 per row on phones */}
       <Reveal>
         <ProductRail
           id="new-arrivals"
           title="New Arrivals"
           viewAllHref="/collections/new-arrivals"
           products={newArrivalProducts}
+          layout="grid"
+          ctaLabel="View All New Arrivals"
         />
       </Reveal>
 

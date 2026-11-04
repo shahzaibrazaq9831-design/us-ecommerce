@@ -16,16 +16,19 @@ interface GalleryProductCardProps {
 /**
  * Product card matching the reference storefront:
  * 2:3 photo, white "Sale" pill on the top-right, name below, current price and
- * a grey struck-through compare-at price. Extra photos are reachable through
- * the arrows over the image (shown on hover / always on touch screens).
+ * a grey struck-through compare-at price. Only the first two photos are used.
+ * On hover-capable laptop/desktop the photo crossfades to the second image
+ * with no arrow buttons; phones keep the tap arrows.
  */
 export default function GalleryProductCard({
   product,
   eager = false,
 }: GalleryProductCardProps) {
   const { formatPrice } = useCurrency();
+  // The reference cards use the first two gallery shots only.
+  const images = product.images.slice(0, 2);
   const [index, setIndex] = useState(0);
-  const total = product.images.length;
+  const total = images.length;
   const hasGallery = total > 1;
 
   const showPrevious = () => setIndex((current) => (current - 1 + total) % total);
@@ -41,16 +44,20 @@ export default function GalleryProductCard({
             product.label ? `${product.label}: ${product.name}` : product.name
           }
         >
-          <Image
-            key={product.images[index]}
-            src={product.images[index]}
-            alt={`${product.name}${index > 0 ? ` — view ${index + 1}` : ""}`}
-            fill
-            sizes="(max-width: 767px) 46vw, (max-width: 1023px) 31vw, 23vw"
-            className="gallery-card-image"
-            draggable={false}
-            loading={eager ? "eager" : "lazy"}
-          />
+          {images.map((src, i) => (
+            <Image
+              key={src}
+              src={src}
+              alt={`${product.name}${i > 0 ? " — view 2" : ""}`}
+              fill
+              sizes="(max-width: 767px) 46vw, (max-width: 1023px) 31vw, 23vw"
+              className={`gallery-card-image${
+                i > 0 ? " gallery-card-image--alt" : ""
+              }${index === i ? " is-active" : ""}`}
+              draggable={false}
+              loading={eager ? "eager" : "lazy"}
+            />
+          ))}
         </Link>
 
         <span className="gallery-card-badge">Sale</span>

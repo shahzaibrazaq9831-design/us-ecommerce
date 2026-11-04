@@ -6,16 +6,39 @@ import { useEffect, useState } from "react";
 const OFFER_WINDOW_MS = 5 * 60 * 60 * 1000;
 const STORAGE_KEY = "ppd-offer-deadline";
 
-function readDeadline(): number {
-  if (typeof window === "undefined") return Date.now() + OFFER_WINDOW_MS;
+/**
+ * Resolve the deadline for this visitor, or `null` when the one-time offer is
+ * over. The deadline is set once — on the very first visit — and never
+ * re-created, so returning visitors whose window expired never see the strip
+ * again (no reset on reload, no second chance).
+ */
+function readDeadline(): number | null {
+  const now = Date.now();
+
+  const read = (storage: Storage): number | null => {
+    const raw = storage.getItem(STORAGE_KEY);
+    if (raw) {
+      const stored = Number(raw);
+      if (Number.isFinite(stored) && stored > now) return stored;
+      // Expired — the one-time offer is over. Leave the expired value in
+      // place so it never re-arms.
+      return null;
+    }
+    const deadline = now + OFFER_WINDOW_MS;
+    storage.setItem(STORAGE_KEY, String(deadline));
+    return deadline;
+  };
+
   try {
-    const stored = Number(window.localStorage.getItem(STORAGE_KEY));
-    if (Number.isFinite(stored) && stored > Date.now()) return stored;
-    const next = Date.now() + OFFER_WINDOW_MS;
-    window.localStorage.setItem(STORAGE_KEY, String(next));
-    return next;
+    return read(window.localStorage);
   } catch {
-    return Date.now() + OFFER_WINDOW_MS;
+    // Storage can be unavailable (private browsing). Fall back to
+    // sessionStorage so the offer still appears at most once per session.
+    try {
+      return read(window.sessionStorage);
+    } catch {
+      return now + OFFER_WINDOW_MS;
+    }
   }
 }
 
@@ -29,15 +52,25 @@ function formatRemaining(ms: number) {
 }
 
 export default function OfferStrip() {
-  const [remaining, setRemaining] = useState(OFFER_WINDOW_MS);
+  /** `null` = hidden (first paint, or window already over). */
+  const [remaining, setRemaining] = useState<number | null>(null);
 
   useEffect(() => {
     const deadline = readDeadline();
+    if (deadline === null) return; // One-time offer is over — stay hidden.
+
     const tick = () => setRemaining(Math.max(0, deadline - Date.now()));
-    tick();
+    const frame = window.requestAnimationFrame(tick);
     const timer = window.setInterval(tick, 1000);
-    return () => window.clearInterval(timer);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearInterval(timer);
+    };
   }, []);
+
+  // One-time offer: hidden until the stored deadline is known, and gone
+  // permanently once the 5 hours run out — including live for open tabs.
+  if (remaining === null || remaining <= 0) return null;
 
   return (
     <div className="offer-strip">

@@ -14,6 +14,11 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
+/** Stable key for a cart line — identical products with different options stay separate. */
+export function cartLineKey(item: Pick<Product, "slug" | "size" | "lining" | "notes">): string {
+  return [item.slug, item.size ?? "", item.lining ?? "", (item.notes ?? "").trim()].join("::");
+}
+
 export interface ToastItem {
   id: number;
   message: string;
@@ -23,8 +28,8 @@ interface StoreContextValue {
   cart: CartItem[];
   wishlist: string[];
   addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (slug: string) => void;
-  updateQuantity: (slug: string, quantity: number) => void;
+  removeFromCart: (lineKey: string) => void;
+  updateQuantity: (lineKey: string, quantity: number) => void;
   clearCart: () => void;
   toggleWishlist: (slug: string) => void;
   isWishlisted: (slug: string) => boolean;
@@ -96,11 +101,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCart = useCallback(
     (product: Product, quantity = 1) => {
+      const lineKey = cartLineKey(product);
       setCart((prev) => {
-        const existing = prev.find((item) => item.slug === product.slug);
+        const existing = prev.find((item) => cartLineKey(item) === lineKey);
         if (existing) {
           return prev.map((item) =>
-            item.slug === product.slug
+            cartLineKey(item) === lineKey
               ? { ...item, quantity: item.quantity + quantity }
               : item
           );
@@ -113,21 +119,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   const removeFromCart = useCallback(
-    (slug: string) => {
-      setCart((prev) => prev.filter((item) => item.slug !== slug));
+    (lineKey: string) => {
+      setCart((prev) => prev.filter((item) => cartLineKey(item) !== lineKey));
       showToast("Removed from cart");
     },
     [showToast]
   );
 
   const updateQuantity = useCallback(
-    (slug: string, quantity: number) => {
+    (lineKey: string, quantity: number) => {
       if (quantity <= 0) {
-        setCart((prev) => prev.filter((item) => item.slug !== slug));
+        setCart((prev) => prev.filter((item) => cartLineKey(item) !== lineKey));
         return;
       }
       setCart((prev) =>
-        prev.map((item) => (item.slug === slug ? { ...item, quantity } : item))
+        prev.map((item) => (cartLineKey(item) === lineKey ? { ...item, quantity } : item))
       );
     },
     []

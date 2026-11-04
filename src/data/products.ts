@@ -17,6 +17,10 @@ export interface Product {
   rating: number;
   reviews: number;
   description: string;
+  /** Selected options from the buy section (made-to-order items). */
+  size?: string;
+  lining?: string;
+  notes?: string;
 }
 
 export const products: Product[] = [

@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -15,8 +16,8 @@ interface CollectionProductCardProps {
 
 /**
  * Product card for collection grids: 2:3 photo, Sale badge on the top-right
- * (when on sale), gallery arrows on hover/touch, and a "Choose" button that
- * opens the shared quick-view / cart modal.
+ * (when on sale), two-image hover crossfade on desktop, tap arrows on phones,
+ * and a "Choose" button that opens the shared quick-view / cart modal.
  */
 export default function CollectionProductCard({
   product,
@@ -24,8 +25,10 @@ export default function CollectionProductCard({
 }: CollectionProductCardProps) {
   const { formatPrice } = useCurrency();
   const { openQuickView } = useCart();
+  // The collection grid uses the first two gallery shots only.
+  const images = product.images.slice(0, 2);
   const [index, setIndex] = useState(0);
-  const total = product.images.length;
+  const total = images.length;
   const soldOut = product.availability === "out_of_stock";
   const onSale = product.originalPrice !== null;
 
@@ -36,31 +39,36 @@ export default function CollectionProductCard({
     openQuickView(toCartProduct(product));
   }, [openQuickView, product]);
 
+  const href = `/products/new-arrival-${product.slug}`;
+
   return (
     <article className={`gallery-card collection-card${soldOut ? " is-sold-out" : ""}`}>
       <div className="gallery-card-media">
-        <button
-          type="button"
+        <Link
+          href={href}
           className="gallery-card-link collection-card-image-btn"
-          onClick={open}
           aria-label={`View ${product.name}`}
         >
-          <Image
-            key={product.images[index]}
-            src={product.images[index]}
-            alt={`${product.name}${index > 0 ? ` — view ${index + 1}` : ""}`}
-            fill
-            sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 17vw"
-            className="gallery-card-image"
-            draggable={false}
-            loading={eager ? "eager" : "lazy"}
-          />
-        </button>
+          {images.map((src, i) => (
+            <Image
+              key={src}
+              src={src}
+              alt={`${product.name}${i > 0 ? " — view 2" : ""}`}
+              fill
+              sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 17vw"
+              className={`gallery-card-image${
+                i > 0 ? " gallery-card-image--alt" : ""
+              }${index === i ? " is-active" : ""}`}
+              draggable={false}
+              loading={eager ? "eager" : "lazy"}
+            />
+          ))}
+        </Link>
 
         {soldOut && <span className="collection-card-soldout">Out of stock</span>}
         {onSale && <span className="gallery-card-badge">Sale</span>}
 
-        {/* Gallery arrows — hover on desktop, always visible on touch. */}
+        {/* Gallery arrows — phones/touch only; desktop uses hover crossfade. */}
         <button
           type="button"
           className="gallery-card-arrow gallery-card-arrow--prev"
@@ -97,9 +105,9 @@ export default function CollectionProductCard({
       </div>
 
       <div className="gallery-card-info">
-        <button type="button" className="gallery-card-name collection-card-name" onClick={open}>
+        <Link href={href} className="gallery-card-name collection-card-name">
           {product.name}
-        </button>
+        </Link>
         <div className="gallery-card-price">
           <span className="gallery-card-price-current">{formatPrice(product.price)}</span>
           {product.originalPrice !== null && (

@@ -12,6 +12,7 @@ import { getExchangeRates, resolveCurrency } from "@/lib/currency";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import Header from "@/components/Header";
 import OfferStrip from "@/components/OfferStrip";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import Footer from "@/components/Footer";
 import FloatingElements from "@/components/FloatingElements";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
@@ -75,6 +76,9 @@ async function CurrencyInit({ children }: { children: React.ReactNode }) {
           <Header />
         </Suspense>
         <OfferStrip />
+        <Suspense fallback={null}>
+          <Breadcrumbs />
+        </Suspense>
         <main>{children}</main>
         <Footer />
         <FloatingElements />

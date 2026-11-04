@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { useCart } from "@/context/CartContext";
+import { useCart, cartLineKey } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import { siteConfig } from "@/data/site";
 
@@ -95,13 +95,17 @@ export default function CheckoutPage() {
               <h2 style={{ fontFamily: "var(--font-heading)", marginBottom: "16px" }}>Order Summary</h2>
               <div style={{ display: "grid", gap: "12px", marginBottom: "16px" }}>
                 {cart.map((item) => (
-                  <div key={item.slug} style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                  <div key={cartLineKey(item)} style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                     <div style={{ position: "relative", width: "60px", height: "80px", flexShrink: 0 }}>
                       <Image src={item.image} alt={item.name} fill sizes="60px" style={{ objectFit: "cover", borderRadius: "var(--radius-md)" }} />
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: "0.95rem" }}>{item.name}</div>
-                      <div style={{ color: "var(--color-gray-600)", fontSize: "0.85rem" }}>Qty: {item.quantity}</div>
+                      <div style={{ color: "var(--color-gray-600)", fontSize: "0.85rem" }}>
+                        Qty: {item.quantity}
+                        {item.size ? ` · Size: ${item.size}` : ""}
+                        {item.lining ? ` · ${item.lining}` : ""}
+                      </div>
                     </div>
                     <div style={{ fontWeight: 700 }}>{formatPrice(item.price * item.quantity)}</div>
                   </div>
