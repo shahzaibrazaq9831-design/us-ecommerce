@@ -1,7 +1,7 @@
 .button {
   position: fixed;
-  top: 0;
   left: 0;
+  bottom: 0;
   z-index: 2147483000;
   width: 56px;
   height: 56px;
@@ -19,7 +19,7 @@
   -webkit-user-select: none;
   -webkit-user-drag: none;
   -webkit-tap-highlight-color: transparent;
-  will-change: transform;
+  will-change: transform, left, bottom;
 }
 
 .button.ready {

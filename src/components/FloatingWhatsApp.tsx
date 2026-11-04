@@ -38,7 +38,13 @@ type ButtonVisual = {
 function viewport() {
   return {
     width: document.documentElement.clientWidth || window.innerWidth,
-    height: window.innerHeight,
+    // The layout viewport is what `position: fixed` offsets resolve against,
+    // so use it instead of `window.innerHeight` (which changes on mobile when
+    // the browser toolbar hides/shows while scrolling).
+    height:
+      document.documentElement.clientHeight ||
+      document.body.clientHeight ||
+      window.innerHeight,
   };
 }
 
@@ -109,11 +115,17 @@ export default function FloatingWhatsApp() {
       const element = buttonRef.current;
       if (!element) return;
       const scale = visual.scale ?? 1;
+      const { height } = viewport();
       element.style.transition = visual.transition;
+      // Anchor the button to the bottom-left of the viewport. Unlike a
+      // top-based transform, this keeps it in place when the mobile browser
+      // toolbar hides/shows and changes the viewport height during scrolling.
+      element.style.left = `${position.x}px`;
+      element.style.bottom = `${height - position.y - BUTTON_SIZE}px`;
       element.style.transform =
         scale === 1
-          ? `translate3d(${position.x}px, ${position.y}px, 0)`
-          : `translate3d(${position.x}px, ${position.y}px, 0) scale(${scale})`;
+          ? "translate3d(0, 0, 0)"
+          : `translate3d(0, 0, 0) scale(${scale})`;
       element.style.opacity = String(visual.opacity ?? 1);
     },
     [],
@@ -171,8 +183,9 @@ export default function FloatingWhatsApp() {
     const reduceMotion = reduceMotionRef.current;
     element.style.transition = reduceMotion
       ? "none"
-      : `transform ${SNAP_DURATION_MS}ms ease-out`;
-    element.style.transform = `translate3d(${target.x}px, ${target.y}px, 0)`;
+      : `left ${SNAP_DURATION_MS}ms ease-out, bottom ${SNAP_DURATION_MS}ms ease-out`;
+    element.style.left = `${target.x}px`;
+    element.style.bottom = `${height - target.y - BUTTON_SIZE}px`;
     positionRef.current = target;
     renderPositionRef.current = target;
   }, []);
@@ -208,12 +221,17 @@ export default function FloatingWhatsApp() {
     }
 
     const target = getHideTargetCenter();
+    const current = renderPositionRef.current;
     const finalPosition = {
       x: target.x - BUTTON_SIZE / 2,
       y: target.y - BUTTON_SIZE / 2,
     };
+    // The button is position-anchored via left/bottom, so the transform is a
+    // delta from its current spot to the hide target.
+    const deltaX = finalPosition.x - current.x;
+    const deltaY = finalPosition.y - current.y;
     element.style.transition = `transform ${HIDE_DURATION_MS}ms ease-in, opacity ${HIDE_DURATION_MS}ms ease-in`;
-    element.style.transform = `translate3d(${finalPosition.x}px, ${finalPosition.y}px, 0) scale(0)`;
+    element.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0) scale(0)`;
     element.style.opacity = "0";
     hideTimerRef.current = setTimeout(() => {
       fadeTargetOut();
@@ -313,12 +331,20 @@ export default function FloatingWhatsApp() {
     }
 
     const onResize = () => {
-      const next = clampPosition(positionRef.current);
-      positionRef.current = next;
-      if (!dragStartRef.current) {
-        renderPositionRef.current = next;
-        applyButtonVisual(next, { transition: "none" });
-      }
+      if (dragStartRef.current) return;
+      const element = buttonRef.current;
+      if (!element) return;
+      // The button is anchored to the viewport bottom in CSS, so its vertical
+      // spot needs no recalculation when the viewport height changes (e.g. a
+      // mobile browser toolbar hiding). Only keep it inside the width.
+      const { width } = viewport();
+      const rect = element.getBoundingClientRect();
+      const nextX = clamp(rect.left, 0, width - BUTTON_SIZE);
+      if (nextX === rect.left) return;
+      element.style.transition = "none";
+      element.style.left = `${nextX}px`;
+      positionRef.current = { ...positionRef.current, x: nextX };
+      renderPositionRef.current = { ...renderPositionRef.current, x: nextX };
     };
 
     // A hidden button should be back on the next visit or full page reload.
