@@ -80,6 +80,9 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: 96px;
   font-size: 16px;
+  /* Smooth, momentum-preserving scroll on all devices */
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
 }
 
 body {
@@ -90,6 +93,40 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent layout thrashing during paint */
+  contain: content;
+}
+
+/* Off-screen sections: paint only when near viewport (big speed win) */
+section {
+  contain: content;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 1000px;
+}
+
+/* GPU-accelerated, smooth animated elements */
+.scroll-animate,
+.gallery-card,
+.product-card,
+.category-card,
+.instagram-item,
+.cr-card,
+.review-card,
+.size-chart-card,
+.size-chart-tip {
+  will-change: auto;
+}
+
+.scroll-animate.visible,
+.gallery-card:hover,
+.product-card:hover,
+.category-card:hover,
+.instagram-item:hover,
+.cr-card:hover,
+.review-card:hover,
+.size-chart-card:hover,
+.size-chart-tip:hover {
+  will-change: transform, opacity, filter, box-shadow;
 }
 
 img {
@@ -6754,5 +6791,214 @@ main {
   .feature-card-icon svg {
     width: 40px;
     height: 40px;
+  }
+}
+
+/* ============================================
+   Global Speed + Smooth Scroll + Responsive
+   ============================================ */
+
+/* Critical: prevent layout shift on images */
+img {
+  aspect-ratio: attr(width) / attr(height);
+}
+
+/* Ensure all interactive elements have 44px+ touch targets */
+button,
+a[role="button"],
+input[type="button"],
+input[type="submit"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Smooth, momentum scroll with safe area support on mobile */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 96px;
+  overflow-y: scroll;
+}
+
+@supports (-webkit-touch-callout: none) {
+  html {
+    scroll-padding-top: calc(96px + env(safe-area-inset-top));
+  }
+}
+
+/* Better overscroll behavior on mobile (prevents pull-to-refresh jank) */
+body {
+  overscroll-behavior: none;
+}
+
+/* Section containers: clip overflow so horizontal scroll never leaks */
+.section {
+  overflow-x: clip;
+}
+
+/* Responsive grid overrides — ensure every section stacks cleanly on phones */
+@media (max-width: 640px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .section {
+    padding: 40px 0;
+  }
+
+  .section-header {
+    margin-bottom: 32px;
+  }
+
+  .section-title {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+
+  /* Product grids */
+  .products-grid,
+  .product-grid,
+  .collection-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .gallery-card,
+  .product-card {
+    min-width: 0;
+  }
+
+  /* Categories */
+  .categories-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* Instagram */
+  .instagram-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  /* Footer */
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  /* Hero */
+  .hero {
+    height: auto;
+    min-height: 56vh;
+  }
+
+  /* Features */
+  .features-grid,
+  .features-section-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Trust grid */
+  .trust-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 10px;
+  }
+}
+
+/* Extra small phones (< 480px) — single column everything */
+@media (max-width: 480px) {
+  .products-grid,
+  .product-grid,
+  .collection-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .categories-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .instagram-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .section {
+    padding: 32px 0;
+  }
+}
+
+/* Tablet (768px–1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .products-grid,
+  .product-grid,
+  .collection-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .instagram-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+}
+
+/* Desktop (1025px+) */
+@media (min-width: 1025px) {
+  .products-grid,
+  .product-grid,
+  .collection-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .categories-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .instagram-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+
+  .footer-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 48px;
+  }
+}
+
+/* Reduced motion: disable animations but keep layout */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High-DPI screens: crisp images */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  img {
+    image-rendering: -webkit-optimize-contrast;
   }
 }
