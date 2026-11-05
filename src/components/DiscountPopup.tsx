@@ -291,7 +291,7 @@ export default function DiscountPopup() {
               <Check size={26} strokeWidth={2.2} />
             </span>
 
-            <p className="dp-eyebrow">Welcome to Damsa Coture</p>
+            <p className="dp-eyebrow">Welcome to Rung E Bahar</p>
             <h2 id="dp-title" className="dp-title">
               Your 10% off is ready
             </h2>
@@ -335,14 +335,14 @@ export default function DiscountPopup() {
           <>
             <Image
               src="/images/logo-damsa.webp"
-              alt="Damsa Coture"
+              alt="Rung E Bahar"
               width={889}
               height={220}
               className="dp-logo"
               sizes="180px"
             />
 
-            <p className="dp-eyebrow">Welcome to Damsa Coture</p>
+            <p className="dp-eyebrow">Welcome to Rung E Bahar</p>
             <h2 id="dp-title" className="dp-title">
               Get 10% off your first order
             </h2>

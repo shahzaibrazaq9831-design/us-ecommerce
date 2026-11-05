@@ -1,108 +1,75 @@
+import Image from "next/image";
 import Link from "next/link";
 import { siteConfig } from "@/data/site";
+import DotMark from "@/components/DotMark";
+import NewsletterForm from "@/components/NewsletterForm";
 
 export default function Footer() {
-  const shopLinks = [
-    { label: "Shop All", href: "/shop" },
-    { label: "New Arrivals", href: "/shop" },
-    { label: "Best Sellers", href: "/shop" },
-    { label: "Bridal", href: "/shop" },
-    { label: "Formals", href: "/shop" },
-  ];
-
-  const customerLinks = [
-    { label: "Contact Us", href: "/contact" },
-    { label: "Shipping & Delivery", href: "/shipping" },
-    { label: "Returns & Refunds", href: "/returns" },
-    { label: "Reviews", href: "/reviews" },
-    { label: "My Account", href: "/account" },
-  ];
-
-  const policyLinks = [
+  const quickLinks = [
+    { label: "Shipping and Delivery", href: "/shipping" },
+    { label: "Returns and Refunds", href: "/returns" },
+    { label: "Terms of Service", href: "/terms" },
     { label: "Privacy Policy", href: "/privacy" },
-    { label: "Terms & Conditions", href: "/terms" },
+    { label: "Contact Us", href: "/contact" },
   ];
 
   return (
     <footer className="footer">
       <div className="container">
         <div className="footer-grid">
+          {/* Column 1: brand + contact */}
           <div className="footer-brand">
-            <Link href="/#hero" className="logo">
-              {siteConfig.name}
+            <Link href="/#hero" className="logo" aria-label="Rung E Bahar">
+              <Image
+                src="/images/logo-damsa.webp"
+                alt="Rung E Bahar"
+                width={889}
+                height={220}
+                priority
+                className="footer-logo-img"
+              />
             </Link>
             <p>
-              Luxury designer-inspired Pakistani dresses for every special occasion. Quality craftsmanship, timeless
-              elegance, and worldwide delivery.
+              If you have any confusion or question you can contact us on WhatsApp as well as on our email which as follows. Our email
+              is{" "}
+              <strong>
+                <a href="mailto:rungebahar@gmail.com">rungebahar@gmail.com</a>
+              </strong>
+              .
             </p>
-            <div className="social-links">
-              <a href={siteConfig.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                <i className="fab fa-instagram" />
-              </a>
-              <a href={siteConfig.social.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-                <i className="fab fa-facebook-f" />
-              </a>
-              <a href={siteConfig.social.tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
-                <i className="fab fa-tiktok" />
-              </a>
-              <a href={siteConfig.social.threads} target="_blank" rel="noopener noreferrer" aria-label="Threads">
-                <i className="fab fa-threads" />
-              </a>
+            <p>
+              WhatsApp number is <strong>447476469395</strong>
+            </p>
+          </div>
+
+          {/* Column 2: Quick Links */}
+          <div className="footer-col">
+            <h4>Quick Links</h4>
+            <ul>
+              {quickLinks.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href}>{link.label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column 3: Subscribe to New Arrivals */}
+          <div className="footer-col">
+            <div className="footer-newsletter">
+              <p className="footer-newsletter-title">Subscribe to New Arrivals</p>
+              <p className="footer-newsletter-text">
+                We will answer any questions you may have about our products, services, or ongoing sale offers.
+              </p>
+              <NewsletterForm />
+              <p className="newsletter-note">
+                By subscribing you agree to receive up to two marketing emails a month. Unsubscribe anytime.
+              </p>
             </div>
           </div>
-          <div className="footer-col">
-            <h4>Shop</h4>
-            <ul>
-              {shopLinks.map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href}>{link.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h4>Customer Care</h4>
-            <ul>
-              {customerLinks.map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href}>{link.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h4>Contact & Policies</h4>
-            <ul className="contact-list">
-              <li>
-                <strong>Email:</strong> <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
-              </li>
-              <li>
-                <strong>Phone:</strong> <a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`}>{siteConfig.phone}</a>
-              </li>
-              <li>
-                <strong>WhatsApp:</strong> <a href={siteConfig.whatsapp} target="_blank" rel="noopener noreferrer">Chat with us</a>
-              </li>
-              <li>
-                <strong>Company:</strong> {siteConfig.company}
-              </li>
-            </ul>
-            <ul style={{ marginTop: "16px" }}>
-              {policyLinks.map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href}>{link.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
-        <div className="footer-bottom">
-          <p>© {siteConfig.copyrightYear} {siteConfig.name}. All rights reserved.</p>
-          <div className="payment-icons">
-            <i className="fab fa-cc-visa" />
-            <i className="fab fa-cc-mastercard" />
-            <i className="fab fa-cc-amex" />
-            <i className="fab fa-cc-paypal" />
-          </div>
+        <div className="footer-mark">
+          <DotMark text={siteConfig.name} height={150} color="#9E9E9E" />
         </div>
       </div>
     </footer>

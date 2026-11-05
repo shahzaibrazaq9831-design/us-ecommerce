@@ -27,7 +27,7 @@ function shuffle<T>(array: T[]): T[] {
 
 const shuffledReviews = shuffle(reviews);
 
-/* Crisp, whole gold stars — matches premiumpakistanidresses.com exactly,
+/* Crisp, whole gold stars — matches rungebahar.com exactly,
    with no blurry partial-fill overlay. */
 function Stars({ rating }: { rating: number }) {
   return (

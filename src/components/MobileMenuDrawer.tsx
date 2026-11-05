@@ -180,11 +180,11 @@ export default function MobileMenuDrawer({ open, onClose }: { open: boolean; onC
             href="/#hero"
             className="m-drawer-logo"
             onClick={onClose}
-            aria-label="Damsa Coture"
+            aria-label="Rung E Bahar"
           >
             <Image
               src="/images/logo-damsa.webp"
-              alt="Damsa Coture"
+              alt="Rung E Bahar"
               width={889}
               height={220}
               className="m-drawer-logo-img"

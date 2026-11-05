@@ -5,7 +5,7 @@ import styles from "./FloatingWhatsApp.module.css";
 
 const WHATSAPP_NUMBER = "447476469395";
 const WHATSAPP_MESSAGE =
-  "Hello Damsa Couture, I would like some styling assistance.";
+  "Hello Rung E Bahar, I would like some styling assistance.";
 
 const BUTTON_SIZE = 56;
 const EDGE_GAP = 20;

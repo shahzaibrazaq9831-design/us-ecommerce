@@ -18,7 +18,7 @@ import { getDetailProductBySlug } from "@/data/catalog";
  * Every crumb except the current page is clickable.
  */
 
-const SITE_URL = "https://www.premiumpakistanidresses.com";
+const SITE_URL = "https://www.rungebahar.com";
 
 const STATIC_LABELS: Record<string, string> = {
   shop: "Shop",

@@ -268,14 +268,14 @@ export default function WhatsAppFloat() {
           className="whatsapp-chat-panel"
           style={chatPosition}
           role="dialog"
-          aria-label="Chat with Damsa Coture"
+          aria-label="Chat with Rung E Bahar"
         >
           <header className="whatsapp-chat-header">
             <span className="whatsapp-chat-avatar" aria-hidden="true">
               <i className="fab fa-whatsapp" />
             </span>
             <span className="whatsapp-chat-title">
-              <strong>Damsa Coture</strong>
+              <strong>Rung E Bahar</strong>
               <small>We usually reply on WhatsApp</small>
             </span>
             <button
@@ -289,7 +289,7 @@ export default function WhatsAppFloat() {
           </header>
           <div className="whatsapp-chat-messages" aria-live="polite">
             <p className="whatsapp-chat-message">
-              Hello! Welcome to Damsa Coture. How can we help with styling,
+              Hello! Welcome to Rung E Bahar. How can we help with styling,
               sizing, or an order?
             </p>
             <div className="whatsapp-chat-shortcuts">
@@ -297,7 +297,7 @@ export default function WhatsAppFloat() {
                 type="button"
                 onClick={() =>
                   setMessageDraft(
-                    "Hello Damsa Coture, I would like some styling assistance."
+                    "Hello Rung E Bahar, I would like some styling assistance."
                   )
                 }
               >
@@ -305,7 +305,7 @@ export default function WhatsAppFloat() {
               </button>
               <button
                 type="button"
-                onClick={() => setMessageDraft("Hello Damsa Coture, I need help with an order.")}
+                onClick={() => setMessageDraft("Hello Rung E Bahar, I need help with an order.")}
               >
                 Order support
               </button>
@@ -340,7 +340,7 @@ export default function WhatsAppFloat() {
         onClick={handleClick}
         onFocus={wakeWidget}
         draggable={false}
-        aria-label={chatOpen ? "Close Damsa Coture chat" : "Open Damsa Coture chat"}
+        aria-label={chatOpen ? "Close Rung E Bahar chat" : "Open Rung E Bahar chat"}
         aria-expanded={chatOpen}
       >
         <i

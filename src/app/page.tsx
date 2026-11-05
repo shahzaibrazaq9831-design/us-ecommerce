@@ -5,7 +5,6 @@ import FeaturesSection from "@/components/FeaturesSection";
 import OccasionCarousel from "@/components/OccasionCarousel";
 import ProductRail from "@/components/ProductRail";
 import Reveal from "@/components/Reveal";
-import NewsletterForm from "@/components/NewsletterForm";
 import ReviewsSection from "@/components/ReviewsSection";
 import {
   newArrivalProducts,
@@ -46,16 +45,20 @@ export default function HomePage() {
           title="Luxury Formals"
           viewAllHref="/shop"
           products={luxuryFormalProducts}
+          layout="grid"
+          ctaLabel="View All Luxury Formals"
         />
       </Reveal>
 
-      {/* Best Sellers */}
+      {/* Best Sellers — grid showcase matching Luxury Formals / New Arrivals */}
       <Reveal>
         <ProductRail
           id="best-selling"
           title="Best Selling"
           viewAllHref="/shop"
           products={bestSellingProducts}
+          layout="grid"
+          ctaLabel="Visit Best Selling"
         />
       </Reveal>
 
@@ -92,7 +95,7 @@ export default function HomePage() {
           <div className="container">
             <div className="section-header">
               <h2 className="section-title">Follow Our Style</h2>
-              <p className="section-subtitle">@premiumpakistanidresses</p>
+              <p className="section-subtitle">@rungebahar</p>
             </div>
             <div className="instagram-grid">
               {gallery.map((src) => (
@@ -103,22 +106,6 @@ export default function HomePage() {
                   </div>
                 </a>
               ))}
-            </div>
-          </div>
-        </section>
-      </Reveal>
-
-      {/* Newsletter */}
-      <Reveal>
-        <section className="section newsletter-section">
-          <div className="container">
-            <div className="newsletter-content">
-              <h2>Subscribe to New Arrivals</h2>
-              <p>
-                Be first to discover new arrivals, bridal launches and restocks. Subscribe and receive code <strong>PPD10</strong> for 10% off your first prepaid order.
-              </p>
-              <NewsletterForm />
-              <p className="newsletter-note">By subscribing you agree to receive up to two marketing emails a month. Unsubscribe anytime.</p>
             </div>
           </div>
         </section>

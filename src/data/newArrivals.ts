@@ -118,39 +118,6 @@ const HOUR_MS = 60 * 60 * 1000;
 
 const products: NewArrivalProduct[] = [];
 
-let index = 0;
-for (const root of NAME_ROOTS) {
-  for (const ending of NAME_ENDINGS) {
-    const name = `${root}${ending}`;
-    // Rotate the gallery start position so repeated sets still feel varied.
-    const start = Math.floor(index / GALLERY_SETS.length) % 3;
-    const gallery = GALLERY_SETS[index % GALLERY_SETS.length];
-    const images = [...gallery.slice(start), ...gallery.slice(0, start)];
-
-    const price = roundTo100(40900 + hash01(index + 1) * (78400 - 40900));
-    const onSale = index % 7 !== 3;
-    const discountFactor = 0.62 + hash01(index * 7 + 9) * 0.16; // 22–38% off
-    const originalPrice = onSale ? roundTo100(price / discountFactor) : null;
-    const availability: Availability = index % 11 === 7 ? "out_of_stock" : "in_stock";
-
-    products.push({
-      id: `na-${index + 1}`,
-      slug: name.toLowerCase(),
-      name,
-      images,
-      price,
-      originalPrice,
-      availability,
-      createdAt: new Date(BASE_TIME - index * 9 * HOUR_MS).toISOString(),
-      relevanceRank: Math.floor(hash01(index * 3 + 17) * 10000),
-      bestSellingRank: Math.floor(hash01(index * 5 + 23) * 10000),
-      rating: Math.round((4.5 + hash01(index * 13 + 7) * 0.5) * 10) / 10,
-      reviews: 40 + Math.floor(hash01(index * 19 + 11) * 220),
-    });
-    index += 1;
-  }
-}
-
 export const newArrivalsCatalog: NewArrivalProduct[] = products;
 export const NEW_ARRIVALS_COUNT = newArrivalsCatalog.length;
 

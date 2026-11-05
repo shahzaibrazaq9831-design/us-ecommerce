@@ -1726,7 +1726,22 @@ main {
   }
 
   .gallery-card {
-    flex-basis: calc((100% - 8px) / 2);
+    /* Phones: one product per view in the snap rail (matches the reference
+       storefront's mobile rail — a single product per swipe, not a pair). */
+    flex-basis: calc(100% - 8px);
+  }
+
+  /* Product showcase grids on phones: keep the responsive grid (2 per row)
+     instead of collapsing to a single-item snap rail. */
+  .product-rail-section--grid .collection-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 8px;
+  }
+
+  .product-rail-section--grid .gallery-card {
+    flex: initial;
+    scroll-snap-align: none;
   }
 
   .gallery-card-arrow {
@@ -1998,7 +2013,7 @@ main {
 }
 
 /* ============================================
-   Customer Reviews — matches premiumpakistanidresses.com
+   Customer Reviews — matches rungebahar.com
    ============================================ */
 
 .cr-section {
@@ -2644,7 +2659,7 @@ main {
 
 /* ============================================
    Customer Reviews page — matches
-   premiumpakistanidresses.com/reviews
+   rungebahar.com/reviews
    ============================================ */
 .reviews-header-section {
   padding: 48px 0 40px;
@@ -3130,21 +3145,22 @@ main {
 
 /* Footer */
 .footer {
-  background: var(--color-black);
-  color: var(--color-gray-400);
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
   padding: var(--spacing-3xl) 0 0;
 }
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1.5fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-2xl);
+  align-items: start;
   padding-bottom: var(--spacing-2xl);
-  border-bottom: 1px solid var(--color-gray-800);
+  border-bottom: 1px solid var(--color-gray-300);
 }
 
 .footer-brand .logo {
-  color: var(--color-white);
+  color: var(--color-black);
   display: block;
   margin-bottom: var(--spacing-md);
 }
@@ -3153,6 +3169,52 @@ main {
   font-size: 0.9rem;
   line-height: 1.7;
   margin-bottom: var(--spacing-lg);
+}
+
+/* Original site logo used in the footer (replaces the old text logo) */
+.footer-logo-img {
+  display: block;
+  height: 46px;
+  width: auto;
+}
+
+/* Newsletter inside the footer — compact, small and light */
+.footer-newsletter {
+  margin-bottom: var(--spacing-lg);
+}
+
+.footer-newsletter-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-black);
+  margin-bottom: 6px;
+}
+
+.footer-newsletter-text {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--color-gray-700);
+  margin-bottom: var(--spacing-md);
+}
+
+.footer-newsletter .newsletter-form {
+  margin-bottom: 0;
+}
+
+.footer-newsletter .newsletter-form input {
+  background: var(--color-white);
+  color: var(--color-gray-700);
+  border: 1px solid var(--color-gray-300);
+}
+
+.footer-newsletter .newsletter-form input::placeholder {
+  color: var(--color-gray-400);
+}
+
+.footer-newsletter .newsletter-form input:focus {
+  background: var(--color-white);
+  border-color: var(--color-gold);
 }
 
 .social-links {
@@ -3184,7 +3246,7 @@ main {
   font-family: var(--font-heading);
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-black);
   margin-bottom: var(--spacing-lg);
 }
 
@@ -3194,7 +3256,7 @@ main {
 
 .footer-col ul li a {
   font-size: 0.9rem;
-  color: var(--color-gray-400);
+  color: var(--color-gray-700);
   transition: all var(--transition-fast);
 }
 
@@ -3234,6 +3296,13 @@ main {
   gap: var(--spacing-md);
   font-size: 1.5rem;
   color: var(--color-gray-600);
+}
+
+/* DotMark at the very bottom of the footer */
+.footer-mark {
+  width: 100%;
+  margin-top: var(--spacing-2xl);
+  padding-bottom: var(--spacing-3xl);
 }
 
 /* WhatsApp Float */
@@ -3878,7 +3947,7 @@ main {
   .products-grid { grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg); }
   .categories-grid { grid-template-columns: repeat(2, 1fr); }
   .instagram-grid { grid-template-columns: repeat(3, 1fr); }
-  .footer-grid { grid-template-columns: repeat(2, 1fr); gap: var(--spacing-xl); }
+  .footer-grid { grid-template-columns: repeat(3, 1fr); gap: var(--spacing-2xl); align-items: start; }
   .nav-list > li > a { padding: var(--spacing-md) var(--spacing-sm); font-size: 0.85rem; }
 }
 
@@ -4771,7 +4840,7 @@ main {
   color: var(--cr-ink);
 }
 
-/* New-review popup entrance animation (bottom-left, like premiumpakistanidresses.com). */
+/* New-review popup entrance animation (bottom-left, like rungebahar.com). */
 .cr-popup-enter {
   animation: cr-popup-in 420ms var(--cr-ease);
 }

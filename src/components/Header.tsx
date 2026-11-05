@@ -110,10 +110,10 @@ export default function Header() {
               <i className="fas fa-search" />
             </button>
           </div>
-          <Link href="/#hero" className="logo header-logo" aria-label="Damsa Coture">
+          <Link href="/#hero" className="logo header-logo" aria-label="Rung E Bahar">
             <Image
               src="/images/logo-damsa.webp"
-              alt="Damsa Coture"
+              alt="Rung E Bahar"
               width={889}
               height={220}
               priority
@@ -158,10 +158,10 @@ export default function Header() {
             <Menu size={22} strokeWidth={1.5} aria-hidden="true" />
           </button>
 
-          <Link href="/#hero" className="m-header-logo" aria-label="Damsa Coture">
+          <Link href="/#hero" className="m-header-logo" aria-label="Rung E Bahar">
             <Image
               src="/images/logo-damsa.webp"
-              alt="Damsa Coture"
+              alt="Rung E Bahar"
               width={889}
               height={220}
               className="m-header-logo-img"
