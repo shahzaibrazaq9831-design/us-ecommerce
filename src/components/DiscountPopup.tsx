@@ -124,26 +124,55 @@ export default function DiscountPopup() {
     };
   }, [state]);
 
-  /* Prevent the page behind the offer from scrolling while it is open. */
-  useEffect(() => {
-    if (!active) return;
+  /* Scroll lock — whole-site scrolling is disabled while the offer is open.
+   * A ref tracks whether THIS component owns the lock, so we never restore a
+   * "hidden" value captured from another modal (which would leave the page
+   * unscrollable after nested opens/closes, refreshes, or interrupted exits). */
+  const lockRef = useRef(false);
 
+  const applyLock = useCallback(() => {
+    if (lockRef.current) return; // already locked by this instance
     const body = document.body;
-    const previousOverflow = body.style.overflow;
-    const previousPaddingRight = body.style.paddingRight;
     const scrollbarWidth =
       window.innerWidth - document.documentElement.clientWidth;
-
     body.style.overflow = "hidden";
     if (scrollbarWidth > 0) {
       body.style.paddingRight = `${scrollbarWidth}px`;
     }
+    lockRef.current = true;
+  }, []);
 
+  const releaseLock = useCallback(() => {
+    if (!lockRef.current) return; // we don't own the lock — don't touch it
+    const body = document.body;
+    body.style.overflow = "";
+    body.style.paddingRight = "";
+    lockRef.current = false;
+  }, []);
+
+  // Apply the lock when the offer opens, release it when it closes.
+  useEffect(() => {
+    if (!active) {
+      releaseLock();
+      return;
+    }
+    applyLock();
+  }, [active, applyLock, releaseLock]);
+
+  // Release immediately when the exit animation starts, so the page is never
+  // left unscrollable while the modal fades out.
+  useEffect(() => {
+    if (state !== "closing") return;
+    releaseLock();
+  }, [state, releaseLock]);
+
+  // Guarantee scroll is restored the moment this component leaves the DOM,
+  // even if the modal was still open (hard refresh / mid-animation navigation).
+  useEffect(() => {
     return () => {
-      body.style.overflow = previousOverflow;
-      body.style.paddingRight = previousPaddingRight;
+      releaseLock();
     };
-  }, [active]);
+  }, [releaseLock]);
 
   /* Focus management: move focus into the dialog, trap Tab and close on Esc. */
   useEffect(() => {

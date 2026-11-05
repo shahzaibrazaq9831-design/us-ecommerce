@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, Heart, Search, User, X } from "lucide-react";
 import CurrencySelector from "./CurrencySelector";
 import { navItems, type NavItem } from "@/lib/nav";
@@ -86,21 +86,40 @@ export default function MobileMenuDrawer({ open, onClose }: { open: boolean; onC
   }, [pathname]);
 
   // Lock the page behind the drawer without losing the scroll position.
-  useEffect(() => {
-    if (!open) return;
-    const { body } = document;
-    const previousOverflow = body.style.overflow;
-    const previousPaddingRight = body.style.paddingRight;
-    const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+  // A ref tracks whether THIS drawer owns the lock so a nested open/close
+  // can never restore "hidden" and leave the whole site unscrollable.
+  const drawerLockRef = useRef(false);
 
+  const applyDrawerLock = useCallback(() => {
+    if (drawerLockRef.current) return;
+    const { body } = document;
+    const scrollbar = window.innerWidth - document.documentElement.clientWidth;
     body.style.overflow = "hidden";
     if (scrollbar > 0) body.style.paddingRight = `${scrollbar}px`;
+    drawerLockRef.current = true;
+  }, []);
 
+  const releaseDrawerLock = useCallback(() => {
+    if (!drawerLockRef.current) return;
+    const { body } = document;
+    body.style.overflow = "";
+    body.style.paddingRight = "";
+    drawerLockRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      releaseDrawerLock();
+      return;
+    }
+    applyDrawerLock();
+  }, [open, applyDrawerLock, releaseDrawerLock]);
+
+  useEffect(() => {
     return () => {
-      body.style.overflow = previousOverflow;
-      body.style.paddingRight = previousPaddingRight;
+      releaseDrawerLock();
     };
-  }, [open]);
+  }, [releaseDrawerLock]);
 
   // Move focus into the drawer, trap it, and close on Escape.
   useEffect(() => {

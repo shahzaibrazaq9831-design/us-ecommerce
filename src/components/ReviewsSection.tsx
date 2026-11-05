@@ -158,24 +158,42 @@ export default function ReviewsSection({
   );
 
   // Close the photo dialog with Escape and lock page scrolling while it is open.
+  // A ref tracks whether THIS lightbox owns the lock so a nested open/close
+  // can never restore "hidden" and leave the whole site unscrollable.
+  const reviewLightboxLockRef = useRef(false);
+
+  const applyReviewLock = useCallback(() => {
+    if (reviewLightboxLockRef.current) return;
+    document.body.style.overflow = "hidden";
+    reviewLightboxLockRef.current = true;
+  }, []);
+
+  const releaseReviewLock = useCallback(() => {
+    if (!reviewLightboxLockRef.current) return;
+    document.body.style.overflow = "";
+    reviewLightboxLockRef.current = false;
+  }, []);
+
   useEffect(() => {
-    if (!lightbox) return;
+    if (!lightbox) {
+      releaseReviewLock();
+      return;
+    }
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setLightbox(null);
     };
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    applyReviewLock();
     document.addEventListener("keydown", onKeyDown);
     closeButtonRef.current?.focus();
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      releaseReviewLock();
       document.removeEventListener("keydown", onKeyDown);
       lastTriggerRef.current?.focus();
     };
-  }, [lightbox]);
+  }, [lightbox, applyReviewLock, releaseReviewLock]);
 
   return (
     <section className="cr-section" aria-labelledby="customer-reviews">

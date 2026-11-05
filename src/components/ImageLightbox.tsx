@@ -59,15 +59,31 @@ export default function ImageLightbox({
     [current, onIndexChange, total]
   );
 
-  // Lock body scroll + restore focus handling while the viewer is open.
+  // Lock body scroll while the viewer is open. A ref tracks whether THIS
+  // viewer owns the lock so a nested open/close can never restore "hidden"
+  // and leave the whole site unscrollable.
+  const lightboxLockRef = useRef(false);
+
+  const applyLightboxLock = useCallback(() => {
+    if (lightboxLockRef.current) return;
+    const body = document.body;
+    body.style.overflow = "hidden";
+    lightboxLockRef.current = true;
+  }, []);
+
+  const releaseLightboxLock = useCallback(() => {
+    if (!lightboxLockRef.current) return;
+    document.body.style.overflow = "";
+    lightboxLockRef.current = false;
+  }, []);
+
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    applyLightboxLock();
     closeRef.current?.focus();
     return () => {
-      document.body.style.overflow = previousOverflow;
+      releaseLightboxLock();
     };
-  }, []);
+  }, [applyLightboxLock, releaseLightboxLock]);
 
   // Keyboard shortcuts.
   useEffect(() => {
