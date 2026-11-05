@@ -68,6 +68,16 @@ export default function ProductRail({
   const targetRef = useRef(0);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
+  const [autoReveal, setAutoReveal] = useState(false);
+
+  // Auto-reveal grid images after 2 seconds so they don't wait for manual scroll.
+  useEffect(() => {
+    if (layout !== "grid") return;
+    const timer = window.setTimeout(() => {
+      setAutoReveal(true);
+    }, 2000);
+    return () => window.clearTimeout(timer);
+  }, [layout]);
 
   useEffect(
     () => () => {
@@ -250,6 +260,17 @@ export default function ProductRail({
     event.stopPropagation();
   };
 
+  // Mouse wheel: scroll horizontally instead of vertically.
+  const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+      const rail = railRef.current;
+      if (!rail) return;
+      event.preventDefault();
+      const step = 120;
+      rail.scrollBy({ left: event.deltaY > 0 ? step : -step, behavior: "smooth" });
+    }
+  };
+
   // Grid layout — every item visible at once (no horizontal scroll). The
   // cards link straight to the product (buy) page; the only link in the
   // header row is gone, replaced by the gold pill below the grid.
@@ -269,12 +290,12 @@ export default function ProductRail({
             </div>
           </div>
 
-          <div className="collection-grid product-grid">
+          <div className={`collection-grid product-grid${autoReveal ? " is-revealing" : ""}`}>
             {products.map((product, index) => (
               <GalleryProductCard
                 key={product.id}
                 product={product}
-                eager={index < 4}
+                eager={autoReveal || index < 4}
               />
             ))}
           </div>
@@ -336,6 +357,7 @@ export default function ProductRail({
             onPointerDown={handlePointerDown}
             onClickCapture={handleClickCapture}
             onDragStart={(event) => event.preventDefault()}
+            onWheel={handleWheel}
           >
             {products.map((product, index) => (
               <GalleryProductCard

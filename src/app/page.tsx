@@ -38,26 +38,26 @@ export default function HomePage() {
         />
       </Reveal>
 
-      {/* Luxury Formals */}
+      {/* Luxury Formals — horizontal rail with mouse drag + arrows */}
       <Reveal>
         <ProductRail
           id="luxury-formals"
           title="Luxury Formals"
           viewAllHref="/shop"
           products={luxuryFormalProducts}
-          layout="grid"
-          ctaLabel="View All Luxury Formals"
+          layout="rail"
+          ctaLabel="Visit All Luxury Formals"
         />
       </Reveal>
 
-      {/* Best Sellers — grid showcase matching Luxury Formals / New Arrivals */}
+      {/* Best Selling — horizontal rail with mouse drag + arrows */}
       <Reveal>
         <ProductRail
           id="best-selling"
           title="Best Selling"
           viewAllHref="/shop"
           products={bestSellingProducts}
-          layout="grid"
+          layout="rail"
           ctaLabel="Visit Best Selling"
         />
       </Reveal>

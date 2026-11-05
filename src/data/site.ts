@@ -40,7 +40,7 @@ export interface HeroSlide {
 export const heroSlides: HeroSlide[] = [
   {
     eyebrow: "New Arrivals",
-    title: "New Arrivals — Flat 50% Off",
+    title: "New Arrivals — Flat 30% Off",
     subtitle: "Freshly dropped designs from our latest collection",
     cta: "Shop Now",
     href: "/collections/new-arrivals",
@@ -49,7 +49,7 @@ export const heroSlides: HeroSlide[] = [
   },
   {
     eyebrow: "Best Sellers",
-    title: "Best Sellers — Flat 50% Off",
+    title: "Best Sellers — Flat 30% Off",
     subtitle: "Our most loved pieces, back by popular demand",
     cta: "Shop Now",
     href: "/shop",
@@ -58,7 +58,7 @@ export const heroSlides: HeroSlide[] = [
   },
   {
     eyebrow: "Formal Collection",
-    title: "Formal Collection — Flat 50% Off",
+    title: "Formal Collection — Flat 30% Off",
     subtitle: "Statement outfits for weddings, Eid and evening events",
     cta: "Shop Now",
     href: "/shop",

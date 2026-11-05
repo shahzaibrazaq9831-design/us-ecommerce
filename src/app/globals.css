@@ -91,10 +91,9 @@ body {
   line-height: 1.6;
   background-color: var(--color-white);
   overflow-x: hidden;
+  overflow-y: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Prevent layout thrashing during paint */
-  contain: content;
 }
 
 /* Off-screen sections: paint only when near viewport (big speed win) */
@@ -1395,6 +1394,34 @@ main {
   color: var(--color-white);
   transform: translateY(-2px);
   box-shadow: 0 12px 28px rgba(139, 105, 20, 0.35);
+}
+
+/* Auto-reveal animation for grid product sections (Best Selling etc.)
+   Images start hidden, then fade/slide in smoothly after 2 seconds. */
+.product-grid.is-revealing .gallery-card {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: gridReveal 0.8s ease-out forwards;
+}
+
+.product-grid.is-revealing .gallery-card:nth-child(1) { animation-delay: 0.05s; }
+.product-grid.is-revealing .gallery-card:nth-child(2) { animation-delay: 0.15s; }
+.product-grid.is-revealing .gallery-card:nth-child(3) { animation-delay: 0.25s; }
+.product-grid.is-revealing .gallery-card:nth-child(4) { animation-delay: 0.35s; }
+.product-grid.is-revealing .gallery-card:nth-child(5) { animation-delay: 0.45s; }
+.product-grid.is-revealing .gallery-card:nth-child(6) { animation-delay: 0.55s; }
+.product-grid.is-revealing .gallery-card:nth-child(7) { animation-delay: 0.65s; }
+.product-grid.is-revealing .gallery-card:nth-child(8) { animation-delay: 0.75s; }
+
+@keyframes gridReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .product-rail-cta:hover svg {
@@ -6810,24 +6837,6 @@ input[type="button"],
 input[type="submit"] {
   min-height: 44px;
   min-width: 44px;
-}
-
-/* Smooth, momentum scroll with safe area support on mobile */
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 96px;
-  overflow-y: scroll;
-}
-
-@supports (-webkit-touch-callout: none) {
-  html {
-    scroll-padding-top: calc(96px + env(safe-area-inset-top));
-  }
-}
-
-/* Better overscroll behavior on mobile (prevents pull-to-refresh jank) */
-body {
-  overscroll-behavior: none;
 }
 
 /* Section containers: clip overflow so horizontal scroll never leaks */

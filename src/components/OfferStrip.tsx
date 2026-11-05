@@ -7,10 +7,9 @@ const OFFER_WINDOW_MS = 5 * 60 * 60 * 1000;
 const STORAGE_KEY = "ppd-offer-deadline";
 
 /**
- * Resolve the deadline for this visitor, or `null` when the one-time offer is
- * over. The deadline is set once — on the very first visit — and never
- * re-created, so returning visitors whose window expired never see the strip
- * again (no reset on reload, no second chance).
+ * Resolve the deadline for this visitor.
+ * Once the 5-hour window expires, a new window is created so the offer
+ * can re-appear instead of staying hidden forever.
  */
 function readDeadline(): number | null {
   const now = Date.now();
@@ -20,9 +19,11 @@ function readDeadline(): number | null {
     if (raw) {
       const stored = Number(raw);
       if (Number.isFinite(stored) && stored > now) return stored;
-      // Expired — the one-time offer is over. Leave the expired value in
-      // place so it never re-arms.
-      return null;
+      // Expired — clear and re-arm for a new 5-hour window.
+      storage.removeItem(STORAGE_KEY);
+      const deadline = now + OFFER_WINDOW_MS;
+      storage.setItem(STORAGE_KEY, String(deadline));
+      return deadline;
     }
     const deadline = now + OFFER_WINDOW_MS;
     storage.setItem(STORAGE_KEY, String(deadline));
@@ -52,12 +53,12 @@ function formatRemaining(ms: number) {
 }
 
 export default function OfferStrip() {
-  /** `null` = hidden (first paint, or window already over). */
+  /** `null` = hidden until the effect sets the countdown. */
   const [remaining, setRemaining] = useState<number | null>(null);
 
   useEffect(() => {
     const deadline = readDeadline();
-    if (deadline === null) return; // One-time offer is over — stay hidden.
+    if (deadline === null) return;
 
     const tick = () => setRemaining(Math.max(0, deadline - Date.now()));
     const frame = window.requestAnimationFrame(tick);
@@ -68,8 +69,6 @@ export default function OfferStrip() {
     };
   }, []);
 
-  // One-time offer: hidden until the stored deadline is known, and gone
-  // permanently once the 5 hours run out — including live for open tabs.
   if (remaining === null || remaining <= 0) return null;
 
   return (

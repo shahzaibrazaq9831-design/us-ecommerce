@@ -33,7 +33,6 @@ export default function AnnouncementBar() {
         </div>
         <div
           className="announcement-group announcement-group--desktop"
-          aria-hidden="true"
         >
           <span>Buy 2 Dresses Get Extra 10% Off</span>
           <span className="announcement-separator"></span>

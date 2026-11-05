@@ -6,13 +6,14 @@
  * as the reference product page; `images[0]` is the card's main image.
  *
  * `slug` links the card to its product (buy) page at `/products/<slug>`.
- * Rails may feature the same ensemble more than once; those entries share a slug.
+ * Each home section has its own distinct products — no repeats across rails.
+ * Only image files that exist in /public/images/rungebahar/ are used.
  */
 
 export interface CollectionProduct {
   /** Unique key for the rail. */
   id: string;
-  /** Product-page slug (shared when the same ensemble appears in two rails). */
+  /** Product-page slug. */
   slug: string;
   name: string;
   /** Small optional line above the name (used by the occasion rail). */
@@ -31,26 +32,6 @@ const gallery = (handle: string): string[] => [
   `/images/rungebahar/${handle}-2.webp`,
   `/images/rungebahar/${handle}-3.webp`,
 ];
-
-/** Fallback image handles for products whose gallery files are not yet
- *  saved under /public/images/rungebahar/. Points to an existing handle so
- *  the site still shows a product photo instead of a 404. */
-const IMAGE_FALLBACK: Record<string, string> = {
-  avisa: "elia",
-  zarzevar: "char",
-  amnaa: "mariyam",
-  nainaa: "ishani",
-  rangsatrang: "sabyasachi",
-  shahkaar: "opulent",
-  mahrooh: "kiara",
-  aatish: "darya",
-  gulzaar: "surajmukhi",
-  mehrab: "hyacinth",
-};
-
-/** Resolve a gallery handle, falling back to an existing handle when needed. */
-const resolveGallery = (handle: string): string[] =>
-  gallery(IMAGE_FALLBACK[handle] ?? handle);
 
 const href = (slug: string) => `/products/${slug}`;
 
@@ -147,93 +128,11 @@ export const occasionProducts: CollectionProduct[] = [
   },
 ];
 
-/** New Arrivals — eight products, same sequence and prices as rungebahar.com. */
+/**
+ * New Arrivals — 8 distinct products, no overlap with other home sections.
+ * Prices match rungebahar.com where the reference lists them.
+ */
 export const newArrivalProducts: CollectionProduct[] = [
-  {
-    id: "amnaa",
-    slug: "amnaa",
-    name: "Amnaa",
-    images: resolveGallery("amnaa"),
-    price: 55900,
-    originalPrice: 79900,
-    href: href("amnaa"),
-  },
-  {
-    id: "nainaa",
-    slug: "nainaa",
-    name: "Nainaa",
-    images: resolveGallery("nainaa"),
-    price: 55900,
-    originalPrice: 79900,
-    href: href("nainaa"),
-  },
-  {
-    id: "rangsatrang",
-    slug: "rangsatrang",
-    name: "Rangsatrang",
-    images: resolveGallery("rangsatrang"),
-    price: 53700,
-    originalPrice: 76800,
-    href: href("rangsatrang"),
-  },
-  {
-    id: "zarzevar",
-    slug: "zarzevar",
-    name: "Zarzevar",
-    images: resolveGallery("zarzevar"),
-    price: 53700,
-    originalPrice: 76800,
-    href: href("zarzevar"),
-  },
-  {
-    id: "shahkaar",
-    slug: "shahkaar",
-    name: "Shahkaar",
-    images: resolveGallery("shahkaar"),
-    price: 53700,
-    originalPrice: 76800,
-    href: href("shahkaar"),
-  },
-  {
-    id: "mahrooh",
-    slug: "mahrooh",
-    name: "Mahrooh",
-    images: resolveGallery("mahrooh"),
-    price: 53700,
-    originalPrice: 76800,
-    href: href("mahrooh"),
-  },
-  {
-    id: "aatish",
-    slug: "aatish",
-    name: "Aatish",
-    images: resolveGallery("aatish"),
-    price: 53700,
-    originalPrice: 76800,
-    href: href("aatish"),
-  },
-  {
-    id: "gulzaar",
-    slug: "gulzaar",
-    name: "Gulzaar",
-    images: resolveGallery("gulzaar"),
-    price: 53700,
-    originalPrice: 76800,
-    href: href("gulzaar"),
-  },
-];
-
-/** Luxury Formals — eight products, same sequence and prices as rungebahar.com. */
-export const luxuryFormalProducts: CollectionProduct[] = [
-  {
-    id: "avisa",
-    slug: "avisa",
-    name: "Avisa",
-    images: resolveGallery("avisa"),
-    price: 48000,
-    originalPrice: 68600,
-    href: href("avisa"),
-  },
   {
     id: "elia",
     slug: "elia",
@@ -244,51 +143,6 @@ export const luxuryFormalProducts: CollectionProduct[] = [
     href: href("elia"),
   },
   {
-    id: "lux-amnaa",
-    slug: "amnaa",
-    name: "Amnaa",
-    images: resolveGallery("amnaa"),
-    price: 55900,
-    originalPrice: 79900,
-    href: href("amnaa"),
-  },
-  {
-    id: "lux-nainaa",
-    slug: "nainaa",
-    name: "Nainaa",
-    images: resolveGallery("nainaa"),
-    price: 55900,
-    originalPrice: 79900,
-    href: href("nainaa"),
-  },
-  {
-    id: "lux-shahkaar",
-    slug: "shahkaar",
-    name: "Shahkaar",
-    images: resolveGallery("shahkaar"),
-    price: 53700,
-    originalPrice: 76800,
-    href: href("shahkaar"),
-  },
-  {
-    id: "lux-mahrooh",
-    slug: "mahrooh",
-    name: "Mahrooh",
-    images: resolveGallery("mahrooh"),
-    price: 53700,
-    originalPrice: 76800,
-    href: href("mahrooh"),
-  },
-  {
-    id: "mehrab",
-    slug: "mehrab",
-    name: "Mehrab",
-    images: resolveGallery("mehrab"),
-    price: 53700,
-    originalPrice: 76800,
-    href: href("mehrab"),
-  },
-  {
     id: "char-06",
     slug: "char-06",
     name: "Char -06",
@@ -297,80 +151,214 @@ export const luxuryFormalProducts: CollectionProduct[] = [
     originalPrice: 69100,
     href: href("char-06"),
   },
+  {
+    id: "darya",
+    slug: "darya",
+    name: "Darya",
+    images: gallery("darya"),
+    price: 67300,
+    originalPrice: 96100,
+    href: href("darya"),
+  },
+  {
+    id: "mariyam",
+    slug: "mariyam",
+    name: "Mariyam",
+    images: gallery("mariyam"),
+    price: 55900,
+    originalPrice: 79900,
+    href: href("mariyam"),
+  },
+  {
+    id: "ishani",
+    slug: "ishani",
+    name: "Ishani",
+    images: gallery("ishani"),
+    price: 55900,
+    originalPrice: 79900,
+    href: href("ishani"),
+  },
+  {
+    id: "sabyasachi",
+    slug: "sabyasachi",
+    name: "Sabyasachi",
+    images: gallery("sabyasachi"),
+    price: 73400,
+    originalPrice: 105000,
+    href: href("sabyasachi"),
+  },
+  {
+    id: "opulent",
+    slug: "opulent",
+    name: "Opulent",
+    images: gallery("opulent"),
+    price: 96300,
+    originalPrice: 137600,
+    href: href("opulent"),
+  },
+  {
+    id: "kiara",
+    slug: "kiara",
+    name: "Kiara",
+    images: gallery("kiara"),
+    price: 85300,
+    originalPrice: 121800,
+    href: href("kiara"),
+  },
 ];
 
-/** Best Selling — eight products, same sequence and prices as rungebahar.com. */
+/**
+ * Luxury Formals — 8 distinct products, no overlap with other home sections.
+ */
+export const luxuryFormalProducts: CollectionProduct[] = [
+  {
+    id: "hyacinth",
+    slug: "hyacinth",
+    name: "Hyacinth",
+    images: gallery("hyacinth"),
+    price: 89400,
+    originalPrice: 127700,
+    href: href("hyacinth"),
+  },
+  {
+    id: "lucent",
+    slug: "lucent",
+    name: "Lucent",
+    images: gallery("lucent"),
+    price: 65600,
+    originalPrice: 93700,
+    href: href("lucent"),
+  },
+  {
+    id: "mira-elegant",
+    slug: "mira-elegant",
+    name: "Mira Elegant",
+    images: gallery("mira-elegant"),
+    price: 90500,
+    originalPrice: 129300,
+    href: href("mira-elegant"),
+  },
+  {
+    id: "minahil",
+    slug: "minahil",
+    name: "Minahil",
+    images: gallery("minahil"),
+    price: 63900,
+    originalPrice: 91300,
+    href: href("minahil"),
+  },
+  {
+    id: "naheed",
+    slug: "naheed",
+    name: "Naheed",
+    images: gallery("naheed"),
+    price: 84300,
+    originalPrice: 120700,
+    href: href("naheed"),
+  },
+  {
+    id: "noreen",
+    slug: "noreen",
+    name: "Noreen",
+    images: gallery("noreen"),
+    price: 67300,
+    originalPrice: 96100,
+    href: href("noreen"),
+  },
+  {
+    id: "offwhite-red",
+    slug: "offwhite-red",
+    name: "Offwhite & Red",
+    images: gallery("offwhite-red"),
+    price: 62500,
+    originalPrice: 89300,
+    href: href("offwhite-red"),
+  },
+  {
+    id: "pista-embroidered",
+    slug: "pista-embroidered",
+    name: "Pista Embroidered",
+    images: gallery("pista-embroidered"),
+    price: 65600,
+    originalPrice: 93700,
+    href: href("pista-embroidered"),
+  },
+];
+
+/**
+ * Best Selling — 8 distinct products, no overlap with other home sections.
+ */
 export const bestSellingProducts: CollectionProduct[] = [
   {
-    id: "best-avisa",
-    slug: "avisa",
-    name: "Avisa",
-    images: resolveGallery("avisa"),
-    price: 48000,
-    originalPrice: 68600,
-    href: href("avisa"),
+    id: "surajmukhi",
+    slug: "surajmukhi",
+    name: "Surajmukhi",
+    images: gallery("surajmukhi"),
+    price: 75000,
+    originalPrice: 107200,
+    href: href("surajmukhi"),
   },
   {
-    id: "best-elia",
-    slug: "elia",
-    name: "Elia",
-    images: gallery("elia"),
-    price: 59200,
-    originalPrice: 84600,
-    href: href("elia"),
+    id: "sevgi",
+    slug: "sevgi",
+    name: "Sevgi",
+    images: gallery("sevgi"),
+    price: 63900,
+    originalPrice: 91300,
+    href: href("sevgi"),
   },
   {
-    id: "best-amnaa",
-    slug: "amnaa",
-    name: "Amnaa",
-    images: resolveGallery("amnaa"),
-    price: 55900,
-    originalPrice: 79900,
-    href: href("amnaa"),
+    id: "saxe",
+    slug: "saxe",
+    name: "Saxe",
+    images: gallery("saxe"),
+    price: 63900,
+    originalPrice: 91300,
+    href: href("saxe"),
   },
   {
-    id: "best-nainaa",
-    slug: "nainaa",
-    name: "Nainaa",
-    images: resolveGallery("nainaa"),
-    price: 55900,
-    originalPrice: 79900,
-    href: href("nainaa"),
+    id: "kesar",
+    slug: "kesar",
+    name: "Kesar",
+    images: gallery("kesar"),
+    price: 72500,
+    originalPrice: 103600,
+    href: href("kesar"),
   },
   {
-    id: "best-rangsatrang",
-    slug: "rangsatrang",
-    name: "Rangsatrang",
-    images: resolveGallery("rangsatrang"),
-    price: 53700,
-    originalPrice: 76800,
-    href: href("rangsatrang"),
+    id: "arasti-mustard-yellow",
+    slug: "arasti-mustard-yellow",
+    name: "Arasti",
+    images: gallery("arasti-mustard-yellow"),
+    price: 75900,
+    originalPrice: 108400,
+    href: href("arasti-mustard-yellow"),
   },
   {
-    id: "best-zarzevar",
-    slug: "zarzevar",
-    name: "Zarzevar",
-    images: resolveGallery("zarzevar"),
-    price: 53700,
-    originalPrice: 76800,
-    href: href("zarzevar"),
+    id: "embroidered-mcp-106",
+    slug: "embroidered-mcp-106",
+    name: "Embroidered MCP 106",
+    images: gallery("embroidered-mcp-106"),
+    price: 61900,
+    originalPrice: 88100,
+    href: href("embroidered-mcp-106"),
   },
   {
-    id: "best-shahkaar",
-    slug: "shahkaar",
-    name: "Shahkaar",
-    images: resolveGallery("shahkaar"),
-    price: 53700,
-    originalPrice: 76800,
-    href: href("shahkaar"),
+    id: "iriana",
+    slug: "iriana",
+    name: "Iriana",
+    images: gallery("iriana"),
+    price: 74500,
+    originalPrice: 106300,
+    href: href("iriana"),
   },
   {
-    id: "best-mahrooh",
-    slug: "mahrooh",
-    name: "Mahrooh",
-    images: resolveGallery("mahrooh"),
-    price: 53700,
-    originalPrice: 76800,
-    href: href("mahrooh"),
+    id: "shocking-bridal",
+    slug: "shocking-bridal",
+    name: "Shocking Bridal",
+    images: gallery("shocking-bridal"),
+    price: 62600,
+    originalPrice: 89500,
+    href: href("shocking-bridal"),
   },
 ];
