@@ -7,14 +7,24 @@ const OFFER_WINDOW_MS = 5 * 60 * 60 * 1000;
 const STORAGE_KEY = "ppd-offer-deadline";
 
 /**
+ * The value rendered on the server and on the very first client render.
+ *
+ * It is always a full window so both renders produce identical markup — the
+ * countdown then swaps in the visitor's real value from an effect. Because
+ * the digits sit in a fixed-width, tabular-number box, that swap cannot
+ * reflow the page.
+ */
+const INITIAL_REMAINING_MS = OFFER_WINDOW_MS;
+
+/**
  * Resolve the deadline for this visitor.
  * Once the 5-hour window expires, a new window is created so the offer
  * can re-appear instead of staying hidden forever.
  */
-function readDeadline(): number | null {
+function readDeadline(): number {
   const now = Date.now();
 
-  const read = (storage: Storage): number | null => {
+  const read = (storage: Storage): number => {
     const raw = storage.getItem(STORAGE_KEY);
     if (raw) {
       const stored = Number(raw);
@@ -52,24 +62,25 @@ function formatRemaining(ms: number) {
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 }
 
+/**
+ * One-time 5-hour welcome offer.
+ *
+ * The strip is intentionally always rendered — including in the server HTML —
+ * with the full-width countdown. Only the digits change after hydration, so
+ * the banner never pops in and never changes the page height while scrolling.
+ */
 export default function OfferStrip() {
-  /** `null` = hidden until the effect sets the countdown. */
-  const [remaining, setRemaining] = useState<number | null>(null);
+  const [remaining, setRemaining] = useState(INITIAL_REMAINING_MS);
 
   useEffect(() => {
     const deadline = readDeadline();
-    if (deadline === null) return;
 
     const tick = () => setRemaining(Math.max(0, deadline - Date.now()));
-    const frame = window.requestAnimationFrame(tick);
-    const timer = window.setInterval(tick, 1000);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.clearInterval(timer);
-    };
-  }, []);
+    tick();
 
-  if (remaining === null || remaining <= 0) return null;
+    const timer = window.setInterval(tick, 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   return (
     <div className="offer-strip">

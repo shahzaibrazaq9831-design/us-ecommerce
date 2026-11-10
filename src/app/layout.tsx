@@ -72,7 +72,9 @@ async function CurrencyInit({ children }: { children: React.ReactNode }) {
     <CurrencyProvider initialCurrency={initialCurrency} rates={rates}>
       <CartProvider>
         <AnnouncementBar />
-        <Suspense fallback={<header className="header" />}>
+        <Suspense
+          fallback={<header className="header header--placeholder" aria-hidden="true" />}
+        >
           <Header />
         </Suspense>
         <OfferStrip />

@@ -64,7 +64,14 @@
 
   /* Layout */
   --header-height: 80px;
+  --nav-height: 56px;
+  /* Everything that must clear the sticky header (anchor scrolling, the hero)
+     uses this instead of guessing at a single bar's height. */
+  --header-total-height: calc(var(--header-height) + var(--nav-height));
   --announcement-height: 40px;
+  /* Reserved space for the countdown strip. It is never collapsed, so the
+     page height cannot change when the strip hydrates. */
+  --offer-strip-height: 56px;
   --container-max: 1400px;
   --container-padding: 24px;
 }
@@ -78,10 +85,14 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 96px;
+  scroll-padding-top: var(--header-total-height);
   font-size: 16px;
   /* Smooth, momentum-preserving scroll on all devices */
   overflow-y: scroll;
+  /* Clip sideways overflow on the root scroller. Do NOT move this to <body>:
+     overflow on <body> makes it a scroll container and breaks the sticky
+     header (it then scrolls away with the page). */
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -90,18 +101,17 @@ body {
   color: var(--color-secondary);
   line-height: 1.6;
   background-color: var(--color-white);
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Off-screen sections: paint only when near viewport (big speed win) */
-section {
-  contain: content;
-  content-visibility: auto;
-  contain-intrinsic-size: 1px 1000px;
-}
+/* Sections render eagerly on purpose.
+   These rules used to be `contain: content; content-visibility: auto;
+   contain-intrinsic-size: 1px 1000px` as a paint optimisation, but that makes
+   every off-screen section report a guessed 1000px height. As sections enter
+   the viewport their real heights replace the guess, so document height (and
+   therefore the scrollbar and scroll position) jumps while scrolling. */
 
 /* GPU-accelerated, smooth animated elements */
 .scroll-animate,
@@ -214,6 +224,51 @@ main {
   }
 }
 
+/* Laptop and up: the message set is wider than the viewport, so a marquee
+   would always clip the first/last words at the edges. Lay the messages out
+   statically instead and let them wrap onto a second line — nothing is ever
+   cut off, and the fixed bar height keeps the page from shifting. */
+@media (min-width: 1024px) {
+  :root {
+    --announcement-height: 56px;
+  }
+
+  .announcement-bar {
+    /* No clipping: the whole message set is always readable. */
+    overflow: visible;
+  }
+
+  .announcement-track--desktop {
+    width: 100%;
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+    justify-content: center;
+    white-space: normal;
+    animation: none;
+    transform: none;
+  }
+
+  .announcement-group--desktop {
+    min-width: 0;
+    width: 100%;
+    /* Two balanced lines (3 + 2) instead of 4 + 1 at laptop widths. */
+    max-width: 980px;
+    margin-inline: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 28px;
+    padding: 0;
+    white-space: nowrap;
+    line-height: 1.5;
+  }
+
+  /* The second group is only needed for the mobile marquee loop. */
+  .announcement-group--desktop[aria-hidden="true"] {
+    display: none;
+  }
+}
+
 .announcement-track strong {
   font-weight: 700;
   color: var(--color-gold);
@@ -237,7 +292,15 @@ main {
   z-index: 1000;
   background: var(--color-white);
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-base);
+  /* Only the shadow changes on scroll — never animate layout properties. */
+  transition: box-shadow var(--transition-base);
+}
+
+/* Streamed Suspense fallback: reserves the exact height of the real header so
+   the page does not jump when the header hydrates. */
+.header--placeholder {
+  height: var(--header-total-height);
+  box-shadow: none;
 }
 
 .header.scrolled {
@@ -630,6 +693,9 @@ main {
 /* Navigation */
 .main-nav {
   border-top: 1px solid var(--color-gray-200);
+  /* Fixed height keeps the sticky header's total height predictable, which is
+     what scroll-padding-top and the hero's scroll-margin rely on. */
+  height: var(--nav-height);
 }
 
 .nav-list {
@@ -638,6 +704,7 @@ main {
   justify-content: center;
   gap: var(--spacing-xs);
   max-width: var(--container-max);
+  height: 100%;
   margin: 0 auto;
   padding: 0 var(--container-padding);
 }
@@ -799,7 +866,8 @@ main {
    ============================================ */
 .hero {
   position: relative;
-  scroll-margin-top: var(--header-height);
+  /* Clear the whole sticky header (logo bar + nav), not just the logo bar. */
+  scroll-margin-top: var(--header-total-height);
   /* Box matches the artwork's 16:9 ratio so the full image is always
      visible, same as the reference store (no zoom, no cropped edges) */
   aspect-ratio: 16 / 9;
@@ -4016,7 +4084,7 @@ main {
 }
 
 @media (max-width: 768px) {
-  :root { --header-height: 60px; --container-padding: 16px; }
+  :root { --header-height: 56px; --container-padding: 16px; }
   .main-nav { display: none; }
   .logo { font-size: 1.1rem; }
   .header-actions { gap: var(--spacing-sm); }
@@ -4143,10 +4211,20 @@ main {
 }
 
 /* ---------- Offer strip — one-time 5-hour welcome offer, every device ---------- */
+/* The outer box is sized before hydration and never collapses: the strip is
+   in the server HTML at its full height, and only the timer digits change. */
 .offer-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: var(--offer-strip-height);
+  min-height: var(--offer-strip-height);
+  padding: 0 16px;
+  /* Wrapped copy must never be cut off. */
+  overflow: visible;
   background: #FBF7F1;
   border-bottom: 1px solid rgba(31, 61, 43, 0.08);
-  padding: 8px 16px 9px;
   text-align: center;
 }
 
@@ -4155,7 +4233,8 @@ main {
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 2px 4px;
+  min-width: 0;
   font-size: 12.5px;
   font-weight: 600;
   line-height: 1.4;
@@ -4171,8 +4250,15 @@ main {
   color: #CFC2AB;
 }
 
+/* Fixed-width, tabular digits: swapping 05:00:00 for the real remaining time
+   cannot change the width of the line. */
 .offer-strip-timer {
+  display: inline-block;
+  min-width: 8.6ch;
+  text-align: center;
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  white-space: nowrap;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: #8B6B2E;
@@ -4188,6 +4274,10 @@ main {
 @media (max-width: 1023px) {
   :root {
     --header-height: 56px;
+    --nav-height: 0px;
+    /* m-header (56px) + the header's 1px bottom border (+ notch inset). */
+    --header-total-height: calc(var(--header-height) + 1px + env(safe-area-inset-top));
+    --offer-strip-height: 76px;
     --container-padding: 16px;
   }
 

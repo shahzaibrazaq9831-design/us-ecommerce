@@ -18,6 +18,8 @@ const SEEN_KEY = "ppd_discount_popup_seen";
 const CLAIMED_KEY = "ppd_discount_popup_claimed";
 const OPEN_DELAY = 2000;
 const CLOSE_MS = 280;
+/** The offer waits for this much scroll-free time before it may open. */
+const SCROLL_IDLE_MS = 900;
 
 type PopupState = "closed" | "open" | "closing";
 
@@ -74,6 +76,7 @@ export default function DiscountPopup() {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
     let attempts = 0;
+    let lastScrollAt = 0;
 
     const tryOpen = () => {
       if (cancelled) return;
@@ -93,6 +96,16 @@ export default function DiscountPopup() {
         return;
       }
 
+      // Never interrupt an active scroll. If the visitor moved the page a
+      // moment ago, wait for it to settle instead of popping over them.
+      const idleFor = Date.now() - lastScrollAt;
+      if (idleFor < SCROLL_IDLE_MS) {
+        if (attempts++ < 40) {
+          timer = setTimeout(tryOpen, SCROLL_IDLE_MS - idleFor + 40);
+        }
+        return;
+      }
+
       open();
     };
 
@@ -100,6 +113,15 @@ export default function DiscountPopup() {
       if (timer) clearTimeout(timer);
       timer = setTimeout(tryOpen, delay);
     };
+
+    // Every scroll restarts the idle countdown, so the offer only appears
+    // once the page has come to rest.
+    const onScroll = () => {
+      lastScrollAt = Date.now();
+      if (attempts >= 40) attempts = 0;
+      schedule(SCROLL_IDLE_MS);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
 
     // Normal case: two seconds after the load event. The fallback keeps the
     // offer alive when a slow third-party asset (font, flag, analytics) holds
@@ -112,6 +134,7 @@ export default function DiscountPopup() {
       cancelled = true;
       if (timer) clearTimeout(timer);
       window.removeEventListener("load", onLoad);
+      window.removeEventListener("scroll", onScroll);
     };
   }, [open, pathname]);
 
@@ -133,11 +156,14 @@ export default function DiscountPopup() {
   const applyLock = useCallback(() => {
     if (lockRef.current) return; // already locked by this instance
     const body = document.body;
-    const scrollbarWidth =
-      window.innerWidth - document.documentElement.clientWidth;
+    const widthBefore = document.documentElement.clientWidth;
     body.style.overflow = "hidden";
-    if (scrollbarWidth > 0) {
-      body.style.paddingRight = `${scrollbarWidth}px`;
+    // Only compensate for a scrollbar that actually disappeared. The root
+    // keeps `overflow-y: scroll`, so in practice nothing is removed — padding
+    // the body here would just shrink (and shift) the whole page.
+    const removed = document.documentElement.clientWidth - widthBefore;
+    if (removed > 0) {
+      body.style.paddingRight = `${removed}px`;
     }
     lockRef.current = true;
   }, []);
