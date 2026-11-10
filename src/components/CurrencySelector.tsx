@@ -35,16 +35,22 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
     closeTimer.current = setTimeout(() => {
       setClosing(false);
       resetList();
+      closeTimer.current = null;
     }, 160);
   }, [open, resetList]);
 
   const openPanel = useCallback(() => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+    // Ensure no stale closing state leaves an empty/lingering panel behind.
     setClosing(false);
+    resetList();
     setActiveIndex(Math.max(CURRENCIES.findIndex((c) => c.code === currency), 0));
     setShowActive(false);
     setOpen(true);
-  }, [currency]);
+  }, [currency, resetList]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -75,6 +81,18 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
       if (closeTimer.current) clearTimeout(closeTimer.current);
     };
   }, []);
+
+  // Safety: never keep the panel in a "closing" (hidden-but-mounted) state once
+  // it is no longer open. This prevents a stuck white popup on the right side.
+  useEffect(() => {
+    if (open || !closing) return;
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => {
+      setClosing(false);
+      resetList();
+      closeTimer.current = null;
+    }, 160);
+  }, [open, closing, resetList]);
 
   useEffect(() => {
     if (!open) return;
