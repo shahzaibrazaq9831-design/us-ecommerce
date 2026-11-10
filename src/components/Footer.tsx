@@ -19,10 +19,10 @@ export default function Footer() {
         <div className="footer-grid">
           {/* Column 1: brand + contact */}
           <div className="footer-brand">
-            <Link href="/#hero" className="logo" aria-label="Rung E Bahar">
+            <Link href="/#hero" className="logo" aria-label="DAMSA COTURE">
               <Image
                 src="/images/logo-damsa.webp"
-                alt="Rung E Bahar"
+                alt="DAMSA COTURE"
                 width={889}
                 height={220}
                 priority
@@ -69,7 +69,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="footer-mark">
-          <DotMark text={siteConfig.name} height={150} color="#9E9E9E" />
+          <DotMark text="DAMSA COTURE" height={150} color="#9E9E9E" />
         </div>
       </div>
     </footer>

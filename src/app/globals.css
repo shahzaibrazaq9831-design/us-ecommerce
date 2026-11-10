@@ -1301,6 +1301,87 @@ main {
   background: #F3EEE4;
 }
 
+/* Occasion collection tiles (Shop by Occasion) */
+.occasion-card-link {
+  display: block;
+  height: 100%;
+  color: inherit;
+}
+
+.occasion-card .gallery-card-media,
+.occasion-card-media {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.occasion-card .gallery-card-image.occasion-card-image,
+.occasion-card-image {
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+  transform: scale(1);
+  will-change: transform;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .occasion-card-link:hover .occasion-card-image,
+  .occasion-card-link:focus-visible .occasion-card-image {
+    transform: scale(1.08);
+  }
+
+  /* Override the default gallery crossfade hover (which hides the primary
+     image when no alt image exists) so occasion tiles keep the image visible
+     and smoothly zoom instead of flashing to a solid background. */
+  .occasion-card .gallery-card-media:hover .gallery-card-image.occasion-card-image,
+  .occasion-card-link:hover .gallery-card-image.occasion-card-image,
+  .occasion-card-link:focus-visible .gallery-card-image.occasion-card-image {
+    opacity: 1;
+  }
+}
+
+.occasion-card-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 16px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.58) 0%,
+    rgba(0, 0, 0, 0.18) 45%,
+    rgba(0, 0, 0, 0) 72%
+  );
+  color: #fff;
+  pointer-events: none;
+}
+
+.occasion-card-kicker {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.occasion-card-title {
+  margin-top: 2px;
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  line-height: 1.15;
+  font-weight: 500;
+}
+
+@media (max-width: 767px) {
+  .occasion-card-overlay {
+    padding: 12px;
+  }
+
+  .occasion-card-title {
+    font-size: 1.15rem;
+  }
+}
+
 .product-rail-header {
   display: flex;
   flex-direction: column;
@@ -1815,6 +1896,12 @@ main {
     flex-basis: calc(100% - 8px);
   }
 
+  /* Shop by Occasion: slightly narrower cards with a peek of the next tile,
+     closer to the premium storefront's mobile occasion rail. */
+  .product-rail-section--occasion .gallery-card {
+    flex-basis: calc(78% - 8px);
+  }
+
   /* Product showcase grids on phones: keep the responsive grid (2 per row)
      instead of collapsing to a single-item snap rail. */
   .product-rail-section--grid .collection-grid {
@@ -1868,7 +1955,8 @@ main {
   .product-rail,
   .product-rail-arrow,
   .gallery-card-image,
-  .gallery-card-arrow {
+  .gallery-card-arrow,
+  .occasion-card-image {
     transition: none;
     scroll-behavior: auto;
   }

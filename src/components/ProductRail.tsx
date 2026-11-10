@@ -9,6 +9,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import GalleryProductCard from "@/components/GalleryProductCard";
 import type { CollectionProduct } from "@/data/collections";
@@ -358,13 +359,41 @@ export default function ProductRail({
             onDragStart={(event) => event.preventDefault()}
             onWheel={handleWheel}
           >
-            {products.map((product, index) => (
-              <GalleryProductCard
-                key={product.id}
-                product={product}
-                eager={index < 4}
-              />
-            ))}
+            {products.map((product, index) =>
+              isOccasion ? (
+                <article key={product.id} className="gallery-card occasion-card">
+                  <Link
+                    href={`/collections/${product.id}`}
+                    className="occasion-card-link"
+                    aria-label={`Shop ${product.label ?? product.name}`}
+                  >
+                    <div className="occasion-card-media gallery-card-media">
+                      <Image
+                        src={product.images[0]}
+                        alt={product.label ?? product.name}
+                        fill
+                        sizes="(max-width: 767px) 46vw, (max-width: 1023px) 31vw, 23vw"
+                        className="gallery-card-image is-active occasion-card-image"
+                        draggable={false}
+                        loading={index < 4 ? "eager" : "lazy"}
+                      />
+                      <div className="occasion-card-overlay">
+                        <span className="occasion-card-kicker">Shop</span>
+                        <span className="occasion-card-title">
+                          {product.label ?? product.name}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </article>
+              ) : (
+                <GalleryProductCard
+                  key={product.id}
+                  product={product}
+                  eager={index < 4}
+                />
+              )
+            )}
           </div>
 
           <button

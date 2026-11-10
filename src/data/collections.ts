@@ -48,7 +48,7 @@ export const occasionProducts: CollectionProduct[] = [
     images: ["/occasions/barat-sarang.webp", ...gallery("sarang").slice(1)],
     price: 91600,
     originalPrice: 130900,
-    href: href("sarang"),
+    href: "/collections/barat",
   },
   {
     id: "mehndi",
@@ -58,7 +58,7 @@ export const occasionProducts: CollectionProduct[] = [
     images: ["/occasions/mehndi-kesar.webp", ...gallery("kesar").slice(1)],
     price: 72500,
     originalPrice: 103600,
-    href: href("kesar"),
+    href: "/collections/mehndi",
   },
   {
     id: "nikkah",
@@ -68,7 +68,7 @@ export const occasionProducts: CollectionProduct[] = [
     images: ["/occasions/nikkah-opulent.webp", ...gallery("opulent").slice(1)],
     price: 96300,
     originalPrice: 137600,
-    href: href("opulent"),
+    href: "/collections/nikkah",
   },
   {
     id: "walima",
@@ -78,7 +78,7 @@ export const occasionProducts: CollectionProduct[] = [
     images: ["/occasions/walima-iriana.webp", ...gallery("iriana").slice(1)],
     price: 74500,
     originalPrice: 106300,
-    href: href("iriana"),
+    href: "/collections/walima",
   },
   {
     id: "mayun",
@@ -91,7 +91,7 @@ export const occasionProducts: CollectionProduct[] = [
     ],
     price: 75900,
     originalPrice: 108400,
-    href: href("arasti-mustard-yellow"),
+    href: "/collections/mayun",
   },
   {
     id: "dholki",
@@ -104,7 +104,7 @@ export const occasionProducts: CollectionProduct[] = [
     ],
     price: 62600,
     originalPrice: 89500,
-    href: href("shocking-bridal"),
+    href: "/collections/dholki",
   },
   {
     id: "engagement",
@@ -114,7 +114,7 @@ export const occasionProducts: CollectionProduct[] = [
     images: ["/occasions/engagement-zeena.webp", ...gallery("zeena").slice(1)],
     price: 78600,
     originalPrice: 112300,
-    href: href("zeena"),
+    href: "/collections/engagement",
   },
   {
     id: "eid",
@@ -124,7 +124,7 @@ export const occasionProducts: CollectionProduct[] = [
     images: ["/occasions/eid-noreen.webp", ...gallery("noreen").slice(1)],
     price: 67300,
     originalPrice: 96100,
-    href: href("noreen"),
+    href: "/collections/eid",
   },
 ];
 
