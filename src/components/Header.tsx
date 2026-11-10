@@ -14,7 +14,6 @@ import MobileMenuDrawer from "./MobileMenuDrawer";
 export default function Header() {
   const pathname = usePathname();
   const { cartCount, wishlist } = useCart();
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
@@ -31,13 +30,6 @@ export default function Header() {
     setCollectionsOpen(false);
     setCollectionsClosing(false);
   }
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   const clearCollectionsCloseTimer = () => {
     if (collectionsCloseTimer.current) {
@@ -98,7 +90,7 @@ export default function Header() {
 
   return (
     <>
-      <header className={`header${scrolled ? " scrolled" : ""}`}>
+      <header className="header">
         {/* Desktop bar */}
         <div className="header-top">
           <div className="header-top-left">

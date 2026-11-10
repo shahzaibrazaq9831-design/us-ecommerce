@@ -24,12 +24,11 @@ const SCROLL_IDLE_MS = 900;
 type PopupState = "closed" | "open" | "closing";
 
 /**
- * Welcome offer shown two seconds after the page finishes loading.
+ * Welcome offer shown after the page finishes loading.
  *
  * It appears once per browser session (and never again once the visitor has
- * claimed the code), uses a blurred page backdrop, and locks scrolling /
- * focus while open so the offer behaves like a real modal on phones,
- * tablets and desktops.
+ * claimed the code), uses a blurred page backdrop only while the popup is open,
+ * and locks scrolling / focus while open. It must never open during scroll.
  */
 export default function DiscountPopup() {
   const pathname = usePathname();
@@ -59,7 +58,7 @@ export default function DiscountPopup() {
     setState((current) => (current === "open" ? "closing" : current));
   }, []);
 
-  /* Reveal the offer once the page has loaded, then wait two seconds. */
+  /* Reveal the offer after load, but never while the user is scrolling. */
   useEffect(() => {
     if (pathname.startsWith("/checkout")) return;
 
@@ -78,11 +77,13 @@ export default function DiscountPopup() {
     let attempts = 0;
     let lastScrollAt = 0;
 
+    const markScrolling = () => {
+      lastScrollAt = Date.now();
+    };
+
     const tryOpen = () => {
       if (cancelled) return;
 
-      // Stop if this visit has already been offered the discount (including
-      // after the load event reschedules the fallback timer).
       try {
         if (sessionStorage.getItem(SEEN_KEY) === "1") return;
       } catch {
@@ -96,13 +97,9 @@ export default function DiscountPopup() {
         return;
       }
 
-      // Never interrupt an active scroll. If the visitor moved the page a
-      // moment ago, wait for it to settle instead of popping over them.
-      const idleFor = Date.now() - lastScrollAt;
-      if (idleFor < SCROLL_IDLE_MS) {
-        if (attempts++ < 40) {
-          timer = setTimeout(tryOpen, SCROLL_IDLE_MS - idleFor + 40);
-        }
+      // Popups must never open during scroll (including touch/two-finger scroll).
+      if (Date.now() - lastScrollAt < SCROLL_IDLE_MS) {
+        if (attempts++ < 40) timer = setTimeout(tryOpen, 250);
         return;
       }
 
@@ -114,18 +111,10 @@ export default function DiscountPopup() {
       timer = setTimeout(tryOpen, delay);
     };
 
-    // Every scroll restarts the idle countdown, so the offer only appears
-    // once the page has come to rest.
-    const onScroll = () => {
-      lastScrollAt = Date.now();
-      if (attempts >= 40) attempts = 0;
-      schedule(SCROLL_IDLE_MS);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", markScrolling, { passive: true });
+    window.addEventListener("touchmove", markScrolling, { passive: true });
+    window.addEventListener("wheel", markScrolling, { passive: true });
 
-    // Normal case: two seconds after the load event. The fallback keeps the
-    // offer alive when a slow third-party asset (font, flag, analytics) holds
-    // the load event open indefinitely.
     const onLoad = () => schedule(OPEN_DELAY);
     window.addEventListener("load", onLoad, { once: true });
     schedule(OPEN_DELAY);
@@ -134,7 +123,9 @@ export default function DiscountPopup() {
       cancelled = true;
       if (timer) clearTimeout(timer);
       window.removeEventListener("load", onLoad);
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", markScrolling);
+      window.removeEventListener("touchmove", markScrolling);
+      window.removeEventListener("wheel", markScrolling);
     };
   }, [open, pathname]);
 

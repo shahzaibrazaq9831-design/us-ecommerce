@@ -71,13 +71,15 @@ async function CurrencyInit({ children }: { children: React.ReactNode }) {
   return (
     <CurrencyProvider initialCurrency={initialCurrency} rates={rates}>
       <CartProvider>
-        <AnnouncementBar />
-        <Suspense
-          fallback={<header className="header header--placeholder" aria-hidden="true" />}
-        >
-          <Header />
-        </Suspense>
-        <OfferStrip />
+        <div className="site-topbar">
+          <AnnouncementBar />
+          <Suspense
+            fallback={<header className="header header--placeholder" aria-hidden="true" />}
+          >
+            <Header />
+          </Suspense>
+          <OfferStrip />
+        </div>
         <Suspense fallback={null}>
           <Breadcrumbs />
         </Suspense>

@@ -10,6 +10,8 @@ import { hasOpenModal } from "@/lib/overlay";
 const STORAGE_SEEN = "cr_seen_reviews";
 const STORAGE_COUNT = "cr_popup_shown";
 const MAX_POPUPS = 3;
+/** Wait for scrolling (including touch/two-finger scroll) to settle. */
+const SCROLL_IDLE_MS = 900;
 
 /* Colours mirror the Customer Reviews section (--cr-*) so the popup looks
    like it belongs to the same site. */
@@ -67,22 +69,58 @@ export default function RecentReviewPopup() {
 
     if (!next) return;
 
-    const start = () => {
-      timerRef.current = setTimeout(() => {
-        if (document.hidden) return;
-        // Let the welcome-offer modal own the screen when it is open.
-        if (hasOpenModal()) return;
-        setReview(next);
-        setOpen(true);
-      }, 2200);
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let attempts = 0;
+    let lastScrollAt = 0;
+
+    const markScrolling = () => {
+      lastScrollAt = Date.now();
     };
 
+    const tryOpen = () => {
+      if (cancelled) return;
+      if (document.hidden) return;
+
+      // Let another modal own the screen when it is open.
+      if (
+        hasOpenModal() ||
+        document.querySelector('[role="region"][aria-label="Cookie choices"]')
+      ) {
+        if (attempts++ < 30) timer = setTimeout(tryOpen, 1200);
+        return;
+      }
+
+      // Popups must never open during scroll (including touch/two-finger scroll).
+      if (Date.now() - lastScrollAt < SCROLL_IDLE_MS) {
+        if (attempts++ < 60) timer = setTimeout(tryOpen, 250);
+        return;
+      }
+
+      setReview(next);
+      setOpen(true);
+    };
+
+    const schedule = (delay: number) => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(tryOpen, delay);
+    };
+
+    window.addEventListener("scroll", markScrolling, { passive: true });
+    window.addEventListener("touchmove", markScrolling, { passive: true });
+    window.addEventListener("wheel", markScrolling, { passive: true });
+
+    const start = () => schedule(2200);
     if (document.readyState === "complete") start();
     else window.addEventListener("load", start, { once: true });
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      cancelled = true;
+      if (timer) clearTimeout(timer);
       window.removeEventListener("load", start);
+      window.removeEventListener("scroll", markScrolling);
+      window.removeEventListener("touchmove", markScrolling);
+      window.removeEventListener("wheel", markScrolling);
     };
   }, []);
 
