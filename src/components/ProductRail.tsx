@@ -260,15 +260,14 @@ export default function ProductRail({
     event.stopPropagation();
   };
 
-  // Mouse wheel: scroll horizontally instead of vertically.
+  // Let normal page scrolling work. Only translate predominantly-horizontal
+  // wheel/trackpad gestures into rail movement so we don't hijack vertical scroll.
   const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
-      const rail = railRef.current;
-      if (!rail) return;
-      event.preventDefault();
-      const step = 120;
-      rail.scrollBy({ left: event.deltaY > 0 ? step : -step, behavior: "smooth" });
-    }
+    if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+    const rail = railRef.current;
+    if (!rail) return;
+    event.preventDefault();
+    rail.scrollBy({ left: event.deltaX, behavior: "auto" });
   };
 
   // Grid layout — every item visible at once (no horizontal scroll). The
