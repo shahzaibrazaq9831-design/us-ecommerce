@@ -11,6 +11,12 @@ import SearchOverlay from "./SearchOverlay";
 import CurrencySelector from "./CurrencySelector";
 import MobileMenuDrawer from "./MobileMenuDrawer";
 
+/**
+ * How far the page must be scrolled before the header switches to its
+ * compact look. The reference store reacts after a few pixels of scrolling.
+ */
+const SCROLL_THRESHOLD = 10;
+
 export default function Header() {
   const pathname = usePathname();
   const { cartCount, wishlist } = useCart();
@@ -21,6 +27,7 @@ export default function Header() {
   const [collectionsClosing, setCollectionsClosing] = useState(false);
   const collectionsCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const collectionsPanelRef = useRef<HTMLUListElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   // Close any open menus when navigating (adjusted during render, not in an effect).
   if (lastPathname !== pathname) {
@@ -63,6 +70,37 @@ export default function Header() {
     []
   );
 
+  /**
+   * Compact header while the page is scrolled.
+   *
+   * The state is written straight to the DOM through `data-scrolled` instead
+   * of React state, so scrolling never re-renders the header (and its
+   * currency selector, cart badge and dropdowns). The listener is passive and
+   * coalesced into one animation frame, which keeps the scroll smooth.
+   */
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+
+    let frame = 0;
+    const apply = () => {
+      frame = 0;
+      el.dataset.scrolled = window.scrollY > SCROLL_THRESHOLD ? "true" : "false";
+    };
+    const onScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(apply);
+    };
+
+    // Handles the browser restoring a scroll position on back/forward.
+    apply();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   useEffect(() => {
     if (!collectionsOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -90,7 +128,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="header">
+      <header className="header" data-scrolled="false" ref={headerRef}>
         {/* Desktop bar */}
         <div className="header-top">
           <div className="header-top-left">

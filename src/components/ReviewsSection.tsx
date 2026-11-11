@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import type { Review } from "@/data/site";
+import { lockPageScroll, unlockPageScroll } from "@/lib/scrollLock";
 
 interface ReviewsSectionProps {
   reviews: Review[];
@@ -164,13 +165,13 @@ export default function ReviewsSection({
 
   const applyReviewLock = useCallback(() => {
     if (reviewLightboxLockRef.current) return;
-    document.body.style.overflow = "hidden";
+    lockPageScroll();
     reviewLightboxLockRef.current = true;
   }, []);
 
   const releaseReviewLock = useCallback(() => {
     if (!reviewLightboxLockRef.current) return;
-    document.body.style.overflow = "";
+    unlockPageScroll();
     reviewLightboxLockRef.current = false;
   }, []);
 

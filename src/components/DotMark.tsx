@@ -66,6 +66,12 @@ export default function DotMark({
       h = 0,
       dpr = 1;
     let raf: number | undefined;
+    /** True while the canvas is on screen — the loop only runs then. */
+    let inView = false;
+    /** True while the tab is in the foreground. */
+    let pageVisible = true;
+    /** True while the pointer/touch listeners are attached. */
+    let listenersAttached = false;
     const target = { x: -9999, y: -9999 };
     const mouse = { x: -9999, y: -9999 };
     let ringAlpha = 0;
@@ -160,6 +166,7 @@ export default function DotMark({
     };
 
     const frame = () => {
+      raf = undefined;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
 
@@ -215,7 +222,7 @@ export default function DotMark({
         ctx.fill();
         ctx.globalAlpha = 1;
 
-        raf = requestAnimationFrame(frame);
+        schedule();
         return;
       }
 
@@ -271,7 +278,27 @@ export default function DotMark({
         ctx.fill();
         ctx.globalAlpha = 1;
       }
-      raf = requestAnimationFrame(frame);
+      schedule();
+    };
+
+    /**
+     * Queue the next frame — but only while the canvas is actually on screen
+     * and the tab is visible. The canvas holds thousands of dots, so running
+     * this loop for the whole life of the page cost every visitor a steady
+     * stream of layout and paint work while they were scrolling the shop.
+     */
+    const schedule = () => {
+      if (raf === undefined && inView && pageVisible) {
+        raf = requestAnimationFrame(frame);
+      }
+    };
+
+    /** Stop the loop completely (canvas hidden or tab in the background). */
+    const stopLoop = () => {
+      if (raf !== undefined) {
+        cancelAnimationFrame(raf);
+        raf = undefined;
+      }
     };
 
     const onLeave = () => {
@@ -301,8 +328,31 @@ export default function DotMark({
       if (touch) setPos(touch.clientX, touch.clientY);
     };
 
+    /**
+     * The pointer listeners are only needed while the canvas is on screen.
+     * `touchmove` in particular ran a layout read on every touch event of
+     * every scroll on the page, which is what made scrolling feel sticky.
+     */
+    const attachPointerListeners = () => {
+      if (listenersAttached) return;
+      listenersAttached = true;
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("touchmove", onTouch, { passive: true });
+      window.addEventListener("touchend", onLeave);
+      document.addEventListener("mouseleave", onLeave);
+    };
+
+    const detachPointerListeners = () => {
+      if (!listenersAttached) return;
+      listenersAttached = false;
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("touchmove", onTouch);
+      window.removeEventListener("touchend", onLeave);
+      document.removeEventListener("mouseleave", onLeave);
+      onLeave();
+    };
+
     build();
-    frame();
     document.fonts?.ready.then(build);
 
     // IntersectionObserver: trigger intro when the wrapper enters the viewport
@@ -320,21 +370,45 @@ export default function DotMark({
       io.observe(wrap);
     }
 
+    // Visibility observer: the draw loop only runs while the canvas is on
+    // screen, so the page pays nothing for it while the visitor is in the
+    // shop.
+    const viewObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          inView = entry.isIntersecting;
+          if (inView) {
+            attachPointerListeners();
+            schedule();
+          } else {
+            detachPointerListeners();
+            stopLoop();
+          }
+        });
+      },
+      { threshold: 0 }
+    );
+    viewObserver.observe(wrap);
+
+    // Stop drawing when the tab is hidden — a background tab has no reason
+    // to burn a frame budget.
+    const onVisibilityChange = () => {
+      pageVisible = document.visibilityState === "visible";
+      if (pageVisible) schedule();
+      else stopLoop();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     const ro = new ResizeObserver(build);
     ro.observe(wrap);
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("touchmove", onTouch, { passive: true });
-    window.addEventListener("touchend", onLeave);
-    document.addEventListener("mouseleave", onLeave);
 
     return () => {
-      if (raf !== undefined) cancelAnimationFrame(raf);
+      stopLoop();
       io?.disconnect();
+      viewObserver.disconnect();
       ro.disconnect();
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("touchmove", onTouch);
-      window.removeEventListener("touchend", onLeave);
-      document.removeEventListener("mouseleave", onLeave);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      detachPointerListeners();
     };
   }, [
     text,

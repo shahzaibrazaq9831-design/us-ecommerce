@@ -12,6 +12,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Check, Copy, X } from "lucide-react";
 import { siteConfig } from "@/data/site";
+import { lockPageScroll, unlockPageScroll } from "@/lib/scrollLock";
 import { hasOpenModal } from "@/lib/overlay";
 
 const SEEN_KEY = "ppd_discount_popup_seen";
@@ -141,29 +142,20 @@ export default function DiscountPopup() {
   /* Scroll lock — whole-site scrolling is disabled while the offer is open.
    * A ref tracks whether THIS component owns the lock, so we never restore a
    * "hidden" value captured from another modal (which would leave the page
-   * unscrollable after nested opens/closes, refreshes, or interrupted exits). */
+   * unscrollable after nested opens/closes, refreshes, or interrupted exits).
+   * The lock targets the root scroller, never <body>: locking the body both
+   * fails to stop the page from scrolling and breaks the sticky header. */
   const lockRef = useRef(false);
 
   const applyLock = useCallback(() => {
     if (lockRef.current) return; // already locked by this instance
-    const body = document.body;
-    const widthBefore = document.documentElement.clientWidth;
-    body.style.overflow = "hidden";
-    // Only compensate for a scrollbar that actually disappeared. The root
-    // keeps `overflow-y: scroll`, so in practice nothing is removed — padding
-    // the body here would just shrink (and shift) the whole page.
-    const removed = document.documentElement.clientWidth - widthBefore;
-    if (removed > 0) {
-      body.style.paddingRight = `${removed}px`;
-    }
+    lockPageScroll();
     lockRef.current = true;
   }, []);
 
   const releaseLock = useCallback(() => {
     if (!lockRef.current) return; // we don't own the lock — don't touch it
-    const body = document.body;
-    body.style.overflow = "";
-    body.style.paddingRight = "";
+    unlockPageScroll();
     lockRef.current = false;
   }, []);
 

@@ -62,12 +62,21 @@
   --transition-slow: 0.5s ease;
   --transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
+  /* Header motion tokens, matched to the reference store: one easing curve
+     and three durations used by the announcement bar, the sticky header and
+     the nav. The header must feel instant, so the durations are short. */
+  --ease-luxe: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --duration-fast: 0.15s;
+  --duration-base: 0.22s;
+  --duration-slow: 0.3s;
+
   /* Layout */
   --header-height: 80px;
   --nav-height: 56px;
   /* Everything that must clear the sticky header (anchor scrolling, the hero)
-     uses this instead of guessing at a single bar's height. */
-  --header-total-height: calc(var(--header-height) + var(--nav-height));
+     uses this instead of guessing at a single bar's height. The trailing 1px
+     is the header's bottom hairline. */
+  --header-total-height: calc(var(--header-height) + var(--nav-height) + 1px);
   --announcement-height: 40px;
   /* Reserved space for the countdown strip. It is never collapsed, so the
      page height cannot change when the strip hydrates. */
@@ -183,6 +192,11 @@ main {
 /* ============================================
    Announcement Bar
    ============================================ */
+/* The bar is deliberately NOT part of the sticky header block. It sits in the
+   normal flow above `.site-topbar`, so scrolling up slides it under the
+   sticky header and out of view within a few pixels of scrolling — the same
+   behaviour as the reference store. Because nothing is collapsed or resized,
+   the page never jumps while this happens. */
 .announcement-bar {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: var(--color-white);
@@ -243,6 +257,9 @@ main {
 /* ============================================
    Header
    ============================================ */
+/* Only the header (+ nav + offer strip) is sticky. The announcement bar above
+   it is in the normal flow so it scrolls away instead of eating the top of
+   the viewport forever. */
 .site-topbar {
   position: sticky;
   top: 0;
@@ -255,13 +272,25 @@ main {
   z-index: 1;
   background: var(--color-white);
   box-shadow: var(--shadow-sm);
+  /* Full-width hairline under the header block (same role as the reference
+     store's `border-b` on <header>). */
+  border-bottom: 1px solid rgba(23, 23, 23, 0.12);
+  transition: box-shadow var(--duration-base) var(--ease-luxe);
+}
+
+/* Scrolled state (set by Header.tsx through `data-scrolled`): the header
+   picks up a soft drop shadow, exactly like the reference store. */
+.header[data-scrolled="true"] {
+  box-shadow: 0 10px 30px rgba(23, 60, 53, 0.12);
 }
 
 /* Streamed Suspense fallback: reserves the exact height of the real header so
-   the page does not jump when the header hydrates. */
-.header--placeholder {
+   the page does not jump when the header hydrates. The selector is doubled up
+   so the rule wins over the mobile `.header` border further down the file. */
+.header.header--placeholder {
   height: var(--header-total-height);
   box-shadow: none;
+  border-bottom: none;
 }
 
 .header-top {
@@ -347,6 +376,14 @@ main {
   display: block;
   width: auto;
   height: 50px;
+  /* The logo shrinks a little once the page is scrolled (reference-store
+     behaviour). Only the logo changes size — the row keeps its height, so
+     nothing below the header shifts and the page cannot "jump". */
+  transition: height var(--duration-base) var(--ease-luxe);
+}
+
+.header[data-scrolled="true"] .header-logo-img {
+  height: 38px;
 }
 
 /* The mobile bar (hamburger / logo / search + cart) replaces the desktop bar
@@ -422,6 +459,28 @@ main {
 }
 
 /* Currency selector */
+@keyframes currencyPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes currencyPanelOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
 .currency-selector {
   position: relative;
   z-index: 1200;
@@ -488,13 +547,13 @@ main {
   box-shadow: 0 18px 44px rgba(23, 60, 53, 0.12);
   overflow: hidden;
   transform-origin: top right;
-  animation: currencyPanelIn 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: currencyPanelIn var(--duration-base) var(--ease-luxe);
   z-index: 1200;
 }
 
 .currency-panel.is-closing {
   pointer-events: none;
-  animation: currencyPanelOut 0.15s ease-in forwards;
+  animation: currencyPanelOut var(--duration-fast) var(--ease-luxe) forwards;
 }
 
 .currency-list {
@@ -587,7 +646,9 @@ main {
 
 /* Navigation */
 .main-nav {
-  border-top: 1px solid var(--color-gray-200);
+  /* Full-width hairline between the logo row and the nav row. It spans the
+     whole viewport, not just the centred nav list. */
+  border-top: 1px solid rgba(23, 23, 23, 0.12);
   /* Fixed height keeps the sticky header's total height predictable, which is
      what scroll-padding-top and the hero's scroll-margin rely on. */
   height: var(--nav-height);
@@ -616,7 +677,7 @@ main {
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--color-secondary);
-  transition: color var(--transition-fast);
+  transition: color var(--duration-fast) var(--ease-luxe);
   position: relative;
 }
 
@@ -628,7 +689,8 @@ main {
   width: 0;
   height: 2px;
   background: var(--color-primary);
-  transition: all var(--transition-base);
+  transition: width var(--duration-base) var(--ease-luxe),
+    transform var(--duration-base) var(--ease-luxe);
   transform: translateX(-50%);
 }
 
@@ -643,7 +705,7 @@ main {
 }
 
 .nav-list > li.nav-dropdown > a .fa-chevron-down {
-  transition: transform 0.2s ease;
+  transition: transform var(--duration-fast) var(--ease-luxe);
 }
 
 .nav-list > li.nav-dropdown.open > a .fa-chevron-down {
@@ -660,9 +722,14 @@ main {
   border-radius: 0 0 var(--radius-md) var(--radius-md);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(10px);
+  transform: translateY(10px) scale(0.98);
   transform-origin: top;
-  transition: all var(--transition-base);
+  /* `visibility` is delayed so the panel stays hit-testable for the whole
+     fade-out instead of disappearing on the first frame. */
+  transition: opacity var(--duration-base) var(--ease-luxe),
+    transform var(--duration-base) var(--ease-luxe),
+    visibility 0s linear var(--duration-base);
+  pointer-events: none;
   padding: var(--spacing-sm) 0;
 }
 
@@ -671,12 +738,14 @@ main {
   opacity: 1;
   visibility: visible;
   transform: translateY(0) scale(1);
-  animation: currencyPanelIn 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: 0s;
+  pointer-events: auto;
+  animation: currencyPanelIn var(--duration-base) var(--ease-luxe);
 }
 
 /* Closing reuses the currency panel fade-out, then removes the panel. */
 .nav-dropdown.closing .dropdown {
-  animation: currencyPanelOut 0.15s ease-in forwards;
+  animation: currencyPanelOut var(--duration-fast) var(--ease-luxe) forwards;
 }
 
 .dropdown li a {
@@ -1050,27 +1119,43 @@ main {
   line-height: 1.5;
 }
 
-/* Features section — rebuilt reference-style bar (thin line icons, centred,
-   whole card clickable). 4 cols desktop / 2 tablet / 1 mobile. */
+/* Features section — the "why shop with us" bar under the hero, rebuilt to
+   match the reference storefront: thin gold-brown line icons, centred text,
+   whole card clickable.
+
+   Layout follows the reference exactly:
+     - phones (< 640px)  : 2 cards per row, copy hidden
+     - 640px and up      : full-size icon, copy visible
+     - 768px and up      : 4 cards per row
+   The rules are mobile-first so no later max-width block can undo them. */
 .features-section {
   background: var(--color-cream);
-  padding: 44px 0;
+  padding: 20px 0;
   border-bottom: 1px solid var(--color-gray-200);
 }
 
 .features-section-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-lg);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.features-section-item {
+  min-width: 0;
 }
 
 .feature-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
   gap: 10px;
-  padding: var(--spacing-md) var(--spacing-sm);
+  min-height: 56px;
+  height: 100%;
+  padding: var(--spacing-sm) var(--spacing-xs);
+  text-align: center;
   text-decoration: none;
   border-radius: var(--radius-lg);
   transition: background-color var(--transition-fast);
@@ -1086,52 +1171,79 @@ main {
 }
 
 .feature-card-icon {
-  position: relative;
   display: inline-flex;
-  color: var(--color-feature-icon);
-  transition: color var(--transition-fast);
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
 }
 
-.feature-card:hover .feature-card-icon,
-.feature-card:focus-visible .feature-card-icon {
-  color: var(--color-feature-icon-hover);
+.feature-card-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-/* Small secondary glyph composed at the main icon's corner (e.g. globe). */
-.feature-card-badge {
-  position: absolute;
-  bottom: -2px;
-  right: -12px;
-  display: inline-flex;
-  padding: 2px;
-  border-radius: 50%;
-  background: var(--color-cream);
-  color: var(--color-feature-icon);
-  transition: color var(--transition-fast);
-}
-
-.feature-card:hover .feature-card-badge,
-.feature-card:focus-visible .feature-card-badge {
-  color: var(--color-feature-icon-hover);
-  background: var(--color-white);
+.feature-card-text {
+  min-width: 0;
+  text-align: center;
 }
 
 .feature-card-title {
-  font-size: 1rem; /* ~16px */
-  font-weight: 700;
-  line-height: 1.35;
+  display: block;
+  font-size: 0.75rem; /* 12px */
+  line-height: 1.375;
+  font-weight: 600;
   color: var(--color-secondary);
+  transition: color var(--transition-fast);
 }
 
+.feature-card:hover .feature-card-title,
+.feature-card:focus-visible .feature-card-title {
+  color: var(--color-feature-icon-hover);
+}
+
+/* The supporting copy stays out of the phone layout so a pair of cards
+   still fits in one row. It comes back from 640px up. */
 .feature-card-description {
-  font-size: 0.875rem; /* ~14px */
-  line-height: 1.55;
+  display: none;
+  margin-top: 4px;
+  font-size: 0.75rem; /* 12px */
+  line-height: 1.5;
   color: var(--color-gray-600);
   max-width: 260px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .features-section {
+    padding: 32px 0;
+  }
+
+  .feature-card-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .feature-card-title {
+    font-size: 0.875rem; /* 14px */
+  }
+
+  .feature-card-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+@media (min-width: 768px) {
+  .features-section {
+    padding: 48px 0;
+  }
+
+  .features-section-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 32px 24px;
+  }
 }
 
 /* Shared info-page layout (/shipping, /returns, /made-to-order, /support) */
@@ -1181,6 +1293,9 @@ main {
 .info-table-wrap {
   overflow-x: auto;
   margin-top: 6px;
+  /* A vertical swipe over a wide table must scroll the page, not the table. */
+  touch-action: pan-y;
+  overscroll-behavior-x: contain;
 }
 
 .info-table {
@@ -1898,6 +2013,13 @@ main {
     scroll-behavior: auto;
   }
 
+  /* The header still reacts to scrolling, it just snaps instead of easing. */
+  .header,
+  .header-logo-img,
+  .m-header-logo-img {
+    transition: none;
+  }
+
   .product-rail,
   .product-rail-arrow,
   .gallery-card-image,
@@ -1935,6 +2057,7 @@ main {
   .nav-dropdown.open .dropdown,
   .nav-dropdown.closing .dropdown {
     animation: none;
+    transition: none;
   }
 
   .nav-dropdown.closing .dropdown {
@@ -4285,11 +4408,14 @@ main {
   .header {
     background: #FBF7F1;
     box-shadow: none;
-    border-bottom: 1px solid rgba(31, 61, 43, 0.08);
+    border-bottom: 1px solid rgba(23, 23, 23, 0.12);
     padding-top: env(safe-area-inset-top);
   }
 
-  /* Header appearance stays stable on scroll (no scroll-driven changes). */
+  /* The scrolled header picks up the same soft shadow as on desktop. */
+  .header[data-scrolled="true"] {
+    box-shadow: 0 10px 30px rgba(23, 60, 53, 0.12);
+  }
 
   .header-top,
   .main-nav {
@@ -4341,6 +4467,13 @@ main {
     display: block;
     width: auto;
     height: 30px;
+    /* Same shrink-on-scroll as the desktop logo, at the reference store's
+       speed. The bar keeps its height, so the layout never shifts. */
+    transition: height var(--duration-base) var(--ease-luxe);
+  }
+
+  .header[data-scrolled="true"] .m-header-logo-img {
+    height: 24px;
   }
 
   .m-header-badge {
@@ -6438,6 +6571,9 @@ main {
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
+  /* A vertical swipe over the thumbnail strip must scroll the page. */
+  touch-action: pan-y;
+  overscroll-behavior-x: contain;
 }
 
 .buy-gallery-thumbs::-webkit-scrollbar {
@@ -6879,6 +7015,10 @@ main {
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  /* The bar sits directly under the sticky header, so a swipe that starts
+     here must scroll the page, never the breadcrumb strip. */
+  touch-action: pan-y;
+  overscroll-behavior-x: contain;
 }
 
 .site-breadcrumbs-list::-webkit-scrollbar {
@@ -7159,34 +7299,6 @@ main {
   }
 }
 
-/* Features section — tablet 2 cols, phone 1 col */
-@media (max-width: 1023px) {
-  .features-section-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-md);
-  }
-
-  .features-section {
-    padding: 36px 0;
-  }
-}
-
-@media (max-width: 767px) {
-  .features-section-grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-xs);
-  }
-
-  .features-section {
-    padding: 28px 0;
-  }
-
-  .feature-card-icon svg {
-    width: 40px;
-    height: 40px;
-  }
-}
-
 /* ============================================
    Global Speed + Smooth Scroll + Responsive
    ============================================ */
@@ -7265,18 +7377,16 @@ input[type="submit"] {
     text-align: center;
   }
 
-  /* Hero */
+  /* Hero — sized by its aspect ratio alone (see the 1023px block above).
+     A viewport-height floor here would make the hero height depend on the
+     window height, so rotating the phone resized the hero and shifted the
+     whole page underneath the visitor. */
   .hero {
-    height: auto;
-    min-height: 56vh;
+    min-height: 0;
   }
 
-  /* Features */
-  .features-grid,
-  .features-section-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
+  /* Features — kept at two per row on phones, like the reference store.
+     (The grid is sized by the mobile-first rules near the top of this file.) */
 
   /* Trust grid */
   .trust-grid {

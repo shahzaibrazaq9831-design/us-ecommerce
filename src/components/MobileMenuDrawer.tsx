@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, Heart, Search, User, X } from "lucide-react";
 import CurrencySelector from "./CurrencySelector";
 import { navItems, type NavItem } from "@/lib/nav";
+import { lockPageScroll, unlockPageScroll } from "@/lib/scrollLock";
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -92,18 +93,13 @@ export default function MobileMenuDrawer({ open, onClose }: { open: boolean; onC
 
   const applyDrawerLock = useCallback(() => {
     if (drawerLockRef.current) return;
-    const { body } = document;
-    const scrollbar = window.innerWidth - document.documentElement.clientWidth;
-    body.style.overflow = "hidden";
-    if (scrollbar > 0) body.style.paddingRight = `${scrollbar}px`;
+    lockPageScroll();
     drawerLockRef.current = true;
   }, []);
 
   const releaseDrawerLock = useCallback(() => {
     if (!drawerLockRef.current) return;
-    const { body } = document;
-    body.style.overflow = "";
-    body.style.paddingRight = "";
+    unlockPageScroll();
     drawerLockRef.current = false;
   }, []);
 

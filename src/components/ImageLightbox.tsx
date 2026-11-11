@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { lockPageScroll, unlockPageScroll } from "@/lib/scrollLock";
 import {
   ChevronLeft,
   ChevronRight,
@@ -59,21 +60,20 @@ export default function ImageLightbox({
     [current, onIndexChange, total]
   );
 
-  // Lock body scroll while the viewer is open. A ref tracks whether THIS
+  // Lock page scroll while the viewer is open. A ref tracks whether THIS
   // viewer owns the lock so a nested open/close can never restore "hidden"
   // and leave the whole site unscrollable.
   const lightboxLockRef = useRef(false);
 
   const applyLightboxLock = useCallback(() => {
     if (lightboxLockRef.current) return;
-    const body = document.body;
-    body.style.overflow = "hidden";
+    lockPageScroll();
     lightboxLockRef.current = true;
   }, []);
 
   const releaseLightboxLock = useCallback(() => {
     if (!lightboxLockRef.current) return;
-    document.body.style.overflow = "";
+    unlockPageScroll();
     lightboxLockRef.current = false;
   }, []);
 

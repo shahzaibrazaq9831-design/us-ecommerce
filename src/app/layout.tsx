@@ -74,8 +74,11 @@ async function CurrencyInit({ children }: { children: React.ReactNode }) {
   return (
     <CurrencyProvider initialCurrency={initialCurrency} rates={rates}>
       <CartProvider>
+        {/* The announcement bar sits in the normal flow, above the sticky
+            header block, so scrolling a little slides it out of view the way
+            it does on the reference store. */}
+        <AnnouncementBar />
         <div className="site-topbar">
-          <AnnouncementBar />
           <Suspense
             fallback={<header className="header header--placeholder" aria-hidden="true" />}
           >
