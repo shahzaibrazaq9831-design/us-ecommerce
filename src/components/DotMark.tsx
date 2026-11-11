@@ -88,9 +88,16 @@ export default function DotMark({
     const skipIntro = !intro || reducedMotion;
 
     const build = () => {
+      const nextW = wrap.clientWidth;
+      const nextH = height;
+      // The footer can still be unlaid out (width 0) when this runs from a
+      // ResizeObserver or a font swap. Drawing into a zero-width canvas
+      // throws, which killed the effect and left the footer blank. The
+      // ResizeObserver fires again once the footer has a real width.
+      if (nextW <= 0 || nextH <= 0) return;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = wrap.clientWidth;
-      h = height;
+      w = nextW;
+      h = nextH;
       canvas.width = w * dpr;
       canvas.height = h * dpr;
       canvas.style.width = w + "px";
