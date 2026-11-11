@@ -5041,6 +5041,433 @@ main {
 }
 
 /* ============================================
+   Region UI — same behaviour as the live site:
+   1. "Confirm your price market" card under the
+      header on the right (first visit only) that
+      collapses into a small "Prices: …" pill, and
+   2. a floating market pill (flag + currency) at
+      the bottom-left on desktop screens.
+   ============================================ */
+
+/* --- 1. First-visit dialog (top-right) --- */
+.fvrd {
+  position: fixed;
+  top: calc(11rem + env(safe-area-inset-top));
+  left: 16px;
+  right: 16px;
+  z-index: 850;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.fvrd--raised {
+  z-index: 860;
+}
+
+@media (min-width: 769px) {
+  .fvrd {
+    top: calc(15.5rem + env(safe-area-inset-top));
+    left: auto;
+    right: 24px;
+  }
+}
+
+/* Collapsed pill (also the compact-phone state). */
+.fvrd-pill {
+  pointer-events: auto;
+  display: flex;
+  min-height: 44px;
+  max-width: 320px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--cr-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--cr-ink);
+  font-family: inherit;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  box-shadow: 0 12px 40px -12px rgba(23, 60, 53, 0.24);
+  cursor: pointer;
+  animation: fvrd-in 260ms var(--cr-ease);
+  transition: border-color 160ms ease;
+}
+
+.fvrd-pill:hover {
+  border-color: var(--cr-emerald);
+}
+
+.fvrd-pill:focus-visible {
+  outline: 2px solid var(--cr-emerald);
+  outline-offset: 2px;
+}
+
+.fvrd-pill-icon {
+  flex: 0 0 auto;
+  color: var(--cr-emerald);
+}
+
+.fvrd-pill-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Full card. */
+.fvrd-card {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 384px;
+  padding: 16px;
+  border: 1px solid var(--cr-border);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--cr-ink);
+  box-shadow: 0 12px 40px -12px rgba(23, 60, 53, 0.24);
+  animation: fvrd-in 320ms var(--cr-ease);
+}
+
+/* Compact phones: keep the card inside the viewport. */
+.fvrd-card--compact {
+  max-height: calc(100dvh - 17rem - env(safe-area-inset-top));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fvrd-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fvrd-head-text {
+  min-width: 0;
+}
+
+.fvrd-title {
+  margin: 0;
+  color: var(--cr-emerald);
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.fvrd-desc {
+  margin: 4px 0 0;
+  color: var(--cr-muted);
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.fvrd-close {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  margin: -8px -8px 0 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--cr-muted);
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.fvrd-close:hover,
+.fvrd-close:focus-visible {
+  background: #f4efe6;
+  color: var(--cr-ink);
+}
+
+.fvrd-close:focus-visible {
+  outline: none;
+}
+
+.fvrd-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.fvrd-field {
+  display: grid;
+  gap: 6px;
+  color: var(--cr-ink);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.fvrd-select-wrap {
+  position: relative;
+  display: block;
+}
+
+.fvrd-select {
+  width: 100%;
+  height: 44px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--cr-border);
+  border-radius: 10px;
+  background: #fff;
+  padding: 0 38px 0 12px;
+  color: var(--cr-ink);
+  font-family: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.fvrd-select:hover {
+  border-color: var(--cr-border-strong);
+}
+
+.fvrd-select:focus {
+  outline: none;
+  border-color: var(--cr-emerald);
+  box-shadow: 0 0 0 3px rgba(23, 60, 53, 0.12);
+}
+
+.fvrd-select-chevron {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--cr-muted);
+}
+
+.fvrd-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fvrd-btn {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease,
+    opacity 160ms ease;
+}
+
+.fvrd-btn--primary {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 1px solid var(--cr-emerald);
+  background: var(--cr-emerald);
+  color: #fff;
+}
+
+.fvrd-btn--primary:hover:not(:disabled) {
+  border-color: #10281f;
+  background: #10281f;
+}
+
+.fvrd-btn--primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fvrd-btn--outline {
+  flex: 0 0 auto;
+  border: 1px solid var(--cr-border);
+  background: transparent;
+  color: var(--cr-ink);
+}
+
+.fvrd-btn--outline:hover {
+  border-color: var(--cr-emerald);
+  color: var(--cr-emerald);
+}
+
+.fvrd-btn--wide {
+  width: 100%;
+}
+
+.fvrd-btn:focus-visible {
+  outline: 2px solid var(--cr-emerald);
+  outline-offset: 2px;
+}
+
+/* --- 2. Floating market selector (bottom-left, desktop) --- */
+.msel {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem);
+  left: 16px;
+  z-index: 840;
+  display: none; /* phones use the first-visit dialog + header selector */
+}
+
+@media (min-width: 640px) {
+  .msel {
+    display: block;
+    left: 24px;
+  }
+}
+
+.msel-trigger {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--cr-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--cr-ink);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 10px 30px -12px rgba(23, 60, 53, 0.3);
+  cursor: pointer;
+  transition: border-color 160ms ease;
+}
+
+.msel-trigger:hover {
+  border-color: var(--cr-emerald);
+}
+
+.msel-trigger:focus-visible {
+  outline: 2px solid var(--cr-emerald);
+  outline-offset: 2px;
+}
+
+.msel-trigger img {
+  width: 20px;
+  height: 14px;
+  border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.msel-trigger-code {
+  line-height: 1.2;
+}
+
+.msel-chevron {
+  color: var(--cr-muted);
+  transition: transform 160ms ease;
+}
+
+.msel-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.msel-list {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 850;
+  width: 320px;
+  max-width: calc(100vw - 2rem);
+  max-height: min(22rem, 55dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 0;
+  border: 1px solid var(--cr-border);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 50px -12px rgba(23, 60, 53, 0.35);
+  animation: fvrd-in 220ms var(--cr-ease);
+}
+
+.msel-option {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--cr-ink);
+  font-family: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.msel-option:hover,
+.msel-option:focus {
+  background: rgba(23, 60, 53, 0.05);
+  outline: none;
+}
+
+.msel-option[aria-selected="true"] {
+  background: rgba(23, 60, 53, 0.05);
+  font-weight: 600;
+}
+
+.msel-option img {
+  width: 24px;
+  height: 16px;
+  border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.msel-option-label {
+  min-width: 0;
+  flex: 1;
+}
+
+.msel-option svg {
+  flex: 0 0 auto;
+  color: var(--cr-emerald);
+}
+
+/* Keep the recent-review card clear of the floating pill on desktop. */
+@media (min-width: 640px) {
+  .msel-on .cr-popup {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem + 44px + 12px);
+  }
+}
+
+@keyframes fvrd-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fvrd-card,
+  .fvrd-pill,
+  .msel-list {
+    animation: none;
+  }
+}
+
+
+
+
+
+
+
+
+/* ============================================
    Welcome discount popup
    Centered email capture shown two seconds after
    the page loads. The overlay blurs the page and

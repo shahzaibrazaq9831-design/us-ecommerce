@@ -134,6 +134,8 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
     if (changed) {
       showToast(`Currency changed to ${c.name} (${c.code}).`);
     }
+    // A deliberate currency choice is also a deliberate market choice: the
+    // first-visit region dialog never interrupts this visitor again.
     closePanel();
   };
 

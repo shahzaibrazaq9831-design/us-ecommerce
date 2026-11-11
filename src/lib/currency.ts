@@ -30,7 +30,8 @@ export interface Currency {
 
 /**
  * The only currencies this store sells/accepts, in display order:
- * USD, EUR, GBP, CAD, AUD, PKR — matching the reference store.
+ * USD, EUR, GBP, CAD, AUD, PKR plus the five regional markets the
+ * live site also serves — INR, NZD, AED, SAR, BDT.
  */
 export const CURRENCIES: Currency[] = [
   { code: "USD", name: "US Dollar", flag: "us", symbol: "$", decimals: 2, locale: "en-US" },
@@ -39,6 +40,11 @@ export const CURRENCIES: Currency[] = [
   { code: "CAD", name: "Canadian Dollar", flag: "ca", symbol: "CA$", decimals: 2, locale: "en-CA" },
   { code: "AUD", name: "Australian Dollar", flag: "au", symbol: "AU$", decimals: 2, locale: "en-AU" },
   { code: "PKR", name: "Pakistani Rupee", flag: "pk", symbol: "Rs", decimals: 0, locale: "en-PK" },
+  { code: "INR", name: "Indian Rupee", flag: "in", symbol: "₹", decimals: 2, locale: "en-IN" },
+  { code: "NZD", name: "New Zealand Dollar", flag: "nz", symbol: "NZ$", decimals: 2, locale: "en-NZ" },
+  { code: "AED", name: "UAE Dirham", flag: "ae", symbol: "AED", decimals: 2, locale: "en-AE" },
+  { code: "SAR", name: "Saudi Riyal", flag: "sa", symbol: "SAR", decimals: 2, locale: "en-SA" },
+  { code: "BDT", name: "Bangladeshi Taka", flag: "bd", symbol: "Tk", decimals: 2, locale: "en-BD" },
 ];
 
 /** Static fallback rates (base PKR → target currency). */
@@ -49,6 +55,11 @@ export const STATIC_RATES: Record<string, number> = {
   GBP: 0.0028,
   CAD: 0.00495,
   AUD: 0.00555,
+  INR: 0.343,
+  NZD: 0.00614,
+  AED: 0.0132,
+  SAR: 0.0135,
+  BDT: 0.4435,
 };
 
 /** Live rates, swapped by `getExchangeRates()` when the API responds. */

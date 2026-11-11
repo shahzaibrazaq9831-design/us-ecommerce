@@ -9,6 +9,9 @@ export function hasOpenModal(): boolean {
   if (document.querySelector(".modal.active")) return true;
   if (document.querySelector(".search-bar.active")) return true;
   if (document.querySelector('.currency-panel[data-open="true"]')) return true;
+  // The first-visit "confirm your price market" card is a prominent corner
+  // popup, so other popups wait until it is gone instead of stacking on it.
+  if (document.querySelector('.fvrd[data-open="true"]')) return true;
 
   return Array.from(
     document.querySelectorAll<HTMLElement>('[role="dialog"][aria-modal="true"]')

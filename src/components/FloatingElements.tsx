@@ -5,6 +5,8 @@ import Toast from "./Toast";
 import QuickViewModal from "./QuickViewModal";
 import RecentReviewPopup from "./RecentReviewPopup";
 import DiscountPopup from "./DiscountPopup";
+import FirstVisitRegionDialog from "./FirstVisitRegionDialog";
+import MarketSelector from "./MarketSelector";
 
 export default function FloatingElements() {
   return (
@@ -14,6 +16,8 @@ export default function FloatingElements() {
       <QuickViewModal />
       <DiscountPopup />
       <RecentReviewPopup />
+      <FirstVisitRegionDialog />
+      <MarketSelector />
     </>
   );
 }

@@ -66,7 +66,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 async function CurrencyInit({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
-  const initialCurrency = resolveCurrency(cookieStore.get("currency")?.value);
+  // The region provider writes `ppd_currency`; `currency` is the legacy name.
+  const initialCurrency = resolveCurrency(
+    cookieStore.get("ppd_currency")?.value ?? cookieStore.get("currency")?.value
+  );
   const rates = await getExchangeRates();
   return (
     <CurrencyProvider initialCurrency={initialCurrency} rates={rates}>
