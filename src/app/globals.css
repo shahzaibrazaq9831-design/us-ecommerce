@@ -5041,35 +5041,53 @@ main {
 }
 
 /* ============================================
-   Region UI — same behaviour as the live site:
+   Region UI — premium-site design, exact match:
    1. "Confirm your price market" card under the
       header on the right (first visit only) that
       collapses into a small "Prices: …" pill, and
    2. a floating market pill (flag + currency) at
       the bottom-left on desktop screens.
+
+   Every value mirrors premiumpakistanidresses.com:
+   12px radius, 1px ink/12% border, white surface,
+   Jakarta Sans text, pill-shaped uppercase buttons
+   and the soft teal card shadows.
    ============================================ */
 
 /* --- 1. First-visit dialog (top-right) --- */
+/*
+ * `--fvrd-top` is measured from the real sticky topbar at runtime (see
+ * FirstVisitRegionDialog) so the card always sits just below the header on
+ * every screen — phone, tablet, laptop — and can never be cut by it. The
+ * rem values are only the no-JS fallback.
+ */
 .fvrd {
   position: fixed;
-  top: calc(11rem + env(safe-area-inset-top));
-  left: 16px;
-  right: 16px;
+  top: var(--fvrd-top, calc(11.5rem + env(safe-area-inset-top)));
+  left: 1rem;
+  right: 1rem;
   z-index: 850;
   display: flex;
   justify-content: flex-end;
   pointer-events: none;
+  font-family: var(--font-review), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 .fvrd--raised {
   z-index: 860;
 }
 
-@media (min-width: 769px) {
+@media (min-width: 640px) {
   .fvrd {
-    top: calc(15.5rem + env(safe-area-inset-top));
     left: auto;
-    right: 24px;
+    right: 1.5rem;
+  }
+}
+
+/* Our sticky topbar is shorter below 1024px, taller above it. */
+@media (min-width: 1024px) {
+  .fvrd {
+    top: var(--fvrd-top, calc(16.5rem + env(safe-area-inset-top)));
   }
 }
 
@@ -5077,36 +5095,30 @@ main {
 .fvrd-pill {
   pointer-events: auto;
   display: flex;
-  min-height: 44px;
-  max-width: 320px;
+  min-height: 2.75rem;
+  max-width: 20rem;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid var(--cr-border);
   border-radius: 12px;
   background: #fff;
   color: var(--cr-ink);
-  font-family: inherit;
   font-size: 0.75rem;
-  line-height: 1.2;
-  box-shadow: 0 12px 40px -12px rgba(23, 60, 53, 0.24);
+  line-height: 1.3333;
+  text-align: left;
+  box-shadow: 0 10px 30px rgba(23, 60, 53, 0.07);
   cursor: pointer;
-  animation: fvrd-in 260ms var(--cr-ease);
-  transition: border-color 160ms ease;
-}
-
-.fvrd-pill:hover {
-  border-color: var(--cr-emerald);
 }
 
 .fvrd-pill:focus-visible {
-  outline: 2px solid var(--cr-emerald);
+  outline: 2px solid #8a6a2f;
   outline-offset: 2px;
 }
 
 .fvrd-pill-icon {
   flex: 0 0 auto;
-  color: var(--cr-emerald);
+  color: #8a6a2f;
 }
 
 .fvrd-pill-text {
@@ -5120,29 +5132,30 @@ main {
 .fvrd-card {
   pointer-events: auto;
   width: 100%;
-  max-width: 384px;
-  padding: 16px;
+  max-width: 24rem;
+  /* Never taller than the space under the header: on short screens (landscape
+     phones, small windows) the card scrolls instead of being cut off. */
+  max-height: calc(100dvh - var(--fvrd-top, 12rem) - 1rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem;
   border: 1px solid var(--cr-border);
-  border-radius: 16px;
+  border-radius: 12px;
   background: #fff;
   color: var(--cr-ink);
-  box-shadow: 0 12px 40px -12px rgba(23, 60, 53, 0.24);
-  animation: fvrd-in 320ms var(--cr-ease);
+  box-shadow: 0 10px 30px rgba(23, 60, 53, 0.07);
 }
 
 /* Compact phones: keep the card inside the viewport. */
 .fvrd-card--compact {
-  max-height: calc(100dvh - 17rem - env(safe-area-inset-top));
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
+  max-height: calc(100dvh - var(--fvrd-top, 12rem) - 1rem);
 }
 
 .fvrd-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .fvrd-head-text {
@@ -5151,58 +5164,58 @@ main {
 
 .fvrd-title {
   margin: 0;
-  color: var(--cr-emerald);
-  font-family: var(--font-heading);
-  font-size: 1rem;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.4286;
 }
 
 .fvrd-desc {
-  margin: 4px 0 0;
+  margin: 0.25rem 0 0;
   color: var(--cr-muted);
   font-size: 0.75rem;
-  line-height: 1.55;
+  line-height: 1.625;
 }
 
 .fvrd-close {
   display: inline-flex;
-  width: 34px;
-  height: 34px;
+  width: 2.75rem;
+  height: 2.75rem;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  margin: -8px -8px 0 0;
+  margin: -0.5rem -0.5rem 0 0;
   border: 1px solid transparent;
   border-radius: 50%;
   background: transparent;
   color: var(--cr-muted);
   cursor: pointer;
-  transition: background-color 160ms ease, color 160ms ease;
+  transition: background-color 0.15s var(--cr-ease);
 }
 
-.fvrd-close:hover,
-.fvrd-close:focus-visible {
-  background: #f4efe6;
-  color: var(--cr-ink);
+.fvrd-close:hover {
+  background: var(--cr-cream);
 }
 
 .fvrd-close:focus-visible {
-  outline: none;
+  outline: 2px solid #8a6a2f;
+  outline-offset: 2px;
 }
 
 .fvrd-form {
   display: grid;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
 }
 
 .fvrd-field {
   display: grid;
-  gap: 6px;
+  gap: 0.375rem;
   color: var(--cr-ink);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
+  line-height: 1.3333;
 }
 
 .fvrd-select-wrap {
@@ -5212,17 +5225,19 @@ main {
 
 .fvrd-select {
   width: 100%;
-  height: 44px;
+  height: 2.75rem;
   appearance: none;
   -webkit-appearance: none;
   border: 1px solid var(--cr-border);
-  border-radius: 10px;
+  border-radius: 12px;
   background: #fff;
-  padding: 0 38px 0 12px;
+  padding: 0 2.25rem 0 0.75rem;
   color: var(--cr-ink);
   font-family: inherit;
   font-size: 0.875rem;
+  line-height: 1.4286;
   cursor: pointer;
+  outline: none;
 }
 
 .fvrd-select:hover {
@@ -5230,15 +5245,14 @@ main {
 }
 
 .fvrd-select:focus {
-  outline: none;
-  border-color: var(--cr-emerald);
-  box-shadow: 0 0 0 3px rgba(23, 60, 53, 0.12);
+  border-color: #8a6a2f;
+  box-shadow: 0 0 0 2px rgba(138, 106, 47, 0.15);
 }
 
 .fvrd-select-chevron {
   position: absolute;
   top: 50%;
-  right: 12px;
+  right: 0.75rem;
   transform: translateY(-50%);
   pointer-events: none;
   color: var(--cr-muted);
@@ -5247,54 +5261,82 @@ main {
 .fvrd-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .fvrd-btn {
   display: inline-flex;
-  min-height: 44px;
   align-items: center;
   justify-content: center;
-  padding: 0 16px;
-  border-radius: 10px;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.625rem 1.5rem;
+  border: 1px solid transparent;
+  border-radius: 9999px;
   font-family: inherit;
-  font-size: 0.78rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  line-height: 1.4286;
+  letter-spacing: 0.08em;
+  text-align: center;
   text-transform: uppercase;
+  white-space: normal;
   cursor: pointer;
-  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease,
-    opacity 160ms ease;
+  transition: color 0.22s var(--cr-ease), background-color 0.22s var(--cr-ease),
+    border-color 0.22s var(--cr-ease), box-shadow 0.22s var(--cr-ease),
+    transform 0.22s var(--cr-ease);
+}
+
+@media (min-width: 640px) {
+  .fvrd-btn {
+    height: 2.75rem;
+    padding-top: 0;
+    padding-bottom: 0;
+    white-space: nowrap;
+  }
 }
 
 .fvrd-btn--primary {
   flex: 1 1 0;
   min-width: 0;
-  border: 1px solid var(--cr-emerald);
+  border-color: transparent;
   background: var(--cr-emerald);
-  color: #fff;
+  color: #f7f3ec;
 }
 
 .fvrd-btn--primary:hover:not(:disabled) {
-  border-color: #10281f;
-  background: #10281f;
+  background: #24544a;
+  transform: translateY(-0.125rem);
+  box-shadow: 0 10px 30px rgba(23, 60, 53, 0.07);
+}
+
+.fvrd-btn--primary:active:not(:disabled) {
+  transform: none;
+  box-shadow: none;
 }
 
 .fvrd-btn--primary:disabled {
+  pointer-events: none;
   opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .fvrd-btn--outline {
   flex: 0 0 auto;
-  border: 1px solid var(--cr-border);
+  border-color: var(--cr-border-strong);
   background: transparent;
   color: var(--cr-ink);
 }
 
 .fvrd-btn--outline:hover {
-  border-color: var(--cr-emerald);
-  color: var(--cr-emerald);
+  border-color: var(--cr-ink);
+  background: rgba(23, 23, 23, 0.05);
+  transform: translateY(-0.125rem);
+  box-shadow: 0 10px 30px rgba(23, 60, 53, 0.07);
+}
+
+.fvrd-btn--outline:active {
+  transform: none;
+  box-shadow: none;
 }
 
 .fvrd-btn--wide {
@@ -5302,68 +5344,72 @@ main {
 }
 
 .fvrd-btn:focus-visible {
-  outline: 2px solid var(--cr-emerald);
+  outline: 2px solid #8a6a2f;
   outline-offset: 2px;
 }
 
 /* --- 2. Floating market selector (bottom-left, desktop) --- */
 .msel {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem);
-  left: 16px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+  left: 1rem;
   z-index: 840;
-  display: none; /* phones use the first-visit dialog + header selector */
+  display: none;
+  font-family: var(--font-review), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 @media (min-width: 640px) {
   .msel {
     display: block;
-    left: 24px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
+    left: 1.5rem;
   }
 }
 
 .msel-trigger {
   display: flex;
-  min-height: 44px;
+  min-height: 2.75rem;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid var(--cr-border);
   border-radius: 12px;
   background: #fff;
   color: var(--cr-ink);
   font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  box-shadow: 0 10px 30px -12px rgba(23, 60, 53, 0.3);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4286;
   cursor: pointer;
-  transition: border-color 160ms ease;
+  transition: border-color 0.15s ease;
 }
 
 .msel-trigger:hover {
-  border-color: var(--cr-emerald);
+  border-color: var(--cr-border-strong);
 }
 
 .msel-trigger:focus-visible {
-  outline: 2px solid var(--cr-emerald);
+  outline: 2px solid #8a6a2f;
   outline-offset: 2px;
 }
 
 .msel-trigger img {
   width: 20px;
   height: 14px;
+  flex: 0 0 auto;
   border-radius: 2px;
   object-fit: cover;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 .msel-trigger-code {
-  line-height: 1.2;
+  line-height: inherit;
 }
 
 .msel-chevron {
+  flex: 0 0 auto;
   color: var(--cr-muted);
-  transition: transform 160ms ease;
+  transition: transform 0.15s ease;
 }
 
 .msel-chevron.is-open {
@@ -5372,56 +5418,57 @@ main {
 
 .msel-list {
   position: absolute;
-  bottom: calc(100% + 8px);
-  left: 0;
+  right: 0;
+  bottom: calc(100% + 0.5rem);
   z-index: 850;
-  width: 320px;
+  width: 20rem;
   max-width: calc(100vw - 2rem);
   max-height: min(22rem, 55dvh);
   overflow-y: auto;
   overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  padding: 4px 0;
+  touch-action: pan-y;
+  padding: 0.25rem 0;
   border: 1px solid var(--cr-border);
-  border-radius: 14px;
+  border-radius: 12px;
   background: #fff;
-  box-shadow: 0 18px 50px -12px rgba(23, 60, 53, 0.35);
-  animation: fvrd-in 220ms var(--cr-ease);
+  box-shadow: 0 18px 44px rgba(23, 60, 53, 0.12);
 }
 
 .msel-option {
   display: flex;
   width: 100%;
-  min-height: 44px;
+  min-height: 2.75rem;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: 0.75rem;
+  padding: 0.75rem;
   border: 0;
   background: transparent;
   color: var(--cr-ink);
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
+  line-height: 1.4286;
   text-align: left;
   cursor: pointer;
 }
 
 .msel-option:hover,
 .msel-option:focus {
-  background: rgba(23, 60, 53, 0.05);
+  background: rgba(23, 23, 23, 0.05);
   outline: none;
 }
 
 .msel-option[aria-selected="true"] {
-  background: rgba(23, 60, 53, 0.05);
+  background: rgba(23, 23, 23, 0.05);
   font-weight: 600;
 }
 
 .msel-option img {
   width: 24px;
   height: 16px;
+  flex: 0 0 auto;
   border-radius: 2px;
   object-fit: cover;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 .msel-option-label {
@@ -5431,41 +5478,39 @@ main {
 
 .msel-option svg {
   flex: 0 0 auto;
-  color: var(--cr-emerald);
+  color: #8a6a2f;
 }
 
 /* Keep the recent-review card clear of the floating pill on desktop. */
 @media (min-width: 640px) {
   .msel-on .cr-popup {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem + 44px + 12px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem + 44px + 12px);
   }
 }
 
-@keyframes fvrd-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.98);
+/*
+ * On short screens (landscape phones, small windows) the floating buttons
+ * would sit on top of the market card, so they step aside while it is open.
+ * On normal screens they stay exactly where they are.
+ */
+@media (max-height: 560px) {
+  html.fvrd-open .back-to-top,
+  html.fvrd-open .fw-float {
+    opacity: 0 !important;
+    pointer-events: none;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .fvrd-card,
-  .fvrd-pill,
-  .msel-list {
-    animation: none;
+  html.fvrd-open .back-to-top {
+    visibility: hidden;
   }
 }
 
-
-
-
-
-
-
+@media print {
+  .fvrd,
+  .msel {
+    display: none;
+  }
+}
 
 /* ============================================
    Welcome discount popup

@@ -553,7 +553,7 @@ export default function FloatingWhatsApp() {
       <button
         ref={buttonRef}
         type="button"
-        className={`${styles.button}${ready ? ` ${styles.ready}` : ""}${
+        className={`fw-float ${styles.button}${ready ? ` ${styles.ready}` : ""}${
           dragging ? ` ${styles.dragging}` : ""
         }`}
         onPointerDown={handlePointerDown}

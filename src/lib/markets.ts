@@ -3,9 +3,11 @@
  * matching the live site: a fixed set of markets, each with one currency.
  *
  * A market is what the visitor picks ("United States", "Europe", …) and the
- * currency follows from it. Any country code can be mapped onto a market:
- * a supported market code maps to itself, other western countries resolve to
- * the Europe market, and everything else resolves to the United States.
+ * currency follows from it. The list is the rungebahar.com converter list —
+ * the same six currencies, in the same order. Any country code can be mapped
+ * onto a market: a supported market code maps to itself, other western
+ * countries resolve to the Europe market, and everything else resolves to
+ * the United States.
  */
 
 export interface Market {
@@ -19,19 +21,14 @@ export interface Market {
   flag: string;
 }
 
-/** The markets this store sells to, in selector order (live-site order). */
+/** The markets this store sells to, in selector order (rungebahar.com order). */
 export const MARKETS: Market[] = [
-  { code: "PK", name: "Pakistan (PKR)", currency: "PKR", flag: "pk" },
   { code: "US", name: "United States (USD)", currency: "USD", flag: "us" },
-  { code: "CA", name: "Canada (CAD)", currency: "CAD", flag: "ca" },
-  { code: "GB", name: "United Kingdom (GBP)", currency: "GBP", flag: "gb" },
-  { code: "AU", name: "Australia (AUD)", currency: "AUD", flag: "au" },
   { code: "EU", name: "Europe (EUR)", currency: "EUR", flag: "eu" },
-  { code: "IN", name: "India (INR)", currency: "INR", flag: "in" },
-  { code: "NZ", name: "New Zealand (NZD)", currency: "NZD", flag: "nz" },
-  { code: "AE", name: "United Arab Emirates (AED)", currency: "AED", flag: "ae" },
-  { code: "SA", name: "Saudi Arabia (SAR)", currency: "SAR", flag: "sa" },
-  { code: "BD", name: "Bangladesh (BDT)", currency: "BDT", flag: "bd" },
+  { code: "GB", name: "United Kingdom (GBP)", currency: "GBP", flag: "gb" },
+  { code: "CA", name: "Canada (CAD)", currency: "CAD", flag: "ca" },
+  { code: "AU", name: "Australia (AUD)", currency: "AUD", flag: "au" },
+  { code: "PK", name: "Pakistan (PKR)", currency: "PKR", flag: "pk" },
 ];
 
 /** Market used when auto-detection cannot resolve anything (live-site default). */
@@ -57,9 +54,9 @@ export function getMarketByCurrency(currency?: string | null): Market | undefine
 }
 
 /**
- * Country codes the live store treats as "western" — every one of these
- * resolves to the Europe market unless it is one of the five markets with
- * their own currency (US, CA, GB, AU, NZ).
+ * Country codes the store treats as "western" — every one of these resolves
+ * to the Europe market unless it is one of the four markets with their own
+ * currency (US, CA, GB, AU).
  */
 const WESTERN_COUNTRY_CODES = new Set([
   "AD", "AL", "AT", "AU", "AX", "BA", "BE", "BG", "BY", "CA",

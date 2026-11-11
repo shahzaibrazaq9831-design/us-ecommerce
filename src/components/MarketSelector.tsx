@@ -126,7 +126,14 @@ export default function MarketSelector() {
         aria-label={`Country and currency: ${region.name}. Change`}
         className="msel-trigger"
       >
-        <img src={`https://flagcdn.com/w40/${region.flag}.png`} alt="" aria-hidden="true" />
+        <img
+          src={`/flags/${region.flag}.svg`}
+          alt=""
+          aria-hidden="true"
+          width={20}
+          height={14}
+          decoding="async"
+        />
         <span className="msel-trigger-code">{region.currency}</span>
         <ChevronDown
           size={16}
@@ -150,7 +157,14 @@ export default function MarketSelector() {
                   onClick={() => choose(market)}
                   className="msel-option"
                 >
-                  <img src={`https://flagcdn.com/w40/${market.flag}.png`} alt="" aria-hidden="true" />
+                  <img
+                    src={`/flags/${market.flag}.svg`}
+                    alt=""
+                    aria-hidden="true"
+                    width={20}
+                    height={14}
+                    decoding="async"
+                  />
                   <span className="msel-option-label">{market.name}</span>
                   {isSelected ? <Check size={16} strokeWidth={2.4} aria-hidden="true" /> : null}
                 </button>
