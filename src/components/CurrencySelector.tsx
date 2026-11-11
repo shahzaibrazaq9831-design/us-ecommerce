@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, Check } from "lucide-react";
-import { CURRENCIES, getCurrencyByCode } from "@/lib/currency";
+import { MARKETS } from "@/lib/markets";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useCart } from "@/context/CartContext";
 
 type CurrencySelectorVariant = "header" | "drawer";
 
 export default function CurrencySelector({ variant = "header" }: { variant?: CurrencySelectorVariant }) {
-  const { currency, setCurrency } = useCurrency();
+  const { region, setRegionCode } = useCurrency();
   const { showToast } = useCart();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -19,8 +19,10 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
   const listRef = useRef<HTMLUListElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const activeCurrency = getCurrencyByCode(currency) ?? CURRENCIES[0];
-  const filtered = CURRENCIES;
+  /* The header dropdown is a *market* picker — exactly like the premium site:
+     the visitor picks the country they are billed in and the currency follows. */
+  const activeMarket = region ?? MARKETS[0];
+  const filtered = MARKETS;
 
   const resetList = useCallback(() => {
     setActiveIndex(0);
@@ -47,10 +49,10 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
     // Ensure no stale closing state leaves an empty/lingering panel behind.
     setClosing(false);
     resetList();
-    setActiveIndex(Math.max(CURRENCIES.findIndex((c) => c.code === currency), 0));
+    setActiveIndex(Math.max(MARKETS.findIndex((m) => m.code === activeMarket.code), 0));
     setShowActive(false);
     setOpen(true);
-  }, [currency, resetList]);
+  }, [activeMarket.code, resetList]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -124,17 +126,17 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
     }
   };
 
-  const selectCurrency = (code: string) => {
-    const c = getCurrencyByCode(code);
-    if (!c) return;
-    // Build the message from the currency that was just picked (never from state,
-    // which hasn't updated yet), so the toast always names the new currency.
-    const changed = c.code !== currency;
-    setCurrency(c.code);
+  const selectMarket = (code: string) => {
+    const market = MARKETS.find((m) => m.code === code);
+    if (!market) return;
+    // Build the message from the market that was just picked (never from
+    // state, which hasn't updated yet), so the toast always names it.
+    const changed = market.code !== activeMarket.code;
+    setRegionCode(market.code);
     if (changed) {
-      showToast(`Currency changed to ${c.name} (${c.code}).`);
+      showToast(`Country and currency changed to ${market.name}.`);
     }
-    // A deliberate currency choice is also a deliberate market choice: the
+    // A deliberate market choice is also a deliberate currency choice: the
     // first-visit region dialog never interrupts this visitor again.
     closePanel();
   };
@@ -152,7 +154,7 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (filtered[activeIndex]) {
-        selectCurrency(filtered[activeIndex].code);
+        selectMarket(filtered[activeIndex].code);
       }
     }
   };
@@ -171,15 +173,22 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
         className={`currency-trigger${isDrawer ? " currency-trigger--drawer" : ""}`}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={`Change currency. Current: ${activeCurrency.code} (${activeCurrency.name})`}
+        aria-label={`Country and currency: ${activeMarket.name}. Change`}
       >
-        <img src={`https://flagcdn.com/w40/${activeCurrency.flag}.png`} alt="" aria-hidden="true" />
+        <img
+          src={`/flags/${activeMarket.flag}.svg`}
+          alt=""
+          aria-hidden="true"
+          width={20}
+          height={14}
+          decoding="async"
+        />
         {isDrawer ? (
           <span className="currency-trigger-label">
-            {activeCurrency.name} ({activeCurrency.code})
+            {activeMarket.name}
           </span>
         ) : (
-          <span className="currency-trigger-code">{activeCurrency.code}</span>
+          <span className="currency-trigger-code">{activeMarket.currency}</span>
         )}
         <ChevronDown size={12} strokeWidth={2} aria-hidden="true" className={open ? "currency-chevron is-open" : "currency-chevron"} />
       </button>
@@ -195,12 +204,12 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
             {filtered.length === 0 ? (
               <li className="currency-empty">No currencies found</li>
             ) : (
-              filtered.map((c, idx) => {
-                const isSelected = c.code === currency;
+              filtered.map((m, idx) => {
+                const isSelected = m.code === activeMarket.code;
                 const isActive = idx === activeIndex;
                 return (
                   <li
-                    key={c.code}
+                    key={m.code}
                     role="option"
                     aria-selected={isSelected}
                     data-selected={isSelected || undefined}
@@ -208,15 +217,22 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
                       setActiveIndex(idx);
                       setShowActive(false);
                     }}
-                    onClick={() => selectCurrency(c.code)}
+                    onClick={() => selectMarket(m.code)}
                     className={`currency-option${isActive && showActive ? " is-active" : ""}`}
-                    title={`${c.name} (${c.code})`}
+                    title={m.name}
                   >
-                    <img src={`https://flagcdn.com/w40/${c.flag}.png`} alt="" aria-hidden="true" />
+                    <img
+                      src={`/flags/${m.flag}.svg`}
+                      alt=""
+                      aria-hidden="true"
+                      width={24}
+                      height={16}
+                      decoding="async"
+                    />
                     <span className="currency-option-label">
-                      {c.name} ({c.code})
+                      {m.name}
                     </span>
-                    {isSelected ? <Check size={12} strokeWidth={2.5} aria-hidden="true" /> : null}
+                    {isSelected ? <Check size={14} strokeWidth={2.5} aria-hidden="true" /> : null}
                   </li>
                 );
               })

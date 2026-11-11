@@ -9,7 +9,7 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { hasOpenModal } from "@/lib/overlay";
 
 /** Wait this long after mount before the card may appear. */
-const OPEN_DELAY = 3500;
+const OPEN_DELAY = 1200;
 /** Scrolling (incl. touch / two-finger scroll) must be idle for this long. */
 const SCROLL_IDLE_MS = 900;
 
@@ -36,6 +36,18 @@ export default function FirstVisitRegionDialog() {
   const [isCompact, setIsCompact] = useState(false);
   const [minimized, setMinimized] = useState<boolean | null>(null);
   const [selectValue, setSelectValue] = useState("");
+  /*
+   * ?market=1 always shows the reminder, even when the visitor already
+   * picked a market earlier — handy for checking the card on any device.
+   */
+  const [forceShow] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return new URLSearchParams(window.location.search).get("market") === "1";
+    } catch {
+      return false;
+    }
+  });
 
   const containerRef = useRef<HTMLElement | null>(null);
   const usedEscapeRef = useRef(false);
@@ -56,9 +68,10 @@ export default function FirstVisitRegionDialog() {
       if (!bar) return;
       const bottom = Math.round(bar.getBoundingClientRect().bottom);
       if (bottom <= 0) return;
-      // Same breathing room as the premium site: a small gap on phones,
-      // a bit more under the taller desktop header.
-      const gap = window.matchMedia("(min-width: 1024px)").matches ? 32 : 12;
+      // The gap below the header is exactly the one the card had before it
+      // started measuring the header, so the card sits in the same spot on
+      // every screen — it just can never be cut by a taller header.
+      const gap = window.matchMedia("(min-width: 1024px)").matches ? 32 : 21;
       setTopOffset(bottom + gap);
     };
 
@@ -112,7 +125,7 @@ export default function FirstVisitRegionDialog() {
    * so the timing also works on phones.
    */
   useEffect(() => {
-    if (revealed || hasManualRegionPreference || pathname?.startsWith("/checkout")) return;
+    if (revealed || (hasManualRegionPreference && !forceShow) || pathname?.startsWith("/checkout")) return;
 
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -153,9 +166,10 @@ export default function FirstVisitRegionDialog() {
         return;
       }
 
-      // Let any open modal — or the recent-review card that shares this
-      // corner — own the screen while it is open.
-      if (hasOpenModal() || document.querySelector(".cr-popup")) {
+      // Let any open modal own the screen while it is open. The recent-review
+      // card is not one of them: it sits in the opposite corner (bottom-left)
+      // and never overlaps this card, so it must not hold the reminder back.
+      if (hasOpenModal()) {
         timer = setTimeout(tryReveal, 1200);
         return;
       }
@@ -175,11 +189,18 @@ export default function FirstVisitRegionDialog() {
       window.removeEventListener("touchmove", markScrolling);
       window.removeEventListener("wheel", markScrolling);
     };
-  }, [revealed, hasManualRegionPreference, pathname]);
+  }, [revealed, hasManualRegionPreference, forceShow, pathname]);
 
   // On compact screens, a tap outside or Escape collapses the card into the pill.
   useEffect(() => {
-    if (!isCompact || isMinimized || hasManualRegionPreference || pathname?.startsWith("/checkout")) return;
+    if (
+      !isCompact ||
+      isMinimized ||
+      (hasManualRegionPreference && !forceShow) ||
+      pathname?.startsWith("/checkout")
+    ) {
+      return;
+    }
 
     const onPointerDown = (event: PointerEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -199,7 +220,7 @@ export default function FirstVisitRegionDialog() {
       document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [isCompact, isMinimized, hasManualRegionPreference, pathname]);
+  }, [isCompact, isMinimized, hasManualRegionPreference, forceShow, pathname]);
 
   // Return focus to the pill when Escape collapsed the card.
   useEffect(() => {
@@ -220,7 +241,11 @@ export default function FirstVisitRegionDialog() {
    * short screen.
    */
   const cardIsOpen =
-    mounted && revealed && !isMinimized && !hasManualRegionPreference && !pathname?.startsWith("/checkout");
+    mounted &&
+    revealed &&
+    !isMinimized &&
+    (forceShow || !hasManualRegionPreference) &&
+    !pathname?.startsWith("/checkout");
 
   useEffect(() => {
     const root = document.documentElement;
@@ -228,7 +253,14 @@ export default function FirstVisitRegionDialog() {
     return () => root.classList.remove("fvrd-open");
   }, [cardIsOpen]);
 
-  if (!mounted || !revealed || hasManualRegionPreference || pathname?.startsWith("/checkout")) return null;
+  if (
+    !mounted ||
+    !revealed ||
+    (hasManualRegionPreference && !forceShow) ||
+    pathname?.startsWith("/checkout")
+  ) {
+    return null;
+  }
 
   return (
     <aside

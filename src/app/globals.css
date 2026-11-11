@@ -450,8 +450,8 @@ main {
 }
 
 .currency-trigger img {
-  width: 16px;
-  height: 12px;
+  width: 20px;
+  height: 14px;
   border-radius: 2px;
   object-fit: cover;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.07);
@@ -476,16 +476,16 @@ main {
 }
 
 .currency-panel {
-  --currency-row-height: 36px;
+  --currency-row-height: 44px;
   position: absolute;
   top: calc(100% + 7px);
   right: 0;
-  width: 272px;
-  max-width: calc(100vw - 24px);
-  background: #FFFFFF;
-  border: 1px solid #E4DFD7;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+  width: 20rem;
+  max-width: calc(100vw - 1.5rem);
+  background: #ffffff;
+  border: 1px solid rgba(23, 23, 23, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 18px 44px rgba(23, 60, 53, 0.12);
   overflow: hidden;
   transform-origin: top right;
   animation: currencyPanelIn 0.2s cubic-bezier(0.22, 1, 0.36, 1);
@@ -497,77 +497,15 @@ main {
   animation: currencyPanelOut 0.15s ease-in forwards;
 }
 
-@keyframes currencyPanelIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes currencyPanelOut {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.98);
-  }
-}
-
-.currency-search {
-  padding: 10px 10px 4px;
-  border-bottom: 1px solid #F0EDE8;
-  background: #FFFFFF;
-}
-
-.currency-search-inner {
-  position: relative;
-}
-
-.currency-search-inner svg {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6F6F6F;
-  pointer-events: none;
-}
-
-.currency-search input {
-  width: 100%;
-  height: 34px;
-  padding: 0 10px 0 30px;
-  border: 1px solid #D8D3CB;
-  border-radius: 7px;
-  background: #FFFFFF;
-  color: #1F1F1F;
-  font-size: 12.5px;
-  line-height: 34px;
-}
-
-.currency-search input::placeholder {
-  color: #767676;
-}
-
-.currency-search input:focus {
-  border-color: #C2BCB1;
-  outline: none;
-}
-
 .currency-list {
   position: relative;
   /* Whole rows only, so the last visible country is never cut in half. */
-  max-height: calc(var(--currency-row-height) * 10);
+  max-height: min(22rem, 55dvh);
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 0;
+  padding: 0.25rem 0;
   scrollbar-width: thin;
-  scrollbar-color: #8F8F8F transparent;
+  scrollbar-color: #8f8f8f transparent;
 }
 
 .currency-list::-webkit-scrollbar {
@@ -579,7 +517,7 @@ main {
 }
 
 .currency-list::-webkit-scrollbar-thumb {
-  background: #8F8F8F;
+  background: #8f8f8f;
   border-radius: 9999px;
 }
 
@@ -590,27 +528,33 @@ main {
 .currency-option {
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: var(--currency-row-height);
-  padding: 0 12px;
-  color: #1F1F1F;
-  font-size: 12.5px;
+  gap: 0.75rem;
+  min-height: var(--currency-row-height);
+  padding: 0.75rem;
+  color: #171717;
+  font-size: 0.875rem;
   font-weight: 400;
-  line-height: 1.2;
+  line-height: 1.4286;
   cursor: pointer;
 }
 
 .currency-option:hover,
 .currency-option.is-active {
-  background: #F4F1EC;
+  background: rgba(23, 23, 23, 0.05);
+}
+
+/* The current market: cream row with the gold check (premium's look). */
+.currency-option[aria-selected="true"] {
+  background: #efe7da;
+  font-weight: 500;
 }
 
 .currency-option img {
-  width: 18px;
-  height: 12px;
+  width: 24px;
+  height: 16px;
   border-radius: 2px;
   object-fit: cover;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
   flex: 0 0 auto;
 }
 
@@ -624,7 +568,7 @@ main {
 
 .currency-option svg {
   flex: 0 0 auto;
-  color: #2A2A2A;
+  color: #8a6a2f;
 }
 
 .currency-empty {
@@ -632,6 +576,8 @@ main {
   color: #767676;
   font-size: 12.5px;
 }
+
+
 
 @media (max-width: 640px) {
   .currency-list {
@@ -5044,9 +4990,7 @@ main {
    Region UI — premium-site design, exact match:
    1. "Confirm your price market" card under the
       header on the right (first visit only) that
-      collapses into a small "Prices: …" pill, and
-   2. a floating market pill (flag + currency) at
-      the bottom-left on desktop screens.
+      collapses into a small "Prices: …" pill.
 
    Every value mirrors premiumpakistanidresses.com:
    12px radius, 1px ink/12% border, white surface,
@@ -5348,146 +5292,6 @@ main {
   outline-offset: 2px;
 }
 
-/* --- 2. Floating market selector (bottom-left, desktop) --- */
-.msel {
-  position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
-  left: 1rem;
-  z-index: 840;
-  display: none;
-  font-family: var(--font-review), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-}
-
-@media (min-width: 640px) {
-  .msel {
-    display: block;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
-    left: 1.5rem;
-  }
-}
-
-.msel-trigger {
-  display: flex;
-  min-height: 2.75rem;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--cr-border);
-  border-radius: 12px;
-  background: #fff;
-  color: var(--cr-ink);
-  font-family: inherit;
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.4286;
-  cursor: pointer;
-  transition: border-color 0.15s ease;
-}
-
-.msel-trigger:hover {
-  border-color: var(--cr-border-strong);
-}
-
-.msel-trigger:focus-visible {
-  outline: 2px solid #8a6a2f;
-  outline-offset: 2px;
-}
-
-.msel-trigger img {
-  width: 20px;
-  height: 14px;
-  flex: 0 0 auto;
-  border-radius: 2px;
-  object-fit: cover;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
-}
-
-.msel-trigger-code {
-  line-height: inherit;
-}
-
-.msel-chevron {
-  flex: 0 0 auto;
-  color: var(--cr-muted);
-  transition: transform 0.15s ease;
-}
-
-.msel-chevron.is-open {
-  transform: rotate(180deg);
-}
-
-.msel-list {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 0.5rem);
-  z-index: 850;
-  width: 20rem;
-  max-width: calc(100vw - 2rem);
-  max-height: min(22rem, 55dvh);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-  padding: 0.25rem 0;
-  border: 1px solid var(--cr-border);
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 18px 44px rgba(23, 60, 53, 0.12);
-}
-
-.msel-option {
-  display: flex;
-  width: 100%;
-  min-height: 2.75rem;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border: 0;
-  background: transparent;
-  color: var(--cr-ink);
-  font-family: inherit;
-  font-size: 0.875rem;
-  line-height: 1.4286;
-  text-align: left;
-  cursor: pointer;
-}
-
-.msel-option:hover,
-.msel-option:focus {
-  background: rgba(23, 23, 23, 0.05);
-  outline: none;
-}
-
-.msel-option[aria-selected="true"] {
-  background: rgba(23, 23, 23, 0.05);
-  font-weight: 600;
-}
-
-.msel-option img {
-  width: 24px;
-  height: 16px;
-  flex: 0 0 auto;
-  border-radius: 2px;
-  object-fit: cover;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
-}
-
-.msel-option-label {
-  min-width: 0;
-  flex: 1;
-}
-
-.msel-option svg {
-  flex: 0 0 auto;
-  color: #8a6a2f;
-}
-
-/* Keep the recent-review card clear of the floating pill on desktop. */
-@media (min-width: 640px) {
-  .msel-on .cr-popup {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem + 44px + 12px);
-  }
-}
-
 /*
  * On short screens (landscape phones, small windows) the floating buttons
  * would sit on top of the market card, so they step aside while it is open.
@@ -5506,8 +5310,7 @@ main {
 }
 
 @media print {
-  .fvrd,
-  .msel {
+  .fvrd {
     display: none;
   }
 }
