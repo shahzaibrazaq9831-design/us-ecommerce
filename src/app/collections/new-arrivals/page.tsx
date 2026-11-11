@@ -1,12 +1,10 @@
-import type { Metadata } from "next";
-import NewArrivalsView from "@/components/NewArrivalsView";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "New Arrivals | Rung E Bahar — Luxury Designer-Inspired Dresses",
-  description:
-    "Browse 204 new arrivals. Filter by availability, sort by price or date, and switch between comfortable and compact grid views.",
-};
-
-export default function NewArrivalsPage() {
-  return <NewArrivalsView />;
+/**
+ * The new-arrivals collection moved to /new-arrivals. This route stays so the
+ * older links keep working — it sends visitors (and search engines) to the
+ * new home of the collection.
+ */
+export default function LegacyNewArrivalsPage() {
+  redirect("/new-arrivals");
 }

@@ -45,10 +45,10 @@ export default function ProductBuyPanel({ product }: ProductBuyPanelProps) {
     : 0;
 
   const buildVariant = () => {
-    // Keep cart lines in the shared Product shape (no gallery/availability data).
-    const { images: _images, availability: _availability, ...base } = product;
+    // Cart lines keep the shared Product shape — the chosen options are the
+    // only thing that changes from the product itself.
     return {
-      ...base,
+      ...product,
       size,
       lining,
       notes: notes.trim() || undefined,

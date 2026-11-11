@@ -60,7 +60,10 @@ export default function GalleryProductCard({
           ))}
         </Link>
 
-        <span className="gallery-card-badge">Sale</span>
+        {/* The Sale pill only appears when the piece is actually reduced. */}
+        {product.originalPrice !== null && product.originalPrice > product.price ? (
+          <span className="gallery-card-badge">Sale</span>
+        ) : null}
 
         {hasGallery && (
           <>
@@ -95,9 +98,11 @@ export default function GalleryProductCard({
           <span className="gallery-card-price-current">
             {formatPrice(product.price)}
           </span>
-          <span className="gallery-card-price-old">
-            {formatPrice(product.originalPrice)}
-          </span>
+          {product.originalPrice !== null && product.originalPrice > product.price ? (
+            <span className="gallery-card-price-old">
+              {formatPrice(product.originalPrice)}
+            </span>
+          ) : null}
         </div>
       </div>
     </article>

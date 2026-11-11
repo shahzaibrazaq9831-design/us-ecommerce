@@ -1,7 +1,13 @@
 /**
  * Main navigation — single source of truth for the header menu and the
  * mobile drawer menu.
+ *
+ * The list is data, not markup: adding a page to the store means adding one
+ * line here and the desktop nav, the mobile drawer and the footer all pick
+ * it up. Labels are the shop's own wording.
  */
+
+import { brands, occasions } from "@/lib/products";
 
 export interface NavChild {
   label: string;
@@ -15,19 +21,43 @@ export interface NavItem {
 }
 
 export const navItems: NavItem[] = [
-  { label: "Home", href: "/" },
-  { label: "New Arrivals", href: "/collections/new-arrivals" },
-  { label: "Best Selling", href: "/shop" },
+  { label: "Shop All", href: "/shop" },
+  { label: "Best Sellers", href: "/best-sellers" },
+  { label: "New Arrivals", href: "/new-arrivals" },
   {
-    label: "Collections",
+    label: "Occasions",
     href: "/collections",
-    children: [
-      { label: "Lehenga Choli", href: "/collections" },
-      { label: "Maxi Gown", href: "/collections" },
-      { label: "Kameez Shalwaar", href: "/collections" },
-      { label: "Gharara / Plazoo", href: "/collections" },
-      { label: "All Products", href: "/shop" },
-    ],
+    children: occasions.map((occasion) => ({
+      label: occasion.name,
+      href: occasion.href,
+    })),
   },
-  { label: "Size Chart", href: "/size-chart" },
+  { label: "Wedding", href: "/categories/wedding" },
+  { label: "Bridal", href: "/categories/bridal" },
+  { label: "Formals", href: "/categories/formals" },
+  { label: "Chiffon", href: "/categories/chiffon" },
+  { label: "Sale", href: "/sale" },
+  {
+    label: "Designers",
+    href: "/brands",
+    children: brands.map((brand) => ({
+      label: brand.name,
+      href: brand.href,
+    })),
+  },
+  { label: "Reviews", href: "/reviews" },
+];
+
+/** Secondary links used by the footer and the mobile drawer footer. */
+export const footerNavItems: NavChild[] = [
+  { label: "Shop All", href: "/shop" },
+  { label: "Best Sellers", href: "/best-sellers" },
+  { label: "New Arrivals", href: "/new-arrivals" },
+  { label: "Sale", href: "/sale" },
+  { label: "Shop by Occasion", href: "/collections" },
+  { label: "Designers", href: "/brands" },
+  { label: "Custom Stitching", href: "/custom-stitching" },
+  { label: "Size Guide", href: "/size-guide" },
+  { label: "Product Disclosure", href: "/product-disclosure" },
+  { label: "Reviews", href: "/reviews" },
 ];

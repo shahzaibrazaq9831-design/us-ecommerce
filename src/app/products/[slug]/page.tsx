@@ -1,18 +1,47 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getFeaturedDetailSlugs, getDetailProductBySlug } from "@/data/catalog";
-import { getRelatedProducts } from "@/data/products";
+import { getRelatedProducts, getBrandBySlug, getStitchingLabel } from "@/lib/products";
 import ProductCard from "@/components/ProductCard";
 import ProductGallery from "@/components/ProductGallery";
 import ProductBuyPanel from "@/components/ProductBuyPanel";
+import { absoluteUrl, pageMetadata } from "@/lib/seo";
+
+interface ProductPageProps {
+  params: Promise<{ slug: string }>;
+}
 
 export function generateStaticParams() {
   // The full catalog also resolves on demand (ISR) — see catalog.ts.
   return getFeaturedDetailSlugs().map((slug) => ({ slug }));
 }
 
-async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const product = getDetailProductBySlug(slug);
+
+  if (!product) {
+    return pageMetadata({
+      title: "Piece not found",
+      description: "This design is not in the catalogue any more.",
+      path: `/products/${slug}`,
+      noIndex: true,
+    });
+  }
+
+  return pageMetadata({
+    title: `${product.name} — ${product.categoryLabel}`,
+    description: `${product.description} Available ${getStitchingLabel(
+      product
+    ).toLowerCase()}, with worldwide shipping.`,
+    path: `/products/${product.slug}`,
+    image: absoluteUrl(product.image),
+  });
+}
+
+async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
   const product = getDetailProductBySlug(slug);
 
@@ -21,6 +50,44 @@ async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   }
 
   const related = getRelatedProducts(product.slug);
+  const brand = getBrandBySlug(product.brand);
+
+  // Product structured data — tells search engines what this piece is,
+  // what it costs and how customers rated it.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    image: product.images.map((image) => absoluteUrl(image)),
+    description: product.description,
+    sku: product.sku,
+    category: product.categoryLabel,
+    brand: {
+      "@type": "Brand",
+      name: brand?.name ?? product.brand,
+    },
+    material: "Silk blend, chiffon and hand-finished embroidery",
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: product.rating,
+      reviewCount: product.reviews,
+    },
+    offers: {
+      "@type": "Offer",
+      url: absoluteUrl(`/products/${product.slug}`),
+      priceCurrency: "PKR",
+      price: product.price,
+      availability:
+        product.availability === "in_stock"
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+      seller: {
+        "@type": "Organization",
+        name: "Rung E Bahar",
+      },
+    },
+  };
 
   return (
     <section className="section">
@@ -50,11 +117,17 @@ async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
           </div>
         )}
       </div>
+
+      <script
+        type="application/ld+json"
+        // Static, serialisable payload built from the catalogue — safe to inline.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
     </section>
   );
 }
 
-export default function Page({ params }: { params: Promise<{ slug: string }> }) {
+export default function Page({ params }: ProductPageProps) {
   return (
     <Suspense fallback={<div className="section"><div className="container">Loading...</div></div>}>
       <ProductPage params={params} />

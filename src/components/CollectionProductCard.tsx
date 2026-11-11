@@ -30,7 +30,7 @@ export default function CollectionProductCard({
   const [index, setIndex] = useState(0);
   const total = images.length;
   const soldOut = product.availability === "out_of_stock";
-  const onSale = product.originalPrice !== null;
+  const onSale = product.originalPrice !== null && product.originalPrice > product.price;
 
   const showPrevious = () => setIndex((current) => (current - 1 + total) % total);
   const showNext = () => setIndex((current) => (current + 1) % total);

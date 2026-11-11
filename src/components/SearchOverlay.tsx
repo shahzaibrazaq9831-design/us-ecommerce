@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { products } from "@/data/products";
+import { searchProducts } from "@/lib/products";
 import { useCurrency } from "@/context/CurrencyContext";
 
 export default function SearchOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -23,9 +23,8 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
-    return products
-      .filter((p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))
-      .slice(0, 8);
+    // Searches the catalogue by product name, category, occasion and designer.
+    return searchProducts(q).slice(0, 8);
   }, [query]);
 
   if (!open) return null;
@@ -38,7 +37,7 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
           <input
             id="site-search-input"
             type="text"
-            placeholder="Search dresses, collections..."
+            placeholder="Search by dress, category or designer..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -64,7 +63,9 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 600 }}>{p.name}</div>
-                        <div style={{ color: "var(--color-gray-600)", fontSize: "0.9rem" }}>{p.category} • {formatPrice(p.price)}</div>
+                        <div style={{ color: "var(--color-gray-600)", fontSize: "0.9rem" }}>
+                          {p.categoryLabel} • {formatPrice(p.price)}
+                        </div>
                       </div>
                     </Link>
                   </li>

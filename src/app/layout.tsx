@@ -9,6 +9,7 @@ import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { getExchangeRates, resolveCurrency } from "@/lib/currency";
+import { SITE_NAME, SITE_URL } from "@/lib/seo";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import Header from "@/components/Header";
 import OfferStrip from "@/components/OfferStrip";
@@ -37,9 +38,35 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Premium Pakistani Dresses | Luxury Designer-Inspired Collection",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Premium Pakistani Dresses | Luxury Designer-Inspired Collection",
+    template: `%s | ${SITE_NAME}`,
+  },
   description:
     "Shop luxury Pakistani designer-inspired dresses. Free worldwide delivery, 7-day returns and made-to-order stitching.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: "Premium Pakistani Dresses | Luxury Designer-Inspired Collection",
+    description:
+      "Bridal, wedding, formal and chiffon dresses made to order. Free worldwide shipping and three stitching options.",
+    url: SITE_URL,
+    locale: "en_GB",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} — Luxury Designer-Inspired Dresses`,
+    description:
+      "Bridal, wedding, formal and chiffon dresses made to order. Free worldwide shipping and three stitching options.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -56,6 +83,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        {/* Keyboard users can jump straight past the header and nav. */}
+        <a className="skip-link" href="#main-content">
+          Skip to content
+        </a>
         <Suspense fallback={null}>
           <CurrencyInit>{children}</CurrencyInit>
         </Suspense>
@@ -89,7 +120,7 @@ async function CurrencyInit({ children }: { children: React.ReactNode }) {
         <Suspense fallback={null}>
           <Breadcrumbs />
         </Suspense>
-        <main>{children}</main>
+        <main id="main-content">{children}</main>
         <Footer />
         <FloatingElements />
         <FloatingWhatsApp />

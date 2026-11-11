@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import HeroSlider from "@/components/HeroSlider";
@@ -11,9 +12,22 @@ import {
   luxuryFormalProducts,
   bestSellingProducts,
 } from "@/data/collections";
-import { categories, reviews, gallery } from "@/data/site";
+import { categories, getCategoryCounts } from "@/lib/products";
+import { reviews, gallery } from "@/data/site";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Premium Pakistani Dresses | Designer-Inspired Collection",
+  description:
+    "Bridal, wedding, formal and chiffon dresses made to order. Free worldwide shipping, three stitching options and a size guide for every piece.",
+  path: "/",
+});
 
 export default function HomePage() {
+  // Shelf counts come from the catalogue, so the home page can never
+  // advertise more pieces than the shop actually holds.
+  const categoryCounts = getCategoryCounts();
+
   return (
     <>
       <HeroSlider />
@@ -31,7 +45,7 @@ export default function HomePage() {
         <ProductRail
           id="new-arrivals"
           title="New Arrivals"
-          viewAllHref="/collections/new-arrivals"
+          viewAllHref="/new-arrivals"
           products={newArrivalProducts}
           layout="grid"
           ctaLabel="View All New Arrivals"
@@ -43,7 +57,7 @@ export default function HomePage() {
         <ProductRail
           id="luxury-formals"
           title="Luxury Formals"
-          viewAllHref="/shop"
+          viewAllHref="/categories/formals"
           products={luxuryFormalProducts}
           layout="rail"
           ctaLabel="Visit All Luxury Formals"
@@ -55,7 +69,7 @@ export default function HomePage() {
         <ProductRail
           id="best-selling"
           title="Best Selling"
-          viewAllHref="/shop"
+          viewAllHref="/best-sellers"
           products={bestSellingProducts}
           layout="rail"
           ctaLabel="Visit Best Selling"
@@ -71,13 +85,16 @@ export default function HomePage() {
             </div>
             <div className="categories-grid">
               {categories.map((cat) => (
-                <Link key={cat.name} href={cat.href} className="category-card">
+                <Link key={cat.slug} href={cat.href} className="category-card">
                   <div className="category-image">
                     <Image src={cat.image} alt={cat.name} fill sizes="(max-width: 768px) 50vw, 25vw" style={{ objectFit: "cover" }} />
                   </div>
                   <div className="category-overlay">
                     <h3>{cat.name}</h3>
-                    <span className="category-count">{cat.count} Products</span>
+                    <span className="category-count">
+                      {categoryCounts[cat.slug] ?? 0}{" "}
+                      {categoryCounts[cat.slug] === 1 ? "Product" : "Products"}
+                    </span>
                   </div>
                 </Link>
               ))}

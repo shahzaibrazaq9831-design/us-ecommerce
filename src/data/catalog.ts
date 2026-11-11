@@ -1,115 +1,40 @@
 /**
  * Unified product lookup for the buy (/products/[slug]) page.
  *
- * The storefront links to product pages from three sources:
- *   1. The main catalog (`@/data/products`) — slug as-is.
- *   2. The New Arrivals grid (`@/data/newArrivals`) — `new-arrival-<slug>`.
- *   3. The home-page rails (`@/data/collections`) — each rail product has its
- *      own slug; entries shared between rails resolve to the same page.
+ * The storefront links to product pages from several places — the shop grid,
+ * the home-page rails and the new-arrivals collection. Some of those links
+ * carry the legacy `new-arrival-` prefix, so the lookup accepts both forms
+ * and always answers with the catalogue entry from `@/lib/products`.
  */
 
-import { products, type Product } from "./products";
-import { newArrivalsCatalog, toCartProduct } from "./newArrivals";
-import {
-  occasionProducts,
-  newArrivalProducts,
-  luxuryFormalProducts,
-  bestSellingProducts,
-  type CollectionProduct,
-} from "./collections";
+import { getAllProductSlugs, getProductBySlug, type Product } from "@/lib/products";
 
-export interface DetailProduct extends Product {
-  /** Full gallery; images[0] is the main view. */
-  images: string[];
-  /** ISO timestamp used for the created-style badge copy. */
-  availability: "in_stock" | "out_of_stock";
-}
+/** The buy page shows the catalogue entry as it is — no extra fields needed. */
+export type DetailProduct = Product;
 
-/** Shared description for the rail-only ensembles (no per-item copy yet). */
-const RAIL_DESCRIPTION =
-  "A luxurious three-piece ensemble featuring intricate hand and sequence embroidery with pearls, cutdana and moti work. Includes an embellished kameez, a matching dupatta and made-to-order stitching — perfect for weddings, Eid, formals and evening celebrations.";
-
-const RAIL_SOURCES: { items: CollectionProduct[]; category: string }[] = [
-  { items: occasionProducts, category: "Occasions" },
-  { items: newArrivalProducts, category: "New Arrivals" },
-  { items: luxuryFormalProducts, category: "Luxury Formals" },
-  { items: bestSellingProducts, category: "Best Selling" },
-];
-
-/** Deterministic numeric id from a slug (rail products have no numeric id). */
-const hashId = (slug: string): number => {
-  let hash = 0;
-  for (let i = 0; i < slug.length; i += 1) {
-    hash = (hash * 31 + slug.charCodeAt(i)) % 100000;
-  }
-  return 5000 + hash;
-};
-
+/**
+ * Find a product by its page slug. `new-arrival-<slug>` is accepted as well,
+ * so the older collection links keep working.
+ */
 export function getDetailProductBySlug(slug: string): DetailProduct | undefined {
-  const main = products.find((product) => product.slug === slug);
-  if (main) {
-    return { ...main, images: [main.image], availability: "in_stock" };
-  }
-
-  const arrival = newArrivalsCatalog.find(
-    (item) => `new-arrival-${item.slug}` === slug
-  );
-  if (arrival) {
-    const base = toCartProduct(arrival);
-    return {
-      ...base,
-      slug,
-      images: arrival.images,
-      availability: arrival.availability,
-    };
-  }
-
-  for (const source of RAIL_SOURCES) {
-    const rail = source.items.find((item) => item.slug === slug);
-    if (rail) {
-      return {
-        id: hashId(rail.slug),
-        slug: rail.slug,
-        name: rail.name,
-        category: source.category,
-        price: rail.price,
-        originalPrice: rail.originalPrice,
-        image: rail.images[0],
-        images: rail.images,
-        badge: "sale",
-        rating: 4.8,
-        reviews: 118,
-        description: RAIL_DESCRIPTION,
-        availability: "in_stock",
-      };
-    }
-  }
-
-  return undefined;
+  return getProductBySlug(slug);
 }
 
 /**
- * Slugs worth prerendering at build time: the main catalog plus the rail
- * ensembles featured on the home page. The 204 New Arrivals pages render
- * on demand (ISR) instead — prerendering all of them exhausts this machine's
- * memory during `next build`.
+ * Slugs worth prerendering at build time — every product in the catalogue.
+ * Unknown slugs still resolve on demand (ISR), so a piece added later works
+ * without a rebuild.
  */
 export function getFeaturedDetailSlugs(): string[] {
-  const slugs = new Set<string>();
-  for (const product of products) slugs.add(product.slug);
-  for (const source of RAIL_SOURCES) {
-    for (const item of source.items) slugs.add(item.slug);
-  }
-  return [...slugs];
+  return getAllProductSlugs();
 }
 
 /** All slugs the /products/[slug] route knows about (for static generation). */
 export function getAllDetailSlugs(): string[] {
   const slugs = new Set<string>();
-  for (const product of products) slugs.add(product.slug);
-  for (const item of newArrivalsCatalog) slugs.add(`new-arrival-${item.slug}`);
-  for (const source of RAIL_SOURCES) {
-    for (const item of source.items) slugs.add(item.slug);
+  for (const slug of getAllProductSlugs()) {
+    slugs.add(slug);
+    slugs.add(`new-arrival-${slug}`);
   }
   return [...slugs];
 }
