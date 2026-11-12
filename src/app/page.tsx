@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { Suspense } from "react";
 import HeroSlider from "@/components/HeroSlider";
 import FeaturesSection from "@/components/FeaturesSection";
 import OccasionCarousel from "@/components/OccasionCarousel";
@@ -13,7 +14,8 @@ import {
   bestSellingProducts,
 } from "@/data/collections";
 import { categories, getCategoryCounts } from "@/lib/products";
-import { reviews, gallery } from "@/data/site";
+import { listApprovedReviews } from "@/lib/reviews";
+import { gallery } from "@/data/site";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -22,6 +24,18 @@ export const metadata: Metadata = pageMetadata({
     "Bridal, wedding, formal and chiffon dresses made to order. Free worldwide shipping, three stitching options and a size guide for every piece.",
   path: "/",
 });
+
+/**
+ * The review carousel on the home page. It shows the approved customer
+ * reviews — a piece nobody has reviewed yet means there is nothing to
+ * show, so the section is left out entirely.
+ */
+async function HomepageReviews() {
+  const reviews = await listApprovedReviews();
+  if (reviews.length === 0) return null;
+
+  return <ReviewsSection reviews={reviews} />;
+}
 
 export default function HomePage() {
   // Shelf counts come from the catalogue, so the home page can never
@@ -103,8 +117,10 @@ export default function HomePage() {
         </section>
       </Reveal>
 
-      {/* Reviews */}
-      <ReviewsSection reviews={reviews} />
+      {/* Reviews — only the approved ones, and only when there are any */}
+      <Suspense fallback={null}>
+        <HomepageReviews />
+      </Suspense>
 
       {/* Instagram */}
       <Reveal>

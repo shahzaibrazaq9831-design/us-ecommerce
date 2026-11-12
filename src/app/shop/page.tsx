@@ -4,6 +4,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { categories, occasions, products, searchProducts, type OccasionSlug } from "@/lib/products";
 import ProductCard from "@/components/ProductCard";
 import Reveal from "@/components/Reveal";
+import { useProductRatings } from "@/components/ProductRatingsProvider";
 import { useCurrency } from "@/context/CurrencyContext";
 
 /**
@@ -29,6 +30,7 @@ const getServerLocationSearch = () => "";
 
 export default function ShopPage() {
   const { formatPrice } = useCurrency();
+  const ratings = useProductRatings();
   const [category, setCategory] = useState("all");
   const [occasion, setOccasion] = useState("all");
   const [price, setPrice] = useState("all");
@@ -72,10 +74,17 @@ export default function ShopPage() {
     if (sort === "newest") items = items.filter((p) => p.isNew).concat(items.filter((p) => !p.isNew));
     if (sort === "bestseller")
       items = items.filter((p) => p.isBestSeller).concat(items.filter((p) => !p.isBestSeller));
-    if (sort === "rating") items.sort((a, b) => b.rating - a.rating || b.reviews - a.reviews);
+    if (sort === "rating")
+      // "Top rated" uses the real rating from the approved reviews — a
+      // piece nobody has reviewed yet has no rating and sorts last.
+      items.sort(
+        (a, b) =>
+          (ratings[b.slug]?.average ?? 0) - (ratings[a.slug]?.average ?? 0) ||
+          (ratings[b.slug]?.count ?? 0) - (ratings[a.slug]?.count ?? 0)
+      );
 
     return items;
-  }, [category, occasion, price, sort, search]);
+  }, [category, occasion, price, sort, search, ratings]);
 
   const activeRange = priceRanges.find((r) => r.id === price) ?? priceRanges[0];
 

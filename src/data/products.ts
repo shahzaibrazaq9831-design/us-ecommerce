@@ -29,6 +29,18 @@ export {
   brands,
   luxuryFormalShelf,
   stitchingLabels,
+  stitchingOptions,
+  stitchingOptionCopy,
+  standardSizes,
+  measurementFields,
+  measurementLimits,
+  validateMeasurements,
+  measurementsFromValues,
+  summariseRatings,
+  ALLOWED_PHOTO_TYPES,
+  MAX_PHOTO_BYTES,
+  MAX_REVIEW_LENGTH,
+  MIN_REVIEW_LENGTH,
 } from "@/lib/products";
 
 export type {
@@ -43,4 +55,12 @@ export type {
   Occasion,
   Brand,
   CardBadge,
+  MeasurementKey,
+  MeasurementUnit,
+  MeasurementValues,
+  MeasurementValidation,
+  Measurements,
+  ProductRatingSummary,
+  Review,
+  ReviewStatus,
 } from "@/lib/products";

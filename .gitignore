@@ -24,6 +24,10 @@
 .DS_Store
 *.pem
 
+# runtime data — customer reviews, uploaded photos and orders.
+# This is the store's data folder; swap it for a real database later.
+/.data/
+
 # debug / logs
 *.log
 npm-debug.log*

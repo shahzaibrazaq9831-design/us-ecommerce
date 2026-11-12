@@ -231,30 +231,39 @@ export default function ReviewsSection({
               return (
                 <div key={review.id} className="cr-card-wrap">
                   <article className="cr-card">
-                    <div className="cr-photo">
-                      <button
-                        type="button"
-                        className="cr-photo-button"
-                        onClick={(event) => {
-                          lastTriggerRef.current = event.currentTarget;
-                          setLightbox(review);
-                        }}
-                        aria-haspopup="dialog"
-                        aria-expanded={lightbox?.id === review.id}
-                        aria-label={`View full photo: Customer photo of ${review.product}`}
-                      >
-                        <Image
-                          src={review.image}
-                          alt={`Customer photo of ${review.product}`}
-                          fill
-                          sizes="(max-width: 639px) 86vw, (max-width: 1023px) 46vw, 330px"
-                          className="cr-photo-image"
-                        />
-                      </button>
-                      <span className="cr-photo-badge">
-                        <Camera size={14} strokeWidth={2} aria-hidden="true" />
-                        Customer photo
-                      </span>
+                    <div className={`cr-photo${review.image ? "" : " cr-photo--empty"}`}>
+                      {review.image ? (
+                        <>
+                          <button
+                            type="button"
+                            className="cr-photo-button"
+                            onClick={(event) => {
+                              lastTriggerRef.current = event.currentTarget;
+                              setLightbox(review);
+                            }}
+                            aria-haspopup="dialog"
+                            aria-expanded={lightbox?.id === review.id}
+                            aria-label={`View full photo: Customer photo of ${review.product}`}
+                          >
+                            <Image
+                              src={review.image}
+                              alt={`Customer photo of ${review.product}`}
+                              fill
+                              sizes="(max-width: 639px) 86vw, (max-width: 1023px) 46vw, 330px"
+                              className="cr-photo-image"
+                            />
+                          </button>
+                          <span className="cr-photo-badge">
+                            <Camera size={14} strokeWidth={2} aria-hidden="true" />
+                            Customer photo
+                          </span>
+                        </>
+                      ) : (
+                        <span className="cr-photo-placeholder">
+                          <Quote size={22} strokeWidth={1.6} aria-hidden="true" />
+                          No photo
+                        </span>
+                      )}
                     </div>
 
                     <div className="cr-card-body">

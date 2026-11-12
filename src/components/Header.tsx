@@ -19,7 +19,7 @@ const SCROLL_THRESHOLD = 10;
 
 export default function Header() {
   const pathname = usePathname();
-  const { cartCount, wishlist } = useCart();
+  const { cartCount, wishlist, openCart } = useCart();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
@@ -165,12 +165,17 @@ export default function Header() {
                 <span className="badge">{wishlist.length}</span>
               ) : null}
             </Link>
-            <Link href="/cart" className="header-icon" aria-label="Cart">
+            <button
+              type="button"
+              className="header-icon"
+              onClick={openCart}
+              aria-label="Cart"
+            >
               <i className="fas fa-shopping-bag" />
               {cartCount > 0 ? (
                 <span className="badge">{cartCount}</span>
               ) : null}
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -207,16 +212,17 @@ export default function Header() {
             >
               <Search size={22} strokeWidth={1.5} aria-hidden="true" />
             </button>
-            <Link
-              href="/cart"
+            <button
+              type="button"
               className="m-header-btn tap-target"
+              onClick={openCart}
               aria-label="Cart"
             >
               <ShoppingBag size={22} strokeWidth={1.5} aria-hidden="true" />
               {cartCount > 0 ? (
                 <span className="badge m-header-badge">{cartCount}</span>
               ) : null}
-            </Link>
+            </button>
           </div>
         </div>
 

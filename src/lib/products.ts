@@ -75,16 +75,10 @@ export interface Product {
   isBestSeller: boolean;
   /** Ways this piece can be made for the customer. */
   stitching: StitchingOption[];
-  rating: number;
-  reviews: number;
   description: string;
   /** Stock code used on invoices and in structured data. */
   sku: string;
   availability: Availability;
-  /** Selected options from the buy section (made-to-order items). */
-  size?: string;
-  lining?: string;
-  notes?: string;
 }
 
 export interface Category {
@@ -273,9 +267,227 @@ export const brands: Brand[] = [
 /** Human labels for the stitching options shown on cards. */
 export const stitchingLabels: Record<StitchingOption, string> = {
   unstitched: "Unstitched",
-  standard: "Standard",
-  custom: "Custom",
+  standard: "Standard stitched",
+  custom: "Custom stitched",
 };
+
+/* ------------------------------------------------------------------ *
+ * Stitching
+ *
+ * The three ways a piece can be made, the sizes we keep in stock for
+ * standard stitching and the measurements we need for custom stitching.
+ * The product page, the cart and the checkout all read them from here,
+ * so a change to the stitching rules is a one-file change.
+ * ------------------------------------------------------------------ */
+
+/** The stitching options, in the order the selector shows them. */
+export const stitchingOptions: StitchingOption[] = ["unstitched", "standard", "custom"];
+
+/** The copy shown under each option on the product page. */
+export const stitchingOptionCopy: Record<
+  StitchingOption,
+  { title: string; summary: string; detail: string }
+> = {
+  unstitched: {
+    title: "Unstitched",
+    summary: "The fabric, cut and ready",
+    detail:
+      "You receive the unstitched three-piece set — kameez, trouser and dupatta — so your own tailor can stitch it.",
+  },
+  standard: {
+    title: "Standard stitched",
+    summary: "Stitched by us, ready-made sizes",
+    detail:
+      "Our in-house team stitches the piece to one of our ready-made sizes. It ships in 7–10 days.",
+  },
+  custom: {
+    title: "Custom stitched",
+    summary: "Stitched to your measurements",
+    detail:
+      "Send us your measurements and we stitch the piece to fit you. We read the numbers back to you before we start.",
+  },
+};
+
+/** The ready-made sizes offered for standard stitching. */
+export const standardSizes: string[] = ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
+
+/** The units a customer can enter their measurements in. */
+export type MeasurementUnit = "in" | "cm";
+
+/** The measurements we ask for when a piece is stitched to the customer. */
+export const measurementFields = [
+  { key: "bust", label: "Bust", hint: "Around the fullest part" },
+  { key: "waist", label: "Waist", hint: "Around the natural waistline" },
+  { key: "hip", label: "Hip", hint: "Around the fullest part" },
+  { key: "shoulder", label: "Shoulder", hint: "Shoulder to shoulder" },
+  { key: "sleeveLength", label: "Sleeve length", hint: "Shoulder to wrist" },
+  { key: "dressLength", label: "Dress length", hint: "Shoulder to hem" },
+] as const;
+
+export type MeasurementKey = (typeof measurementFields)[number]["key"];
+
+/** The measurement values a customer fills in — empty means "not filled in". */
+export type MeasurementValues = Record<MeasurementKey, string>;
+
+/**
+ * Sensible ranges for each measurement, in both units. Anything outside
+ * the range is rejected before the customer can add the piece to the cart,
+ * because a typo here means a badly fitted dress.
+ */
+export const measurementLimits: Record<
+  MeasurementKey,
+  Record<MeasurementUnit, [number, number]>
+> = {
+  bust: { in: [20, 60], cm: [50, 155] },
+  waist: { in: [18, 55], cm: [45, 140] },
+  hip: { in: [22, 65], cm: [55, 165] },
+  shoulder: { in: [12, 24], cm: [30, 62] },
+  sleeveLength: { in: [10, 32], cm: [25, 82] },
+  dressLength: { in: [30, 70], cm: [76, 180] },
+};
+
+/** The measurements saved with a cart line. */
+export interface Measurements {
+  unit: MeasurementUnit;
+  bust: number;
+  waist: number;
+  hip: number;
+  shoulder: number;
+  sleeveLength: number;
+  dressLength: number;
+}
+
+export interface MeasurementValidation {
+  valid: boolean;
+  /** One message per measurement that is missing or out of range. */
+  errors: Partial<Record<MeasurementKey, string>>;
+}
+
+/**
+ * Check the measurements a customer typed in. Used by the product page
+ * before "Add to cart" and again on the server when the cart is saved,
+ * so an invalid set of measurements can never reach the order.
+ */
+export function validateMeasurements(
+  values: MeasurementValues,
+  unit: MeasurementUnit
+): MeasurementValidation {
+  const errors: MeasurementValidation["errors"] = {};
+
+  for (const field of measurementFields) {
+    const raw = (values[field.key] ?? "").trim();
+
+    if (raw === "") {
+      errors[field.key] = `${field.label} is required`;
+      continue;
+    }
+
+    const value = Number(raw);
+    if (!Number.isFinite(value)) {
+      errors[field.key] = `${field.label} must be a number`;
+      continue;
+    }
+
+    if (value <= 0) {
+      errors[field.key] = `${field.label} must be greater than zero`;
+      continue;
+    }
+
+    const [min, max] = measurementLimits[field.key][unit];
+    if (value < min || value > max) {
+      errors[field.key] = `${field.label} must be between ${min} and ${max} ${unit}`;
+    }
+  }
+
+  return { valid: Object.keys(errors).length === 0, errors };
+}
+
+/** Turn the typed-in measurements into the numbers stored with the cart line. */
+export function measurementsFromValues(
+  values: MeasurementValues,
+  unit: MeasurementUnit
+): Measurements {
+  const read = (key: MeasurementKey) => {
+    const value = Number((values[key] ?? "").trim());
+    return Number.isFinite(value) ? value : 0;
+  };
+
+  return {
+    unit,
+    bust: read("bust"),
+    waist: read("waist"),
+    hip: read("hip"),
+    shoulder: read("shoulder"),
+    sleeveLength: read("sleeveLength"),
+    dressLength: read("dressLength"),
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * Reviews
+ *
+ * The shape a review takes once it is public. The records themselves
+ * live in `@/lib/reviews` — that module owns the storage and the
+ * approval workflow, this module owns the shape and the maths, so the
+ * product side of the store never has to know where reviews come from.
+ * ------------------------------------------------------------------ */
+
+/** Where a review is in the approval workflow. */
+export type ReviewStatus = "pending" | "approved" | "rejected";
+
+/** The longest review we accept, in characters. */
+export const MAX_REVIEW_LENGTH = 2000;
+
+/** The shortest review we accept, in characters. */
+export const MIN_REVIEW_LENGTH = 10;
+
+/** The biggest customer photo we accept, in bytes. */
+export const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+
+/** The image types we accept for a customer photo. */
+export const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+
+export interface Review {
+  id: string;
+  /** 1–5 stars. */
+  rating: number;
+  text: string;
+  /** The name shown on the review — "Anonymous" when no name was given. */
+  author: string;
+  /** True only when the review is tied to a real order for this piece. */
+  verified: boolean;
+  /** ISO date (YYYY-MM-DD) shown under the author name. */
+  date: string;
+  /** The customer photo, or "" when the review has no photo. */
+  image: string;
+  /** Name of the piece the review is about. */
+  product: string;
+  /** Link to the piece the review is about. */
+  productHref: string;
+}
+
+/** The real rating of a piece — empty until approved reviews exist. */
+export interface ProductRatingSummary {
+  /** Average of the approved ratings, rounded to one decimal. */
+  average: number;
+  /** How many approved reviews the average is based on. */
+  count: number;
+}
+
+/**
+ * The average rating of a set of reviews. An empty set has no rating at
+ * all, so the count is zero and the average is zero — that is the signal
+ * to show nothing rather than a made-up number.
+ */
+export function summariseRatings(reviews: { rating: number }[]): ProductRatingSummary {
+  if (reviews.length === 0) return { average: 0, count: 0 };
+
+  const total = reviews.reduce((sum, review) => sum + review.rating, 0);
+  return {
+    average: Math.round((total / reviews.length) * 10) / 10,
+    count: reviews.length,
+  };
+}
 
 /* ------------------------------------------------------------------ *
  * Products
@@ -297,8 +509,6 @@ interface ProductSeed {
   price: number;
   /** Compare-at price — null means the piece is not on offer. */
   originalPrice: number | null;
-  rating: number;
-  reviews: number;
   isNew?: boolean;
   isBestSeller?: boolean;
   /** Extra stitching options on top of the standard + custom pair. */
@@ -320,8 +530,6 @@ const SEEDS: ProductSeed[] = [
     brand: "rung-e-bahar",
     price: 91600,
     originalPrice: 130900,
-    rating: 4.9,
-    reviews: 268,
     unstitched: true,
     description:
       "A deep-toned bridal three-piece with dense zardozi across the bodice and a wide embroidered dupatta that reaches the floor.",
@@ -334,8 +542,6 @@ const SEEDS: ProductSeed[] = [
     brand: "mehran-labels",
     price: 67300,
     originalPrice: 96100,
-    rating: 4.7,
-    reviews: 124,
     isNew: true,
     description:
       "Soft rose bridal wear with pearl-dotted sleeves and a long, worked dupatta that carries the whole look.",
@@ -348,8 +554,6 @@ const SEEDS: ProductSeed[] = [
     brand: "gulshan-studios",
     price: 89400,
     originalPrice: 127700,
-    rating: 4.6,
-    reviews: 88,
     unstitched: true,
     description:
       "A structured bridal ensemble in cool ivory, cut long for the evening and finished with sequins along the border.",
@@ -362,8 +566,6 @@ const SEEDS: ProductSeed[] = [
     brand: "mehran-labels",
     price: 85300,
     originalPrice: 121800,
-    rating: 4.6,
-    reviews: 91,
     isNew: true,
     description:
       "Regal bridal wear with a full flare, mirror work on the bodice and a dupatta with a scalloped edge.",
@@ -376,8 +578,6 @@ const SEEDS: ProductSeed[] = [
     brand: "zoya-collective",
     price: 73400,
     originalPrice: 105000,
-    rating: 4.7,
-    reviews: 149,
     isNew: true,
     description:
       "A wedding-day classic with antique gold embroidery down the front and a matching straight trouser.",
@@ -390,8 +590,6 @@ const SEEDS: ProductSeed[] = [
     brand: "rooh-fashion",
     price: 62600,
     originalPrice: 89500,
-    rating: 4.7,
-    reviews: 183,
     isBestSeller: true,
     description:
       "Bright magenta bridal wear with heavy dabka work and a bold dupatta that reads well from across the room.",
@@ -404,8 +602,6 @@ const SEEDS: ProductSeed[] = [
     brand: "gulshan-studios",
     price: 78600,
     originalPrice: 112300,
-    rating: 4.6,
-    reviews: 94,
     description:
       "A soft pink engagement three-piece with an embroidered sheer neckline and a light, floaty dupatta.",
   },
@@ -417,8 +613,6 @@ const SEEDS: ProductSeed[] = [
     brand: "rung-e-bahar",
     price: 72500,
     originalPrice: 103600,
-    rating: 4.7,
-    reviews: 158,
     isBestSeller: true,
     unstitched: true,
     description:
@@ -432,8 +626,6 @@ const SEEDS: ProductSeed[] = [
     brand: "mehran-labels",
     price: 55900,
     originalPrice: null,
-    rating: 4.6,
-    reviews: 112,
     isNew: true,
     unstitched: true,
     description:
@@ -447,8 +639,6 @@ const SEEDS: ProductSeed[] = [
     brand: "zoya-collective",
     price: 55900,
     originalPrice: null,
-    rating: 4.5,
-    reviews: 64,
     isNew: true,
     description:
       "Coral and gold mehndi wear, light enough for a long dance floor and detailed enough for the photos.",
@@ -461,8 +651,6 @@ const SEEDS: ProductSeed[] = [
     brand: "neel-khaki",
     price: 62500,
     originalPrice: null,
-    rating: 4.4,
-    reviews: 58,
     unstitched: true,
     description:
       "An off-white base with deep red panels, made for mehndi functions where the colour needs to stay loud.",
@@ -475,8 +663,6 @@ const SEEDS: ProductSeed[] = [
     brand: "rung-e-bahar",
     price: 96300,
     originalPrice: 137600,
-    rating: 4.9,
-    reviews: 241,
     isNew: true,
     unstitched: true,
     description:
@@ -490,8 +676,6 @@ const SEEDS: ProductSeed[] = [
     brand: "rung-e-bahar",
     price: 74500,
     originalPrice: 106300,
-    rating: 4.8,
-    reviews: 176,
     isBestSeller: true,
     unstitched: true,
     description:
@@ -505,8 +689,6 @@ const SEEDS: ProductSeed[] = [
     brand: "heer-and-co",
     price: 84300,
     originalPrice: null,
-    rating: 4.6,
-    reviews: 85,
     availability: "out_of_stock",
     description:
       "A formal nikkah look in deep plum with tonal embroidery that stays elegant under evening light.",
@@ -519,8 +701,6 @@ const SEEDS: ProductSeed[] = [
     brand: "heer-and-co",
     price: 90500,
     originalPrice: null,
-    rating: 4.9,
-    reviews: 197,
     availability: "out_of_stock",
     description:
       "Minimal formalwear for a reception dinner — clean lines, restrained thread work, an easy drape.",
@@ -533,8 +713,6 @@ const SEEDS: ProductSeed[] = [
     brand: "mehran-labels",
     price: 59200,
     originalPrice: 84600,
-    rating: 4.9,
-    reviews: 208,
     isNew: true,
     description:
       "A flowy chiffon walima look with a light, sheer layer that moves as you walk.",
@@ -547,8 +725,6 @@ const SEEDS: ProductSeed[] = [
     brand: "heer-and-co",
     price: 63900,
     originalPrice: null,
-    rating: 4.7,
-    reviews: 134,
     description:
       "A soft formal three-piece with muted gold accents, made for a walima that runs late into the night.",
   },
@@ -560,8 +736,6 @@ const SEEDS: ProductSeed[] = [
     brand: "gulshan-studios",
     price: 67300,
     originalPrice: 96100,
-    rating: 4.8,
-    reviews: 165,
     unstitched: true,
     description:
       "Our Eid favourite — a festive three-piece with a flowing dupatta and bright, cheerful detailing.",
@@ -574,8 +748,6 @@ const SEEDS: ProductSeed[] = [
     brand: "neel-khaki",
     price: 65600,
     originalPrice: 93700,
-    rating: 4.4,
-    reviews: 73,
     description:
       "A light formal look that moves well, finished with a clean neckline and delicate beadwork.",
   },
@@ -587,8 +759,6 @@ const SEEDS: ProductSeed[] = [
     brand: "zoya-collective",
     price: 63900,
     originalPrice: null,
-    rating: 4.3,
-    reviews: 47,
     isBestSeller: true,
     description:
       "A sleek engagement outfit in a soft neutral, minimal work, easy to wear through a long reception.",
@@ -601,8 +771,6 @@ const SEEDS: ProductSeed[] = [
     brand: "zoya-collective",
     price: 63900,
     originalPrice: 91300,
-    rating: 4.6,
-    reviews: 121,
     isBestSeller: true,
     description:
       "Deep dholki colour with gold detailing at the neck and cuffs — made for loud, happy nights.",
@@ -615,8 +783,6 @@ const SEEDS: ProductSeed[] = [
     brand: "gulshan-studios",
     price: 75900,
     originalPrice: 108400,
-    rating: 4.8,
-    reviews: 186,
     isBestSeller: true,
     description:
       "Mustard yellow mayun wear, embroidered in warm thread with a matching statement dupatta.",
@@ -629,8 +795,6 @@ const SEEDS: ProductSeed[] = [
     brand: "neel-khaki",
     price: 65600,
     originalPrice: 93700,
-    rating: 4.6,
-    reviews: 104,
     description:
       "Soft green mayun wear with fine tonal work along the neckline and hem.",
   },
@@ -642,8 +806,6 @@ const SEEDS: ProductSeed[] = [
     brand: "neel-khaki",
     price: 69800,
     originalPrice: 99800,
-    rating: 4.5,
-    reviews: 52,
     availability: "out_of_stock",
     description:
       "A light festive look built around tassel detail, made for a mayun or an Eid gathering.",
@@ -656,8 +818,6 @@ const SEEDS: ProductSeed[] = [
     brand: "rooh-fashion",
     price: 71500,
     originalPrice: 102100,
-    rating: 4.5,
-    reviews: 69,
     description:
       "Blush pink festive wear with an all-over fine embroidery and a sheer, draping dupatta.",
   },
@@ -669,8 +829,6 @@ const SEEDS: ProductSeed[] = [
     brand: "heer-and-co",
     price: 48400,
     originalPrice: 69100,
-    rating: 4.6,
-    reviews: 97,
     isNew: true,
     description:
       "A bright dholki number in warm coral, cut for dancing and paired with a short, easy dupatta.",
@@ -683,8 +841,6 @@ const SEEDS: ProductSeed[] = [
     brand: "rooh-fashion",
     price: 61900,
     originalPrice: 88100,
-    rating: 4.5,
-    reviews: 143,
     isBestSeller: true,
     availability: "out_of_stock",
     description:
@@ -698,8 +854,6 @@ const SEEDS: ProductSeed[] = [
     brand: "rooh-fashion",
     price: 75000,
     originalPrice: 107200,
-    rating: 4.8,
-    reviews: 159,
     isBestSeller: true,
     description:
       "Sunlit yellow festive wear with an embroidered front, made for Eid mornings at home.",
@@ -729,8 +883,6 @@ export const products: Product[] = SEEDS.map((seed, index) => {
     isNew: Boolean(seed.isNew),
     isBestSeller: Boolean(seed.isBestSeller),
     stitching,
-    rating: seed.rating,
-    reviews: seed.reviews,
     description: seed.description,
     sku: `REB-${seed.category.slice(0, 3).toUpperCase()}-${String(index + 1).padStart(3, "0")}`,
     availability: seed.availability ?? "in_stock",

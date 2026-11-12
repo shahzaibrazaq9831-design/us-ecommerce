@@ -4,12 +4,18 @@ import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Check, Minus, Plus, Ruler, ShoppingBag, X, Zap } from "lucide-react";
-import { useCart } from "@/context/CartContext";
+import { useCart, type CartSelection } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
-import type { DetailProduct } from "@/data/catalog";
-
-const SIZES = ["Xs", "S", "M", "L", "Xl", "2xl", "3xl", "Customised"] as const;
-const LININGS = ["Same as model", "Half lining", "Full lining"] as const;
+import {
+  measurementsFromValues,
+  validateMeasurements,
+  type Product,
+  type ProductRatingSummary,
+} from "@/lib/products";
+import StitchingSelector, {
+  emptySelection,
+  type StitchingSelection,
+} from "@/components/StitchingSelector";
 
 const OFFER_POINTS = [
   "30% OFF Storewide",
@@ -18,23 +24,31 @@ const OFFER_POINTS = [
 ] as const;
 
 interface ProductBuyPanelProps {
-  product: DetailProduct;
+  product: Product;
+  /** The real rating, from the approved reviews only. */
+  rating: ProductRatingSummary;
 }
 
 /**
- * Buy panel for the product page — mirrors the reference storefront's
- * purchase section: size guide, offer bullets, size / sleeve-lining selectors,
- * quantity stepper, add to cart, buy now, and a notes field for custom orders.
+ * Buy panel for the product page: price, the stitching selector, the
+ * quantity, and the buttons that put the piece in the cart.
+ *
+ * The stitching choice is checked before the piece is added — a standard
+ * size has to be chosen, and custom stitching needs every measurement.
  */
-export default function ProductBuyPanel({ product }: ProductBuyPanelProps) {
+export default function ProductBuyPanel({ product, rating }: ProductBuyPanelProps) {
   const router = useRouter();
-  const { addToCart, toggleWishlist, isWishlisted } = useCart();
+  const { addToCart, openCart, toggleWishlist, isWishlisted } = useCart();
   const { formatPrice } = useCurrency();
 
-  const [size, setSize] = useState<string>("Xs");
-  const [lining, setLining] = useState<string>("Same as model");
+  const [selection, setSelection] = useState<StitchingSelection>(() => ({
+    ...emptySelection(),
+    stitching: product.stitching.includes("standard")
+      ? "standard"
+      : (product.stitching[0] ?? "standard"),
+  }));
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
-  const [notes, setNotes] = useState("");
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
 
   const soldOut = product.availability === "out_of_stock";
@@ -44,25 +58,67 @@ export default function ProductBuyPanel({ product }: ProductBuyPanelProps) {
     ? Math.round((1 - product.price / (product.originalPrice as number)) * 100)
     : 0;
 
-  const buildVariant = () => {
-    // Cart lines keep the shared Product shape — the chosen options are the
-    // only thing that changes from the product itself.
-    return {
-      ...product,
-      size,
-      lining,
-      notes: notes.trim() || undefined,
+  /**
+   * Check the stitching choice. Returns the choices to save with the
+   * cart line, or null when something is missing.
+   */
+  const buildSelection = (): CartSelection | null => {
+    const nextErrors: Record<string, string> = {};
+
+    if (!product.stitching.includes(selection.stitching)) {
+      nextErrors.stitching = "That way of making this piece is not available.";
+    }
+
+    if (selection.stitching === "standard" && !selection.size) {
+      nextErrors.size = "Please choose a size.";
+    }
+
+    if (selection.stitching === "custom") {
+      const result = validateMeasurements(selection.measurements, selection.unit);
+      if (!result.valid) {
+        for (const [key, message] of Object.entries(result.errors)) {
+          nextErrors[key] = message ?? "";
+        }
+      }
+    }
+
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return null;
+
+    const cartSelection: CartSelection = {
+      stitching: selection.stitching,
+      notes: selection.notes.trim() || undefined,
     };
+
+    if (selection.stitching === "standard") {
+      cartSelection.size = selection.size;
+    }
+
+    if (selection.stitching === "custom") {
+      cartSelection.measurements = measurementsFromValues(
+        selection.measurements,
+        selection.unit
+      );
+    }
+
+    return cartSelection;
   };
 
   const handleAddToCart = () => {
     if (soldOut) return;
-    addToCart(buildVariant(), quantity);
+    const chosen = buildSelection();
+    if (!chosen) return;
+
+    addToCart(product, chosen, quantity);
+    openCart();
   };
 
   const handleBuyNow = () => {
     if (soldOut) return;
-    addToCart(buildVariant(), quantity);
+    const chosen = buildSelection();
+    if (!chosen) return;
+
+    addToCart(product, chosen, quantity);
     router.push("/checkout");
   };
 
@@ -71,13 +127,20 @@ export default function ProductBuyPanel({ product }: ProductBuyPanelProps) {
       <span className="product-category">{product.category}</span>
       <h1 className="buy-panel-title">{product.name}</h1>
 
-      <div className="review-stars" aria-label={`Rated ${product.rating} out of 5`}>
-        {"★".repeat(Math.round(product.rating))}
-        {"☆".repeat(5 - Math.round(product.rating))}
-        <span className="buy-panel-reviews">
-          {product.rating} ({product.reviews} reviews)
-        </span>
-      </div>
+      {/* The rating comes from the approved reviews only — a piece with no
+          approved review shows no rating at all. */}
+      {rating.count > 0 && (
+        <div
+          className="review-stars"
+          aria-label={`Rated ${rating.average} out of 5 from ${rating.count} reviews`}
+        >
+          {"★".repeat(Math.round(rating.average))}
+          {"☆".repeat(5 - Math.round(rating.average))}
+          <span className="buy-panel-reviews">
+            {rating.average} ({rating.count} {rating.count === 1 ? "review" : "reviews"})
+          </span>
+        </div>
+      )}
 
       {/* Price — sale price alongside the struck-through regular price */}
       <div className="buy-panel-price-row">
@@ -114,49 +177,13 @@ export default function ProductBuyPanel({ product }: ProductBuyPanelProps) {
         ))}
       </ul>
 
-      {/* Size selector */}
-      <fieldset className="buy-panel-fieldset">
-        <legend className="buy-panel-legend">
-          Size
-          <span className="buy-panel-legend-value">{size}</span>
-        </legend>
-        <div className="buy-panel-pills" role="radiogroup" aria-label="Size">
-          {SIZES.map((option) => (
-            <button
-              key={option}
-              type="button"
-              role="radio"
-              aria-checked={size === option}
-              className={`buy-panel-pill${size === option ? " is-selected" : ""}`}
-              onClick={() => setSize(option)}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-
-      {/* Sleeve lining selector */}
-      <fieldset className="buy-panel-fieldset">
-        <legend className="buy-panel-legend">
-          Lining In the sleeves
-          <span className="buy-panel-legend-value">{lining}</span>
-        </legend>
-        <div className="buy-panel-pills" role="radiogroup" aria-label="Lining in the sleeves">
-          {LININGS.map((option) => (
-            <button
-              key={option}
-              type="button"
-              role="radio"
-              aria-checked={lining === option}
-              className={`buy-panel-pill${lining === option ? " is-selected" : ""}`}
-              onClick={() => setLining(option)}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      {/* Stitching — unstitched, standard or made to the customer's measurements */}
+      <StitchingSelector
+        product={product}
+        value={selection}
+        onChange={setSelection}
+        errors={errors}
+      />
 
       {/* Quantity + Add to cart / Buy now */}
       <div className="buy-panel-purchase">
@@ -222,17 +249,6 @@ export default function ProductBuyPanel({ product }: ProductBuyPanelProps) {
         {wishlisted ? "In Wishlist" : "Add to Wishlist"}
       </button>
 
-      {/* Special notes for tailoring / custom orders */}
-      <label className="buy-panel-notes">
-        <span className="buy-panel-legend">Special Notes or Customizations</span>
-        <textarea
-          value={notes}
-          onChange={(event) => setNotes(event.target.value)}
-          rows={3}
-          placeholder="E.g. custom measurements, colour change, delivery deadline…"
-        />
-      </label>
-
       {/* Express delivery notice */}
       <p className="buy-panel-express">
         <strong>If you need your order Within 10 Days</strong> – Just Pay an <strong>$30 USD Extra</strong>{" "}
@@ -271,7 +287,7 @@ export default function ProductBuyPanel({ product }: ProductBuyPanelProps) {
             </h2>
             <p className="buy-size-guide-copy">
               All measurements are in inches. Between sizes? Choose the larger one or select
-              Customised and share your measurements in the notes.
+              Custom stitched and share your measurements.
             </p>
             <Image
               src="/images/sizechart.jfif"

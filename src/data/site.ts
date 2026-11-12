@@ -8,6 +8,8 @@
  */
 
 import { occasions as catalogueOccasions } from "@/lib/products";
+import type { Review } from "@/lib/products";
+import { DEFAULT_DISCOUNT_CODE, DISCOUNT_CODES } from "@/lib/discounts";
 
 export const stylingAssistanceMessage =
   "Hello Rung E Bahar, I would like some styling assistance.";
@@ -19,8 +21,10 @@ export const siteConfig = {
   email: "rungebahar@gmail.com",
   phone: "+447476469395",
   whatsapp: `https://wa.me/447476469395?text=${encodeURIComponent(stylingAssistanceMessage)}`,
-  promoCode: "PPD10",
-  promoDiscount: "10%",
+  /* The discount code lives in `@/lib/discounts` — that is the one place a
+     code is defined and checked. */
+  promoCode: DEFAULT_DISCOUNT_CODE,
+  promoDiscount: `${DISCOUNT_CODES[DEFAULT_DISCOUNT_CODE].percent}%`,
   copyrightYear: "2026",
   social: {
     instagram: "https://www.instagram.com/rungebahar/",
@@ -75,20 +79,20 @@ export const heroSlides: HeroSlide[] = [
 /** The eight celebrations we dress for — the copy lives with the catalogue. */
 export const occasions = catalogueOccasions;
 
-export interface Review {
-  id: string;
-  rating: number;
-  text: string;
-  author: string;
-  verified: boolean;
-  /** ISO date (YYYY-MM-DD) shown under the author name. */
-  date: string;
-  /** Customer-submitted photo shown at the top of the card. */
-  image: string;
-  product: string;
-  productHref: string;
-}
+/**
+ * The shape of a customer review. The reviews themselves live in
+ * `@/lib/reviews` — the shape is shared with the catalogue so both sides
+ * agree on what a review is.
+ */
+export type { Review };
 
+/**
+ * Reviews shown by the review notification popup.
+ *
+ * The list is empty on purpose: the popup is a static notification and
+ * must never show a review that has not been approved. Reviews are read
+ * from `@/lib/reviews` by the pages that list them.
+ */
 export const reviews: Review[] = [];
 
 export const gallery: string[] = [

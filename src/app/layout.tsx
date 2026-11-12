@@ -8,6 +8,8 @@ import {
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
+import { ProductRatingsProvider } from "@/components/ProductRatingsProvider";
+import CartDrawer from "@/components/CartDrawer";
 import { getExchangeRates, resolveCurrency } from "@/lib/currency";
 import { SITE_NAME, SITE_URL } from "@/lib/seo";
 import AnnouncementBar from "@/components/AnnouncementBar";
@@ -105,25 +107,29 @@ async function CurrencyInit({ children }: { children: React.ReactNode }) {
   return (
     <CurrencyProvider initialCurrency={initialCurrency} rates={rates}>
       <CartProvider>
-        {/* The announcement bar sits in the normal flow, above the sticky
-            header block, so scrolling a little slides it out of view the way
-            it does on the reference store. */}
-        <AnnouncementBar />
-        <div className="site-topbar">
-          <Suspense
-            fallback={<header className="header header--placeholder" aria-hidden="true" />}
-          >
-            <Header />
+        {/* The real ratings, from the approved reviews only. */}
+        <ProductRatingsProvider>
+          {/* The announcement bar sits in the normal flow, above the sticky
+              header block, so scrolling a little slides it out of view the way
+              it does on the reference store. */}
+          <AnnouncementBar />
+          <div className="site-topbar">
+            <Suspense
+              fallback={<header className="header header--placeholder" aria-hidden="true" />}
+            >
+              <Header />
+            </Suspense>
+            <OfferStrip />
+          </div>
+          <Suspense fallback={null}>
+            <Breadcrumbs />
           </Suspense>
-          <OfferStrip />
-        </div>
-        <Suspense fallback={null}>
-          <Breadcrumbs />
-        </Suspense>
-        <main id="main-content">{children}</main>
-        <Footer />
-        <FloatingElements />
-        <FloatingWhatsApp />
+          <main id="main-content">{children}</main>
+          <Footer />
+          <FloatingElements />
+          <FloatingWhatsApp />
+          <CartDrawer />
+        </ProductRatingsProvider>
       </CartProvider>
     </CurrencyProvider>
   );

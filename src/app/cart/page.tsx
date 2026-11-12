@@ -2,19 +2,33 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart, cartLineKey } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
+import CartItemDetails from "@/components/CartItemDetails";
+import DiscountCodeField from "@/components/DiscountCodeField";
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart();
+  const {
+    cart,
+    removeFromCart,
+    updateQuantity,
+    subtotal,
+    discount,
+    total,
+    cartCount,
+  } = useCart();
   const { formatPrice } = useCurrency();
 
   if (cart.length === 0) {
     return (
       <section className="section">
-        <div className="container" style={{ textAlign: "center" }}>
+        <div className="container cart-empty">
+          <ShoppingBag size={40} strokeWidth={1.2} aria-hidden="true" />
           <h1 className="section-title">Your Cart</h1>
-          <p style={{ color: "var(--color-gray-600)", marginBottom: "24px" }}>Your cart is empty</p>
+          <p style={{ color: "var(--color-gray-600)", marginBottom: "24px" }}>
+            Your cart is empty
+          </p>
           <Link href="/shop" className="btn btn-primary">
             Continue Shopping
           </Link>
@@ -28,68 +42,106 @@ export default function CartPage() {
       <div className="container">
         <div className="section-header" style={{ textAlign: "left" }}>
           <h1 className="section-title">Shopping Cart</h1>
-          <p className="section-subtitle">{cartCount} {cartCount === 1 ? "item" : "items"}</p>
+          <p className="section-subtitle">
+            {cartCount} {cartCount === 1 ? "item" : "items"}
+          </p>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "40px" }}>
-          <div style={{ display: "grid", gap: "16px" }}>
-            {cart.map((item) => (
-              <div key={cartLineKey(item)} style={{ display: "grid", gridTemplateColumns: "120px 1fr auto", gap: "16px", padding: "16px", border: "1px solid var(--color-gray-200)", borderRadius: "var(--radius-lg)" }}>
-                <div style={{ position: "relative", aspectRatio: "3/4" }}>
-                  <Image src={item.image} alt={item.name} fill sizes="120px" style={{ objectFit: "cover", borderRadius: "var(--radius-md)" }} />
-                </div>
-                <div>
-                  <Link href={`/products/${item.slug}`} style={{ fontFamily: "var(--font-heading)", fontWeight: 600 }}>
-                    {item.name}
-                  </Link>
-                  <div style={{ color: "var(--color-gray-600)", margin: "6px 0" }}>{item.category}</div>
-                  {(item.size || item.lining || item.notes) && (
-                    <div style={{ fontSize: "0.85rem", color: "var(--color-gray-600)", marginBottom: "6px", display: "grid", gap: "2px" }}>
-                      {item.size && <span>Size: {item.size}</span>}
-                      {item.lining && <span>Lining in sleeves: {item.lining}</span>}
-                      {item.notes && <span>Note: {item.notes}</span>}
-                    </div>
-                  )}
-                  <div style={{ fontWeight: 700 }}>{formatPrice(item.price)}</div>
-                  <div style={{ display: "flex", gap: "12px", alignItems: "center", marginTop: "12px" }}>
-                    <div style={{ display: "flex", alignItems: "center", border: "1px solid var(--color-gray-300)", borderRadius: "var(--radius-md)" }}>
-                      <button onClick={() => updateQuantity(cartLineKey(item), item.quantity - 1)} style={{ padding: "8px 12px" }}>
-                        -
-                      </button>
-                      <span style={{ padding: "8px 16px" }}>{item.quantity}</span>
-                      <button onClick={() => updateQuantity(cartLineKey(item), item.quantity + 1)} style={{ padding: "8px 12px" }}>
-                        +
-                      </button>
-                    </div>
-                    <button onClick={() => removeFromCart(cartLineKey(item))} style={{ color: "var(--color-error)" }}>
-                      Remove
-                    </button>
+
+        <div className="cart-layout">
+          <ul className="cart-items">
+            {cart.map((item) => {
+              const lineKey = cartLineKey(item);
+
+              return (
+                <li key={lineKey} className="cart-item">
+                  <div className="cart-item-image">
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      sizes="120px"
+                      style={{ objectFit: "cover" }}
+                    />
                   </div>
-                </div>
-                <div style={{ fontWeight: 700 }}>{formatPrice(item.price * item.quantity)}</div>
+
+                  <div className="cart-item-body">
+                    <Link href={`/products/${item.slug}`} className="cart-item-name">
+                      {item.name}
+                    </Link>
+                    <div className="cart-item-category">{item.categoryLabel}</div>
+
+                    <CartItemDetails item={item} />
+
+                    <div className="cart-item-foot">
+                      <div className="cart-qty" aria-label={`Quantity for ${item.name}`}>
+                        <button
+                          type="button"
+                          onClick={() => updateQuantity(lineKey, item.quantity - 1)}
+                          aria-label={`Decrease quantity of ${item.name}`}
+                        >
+                          <Minus size={14} strokeWidth={2} aria-hidden="true" />
+                        </button>
+                        <span>{item.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => updateQuantity(lineKey, item.quantity + 1)}
+                          aria-label={`Increase quantity of ${item.name}`}
+                        >
+                          <Plus size={14} strokeWidth={2} aria-hidden="true" />
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="cart-item-remove"
+                        onClick={() => removeFromCart(lineKey)}
+                        aria-label={`Remove ${item.name} from cart`}
+                      >
+                        <Trash2 size={15} strokeWidth={1.8} aria-hidden="true" />
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="cart-item-price">{formatPrice(item.price * item.quantity)}</div>
+                </li>
+              );
+            })}
+          </ul>
+
+          <aside className="cart-summary">
+            <h2 className="cart-summary-title">Order Summary</h2>
+
+            <DiscountCodeField />
+
+            <div className="cart-totals">
+              <div className="cart-total-row">
+                <span>Subtotal</span>
+                <span>{formatPrice(subtotal)}</span>
               </div>
-            ))}
-          </div>
-          <div style={{ padding: "24px", border: "1px solid var(--color-gray-200)", borderRadius: "var(--radius-lg)", height: "fit-content" }}>
-            <h2 style={{ fontFamily: "var(--font-heading)", marginBottom: "16px" }}>Order Summary</h2>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
-              <span>Subtotal</span>
-              <span>{formatPrice(cartTotal)}</span>
+              {discount > 0 && (
+                <div className="cart-total-row cart-total-row--discount">
+                  <span>Discount</span>
+                  <span>-{formatPrice(discount)}</span>
+                </div>
+              )}
+              <div className="cart-total-row">
+                <span>Shipping</span>
+                <span>Calculated at checkout</span>
+              </div>
+              <div className="cart-total-row cart-total-row--total">
+                <span>Total</span>
+                <span>{formatPrice(total)}</span>
+              </div>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
-              <span>Shipping</span>
-              <span>Calculated at checkout</span>
-            </div>
-            <div style={{ borderTop: "1px solid var(--color-gray-200)", marginTop: "16px", paddingTop: "16px", display: "flex", justifyContent: "space-between", fontWeight: 700 }}>
-              <span>Total</span>
-              <span>{formatPrice(cartTotal)}</span>
-            </div>
-            <Link href="/checkout" className="btn btn-primary" style={{ width: "100%", marginTop: "20px" }}>
+
+            <Link href="/checkout" className="btn btn-primary cart-summary-checkout">
               Proceed to Checkout
             </Link>
-            <Link href="/shop" style={{ display: "block", textAlign: "center", marginTop: "12px", color: "var(--color-gray-600)" }}>
+            <Link href="/shop" className="cart-summary-continue">
               Continue Shopping
             </Link>
-          </div>
+          </aside>
         </div>
       </div>
     </section>

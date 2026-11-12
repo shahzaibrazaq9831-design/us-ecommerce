@@ -4,9 +4,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getFeaturedDetailSlugs, getDetailProductBySlug } from "@/data/catalog";
 import { getRelatedProducts, getBrandBySlug, getStitchingLabel } from "@/lib/products";
+import { getRatingSummary } from "@/lib/reviews";
 import ProductCard from "@/components/ProductCard";
 import ProductGallery from "@/components/ProductGallery";
 import ProductBuyPanel from "@/components/ProductBuyPanel";
+import ProductReviewSection from "@/components/ProductReviewSection";
 import { absoluteUrl, pageMetadata } from "@/lib/seo";
 
 interface ProductPageProps {
@@ -52,8 +54,12 @@ async function ProductPage({ params }: ProductPageProps) {
   const related = getRelatedProducts(product.slug);
   const brand = getBrandBySlug(product.brand);
 
-  // Product structured data — tells search engines what this piece is,
-  // what it costs and how customers rated it.
+  // The rating comes from the approved reviews only. A piece nobody has
+  // reviewed has no rating, so none is published.
+  const rating = await getRatingSummary(product.slug);
+
+  // Product structured data — tells search engines what this piece is
+  // and what it costs.
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -67,11 +73,15 @@ async function ProductPage({ params }: ProductPageProps) {
       name: brand?.name ?? product.brand,
     },
     material: "Silk blend, chiffon and hand-finished embroidery",
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: product.rating,
-      reviewCount: product.reviews,
-    },
+    ...(rating.count > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: rating.average,
+            reviewCount: rating.count,
+          },
+        }
+      : {}),
     offers: {
       "@type": "Offer",
       url: absoluteUrl(`/products/${product.slug}`),
@@ -99,7 +109,7 @@ async function ProductPage({ params }: ProductPageProps) {
         </div>
         <div className="buy-grid">
           <ProductGallery images={product.images} name={product.name} badge={product.badge} />
-          <ProductBuyPanel product={product} />
+          <ProductBuyPanel product={product} rating={rating} />
         </div>
 
         {related.length > 0 && (
@@ -116,6 +126,8 @@ async function ProductPage({ params }: ProductPageProps) {
             </div>
           </div>
         )}
+
+        <ProductReviewSection product={product} />
       </div>
 
       <script

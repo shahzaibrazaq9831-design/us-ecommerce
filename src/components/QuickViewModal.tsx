@@ -4,10 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useProductRating } from "@/components/ProductRatingsProvider";
 
 export default function QuickViewModal() {
   const { quickView, closeQuickView, addToCart, openQuickView, toggleWishlist, isWishlisted } = useCart();
   const { formatPrice } = useCurrency();
+  const rating = useProductRating(quickView?.slug ?? "");
 
   if (!quickView) return null;
 
@@ -28,11 +30,19 @@ export default function QuickViewModal() {
             <div className="quick-view-info">
               <span className="product-category">{quickView.category}</span>
               <h2>{quickView.name}</h2>
-              <div className="review-stars" style={{ color: "var(--color-gold)", display: "flex", gap: "4px", marginBottom: "12px" }}>
-                {"★".repeat(Math.round(quickView.rating))}
-                {"☆".repeat(5 - Math.round(quickView.rating))}
-                <span style={{ color: "var(--color-gray-600)", fontSize: "0.85rem", marginLeft: "6px" }}>({quickView.reviews})</span>
-              </div>
+              {rating && (
+                <div
+                  className="review-stars"
+                  style={{ color: "var(--color-gold)", display: "flex", gap: "4px", marginBottom: "12px" }}
+                  aria-label={`Rated ${rating.average} out of 5 from ${rating.count} reviews`}
+                >
+                  {"★".repeat(Math.round(rating.average))}
+                  {"☆".repeat(5 - Math.round(rating.average))}
+                  <span style={{ color: "var(--color-gray-600)", fontSize: "0.85rem", marginLeft: "6px" }}>
+                    ({rating.count})
+                  </span>
+                </div>
+              )}
               <div className="product-price" style={{ marginBottom: "16px" }}>
                 <span className="price-current">{formatPrice(quickView.price)}</span>
                 {quickView.originalPrice !== null ? <span className="price-original">{formatPrice(quickView.originalPrice)}</span> : null}

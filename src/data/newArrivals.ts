@@ -28,8 +28,6 @@ export interface NewArrivalProduct {
   relevanceRank: number;
   /** Lower number = stronger seller (used by "Best selling"). */
   bestSellingRank: number;
-  rating: number;
-  reviews: number;
 }
 
 /** New arrivals are dated from a fixed launch day, one hour apart. */
@@ -48,8 +46,6 @@ export const newArrivalsCatalog: NewArrivalProduct[] = getNewArrivals().map(
     createdAt: new Date(LAUNCH_TIME + index * HOUR_MS).toISOString(),
     relevanceRank: index + 1,
     bestSellingRank: index + 1,
-    rating: product.rating,
-    reviews: product.reviews,
   })
 );
 
@@ -80,8 +76,6 @@ export function toCartProduct(item: NewArrivalProduct): Product {
     isNew: true,
     isBestSeller: false,
     stitching: ["standard", "custom"],
-    rating: item.rating,
-    reviews: item.reviews,
     description: "",
     sku: `REB-NEW-${item.slug.toUpperCase()}`,
     availability: item.availability,
