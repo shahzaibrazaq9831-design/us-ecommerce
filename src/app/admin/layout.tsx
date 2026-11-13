@@ -28,9 +28,19 @@ export const instant = false;
  * as well as the orders — so the admin area always looks the same and the
  * storefront header and footer step aside for it.
  */
+/**
+ * Admin layout wrapper.
+ *
+ * The admin-shell class triggers the CSS rules in globals.css that hide the
+ * storefront header, announcement bar, offer strip, popups, cookie banner
+ * and WhatsApp button so the admin area has the full screen to itself.
+ *
+ * Every server action and page inside /admin must call requireAdmin() for
+ * protection (already the pattern in the protected sub-tree).
+ */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="admin-shell">
+    <div className="admin-shell" data-admin="true">
       <header className="admin-bar">
         <div className="admin-bar-inner">
           <Link href="/admin/orders" className="admin-brand">

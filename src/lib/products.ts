@@ -81,12 +81,15 @@ export interface Product {
   availability: Availability;
 }
 
+/* ------------------------------------------------------------------ *
+ * Interfaces for taxonomy
+ * ------------------------------------------------------------------ */
+
 export interface Category {
   slug: CategorySlug;
   name: string;
   href: string;
   image: string;
-  /** Short line shown on the shelf card. */
   description: string;
 }
 
@@ -95,9 +98,7 @@ export interface Occasion {
   name: string;
   href: string;
   image: string;
-  /** Lookbook artwork used on the occasion tiles. */
   photo: string;
-  /** The product that leads this occasion on the home page. */
   featuredSlug: string;
   description: string;
 }
@@ -264,21 +265,16 @@ export const brands: Brand[] = [
   },
 ];
 
+/* ------------------------------------------------------------------ *
+ * Stitching
+ * ------------------------------------------------------------------ */
+
 /** Human labels for the stitching options shown on cards. */
 export const stitchingLabels: Record<StitchingOption, string> = {
   unstitched: "Unstitched",
   standard: "Standard stitched",
   custom: "Custom stitched",
 };
-
-/* ------------------------------------------------------------------ *
- * Stitching
- *
- * The three ways a piece can be made, the sizes we keep in stock for
- * standard stitching and the measurements we need for custom stitching.
- * The product page, the cart and the checkout all read them from here,
- * so a change to the stitching rules is a one-file change.
- * ------------------------------------------------------------------ */
 
 /** The stitching options, in the order the selector shows them. */
 export const stitchingOptions: StitchingOption[] = ["unstitched", "standard", "custom"];
@@ -331,8 +327,8 @@ export type MeasurementValues = Record<MeasurementKey, string>;
 
 /**
  * Sensible ranges for each measurement, in both units. Anything outside
- * the range is rejected before the customer can add the piece to the cart,
- * because a typo here means a badly fitted dress.
+ * the range is rejected before the customer can add the piece to the cart, because
+ * a typo here means a badly fitted dress.
  */
 export const measurementLimits: Record<
   MeasurementKey,
@@ -363,10 +359,9 @@ export interface MeasurementValidation {
   errors: Partial<Record<MeasurementKey, string>>;
 }
 
-/**
- * Check the measurements a customer typed in. Used by the product page
- * before "Add to cart" and again on the server when the cart is saved,
- * so an invalid set of measurements can never reach the order.
+/** Check the measurements a customer typed in. Used by the product page
+ * before "Add to cart" and again on the server when the cart is saved, so an
+ * invalid set of measurements can never reach the order.
  */
 export function validateMeasurements(
   values: MeasurementValues,
@@ -425,11 +420,6 @@ export function measurementsFromValues(
 
 /* ------------------------------------------------------------------ *
  * Reviews
- *
- * The shape a review takes once it is public. The records themselves
- * live in `@/lib/reviews` — that module owns the storage and the
- * approval workflow, this module owns the shape and the maths, so the
- * product side of the store never has to know where reviews come from.
  * ------------------------------------------------------------------ */
 
 /** Where a review is in the approval workflow. */
