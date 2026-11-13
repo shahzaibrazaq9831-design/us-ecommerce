@@ -3,7 +3,6 @@
 import type { Metadata } from "next";
 import React from "react";
 import { Suspense } from "react";
-import { requireAdmin } from "@/lib/admin-session";
 import { z } from "zod";
 
 const badges = ["new", "bestseller", "sale"] as const;
@@ -122,8 +121,6 @@ export default function AdminProductsPage() {
 }
 
 function ProductsPanel() {
-  requireAdmin();
-
   const [products, setProducts] = React.useState<CachedProduct[]>([]);
   const [filters, setFilters] = React.useState<FilterState>({});
   const [bulkAction, setBulkAction] = React.useState<{
