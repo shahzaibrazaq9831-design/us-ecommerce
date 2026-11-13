@@ -19,6 +19,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import Footer from "@/components/Footer";
 import FloatingElements from "@/components/FloatingElements";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import CookieConsent from "@/components/CookieConsent";
 import { Suspense } from "react";
 
 const playfair = Playfair_Display({
@@ -129,6 +130,9 @@ async function CurrencyInit({ children }: { children: React.ReactNode }) {
           <FloatingElements />
           <FloatingWhatsApp />
           <CartDrawer />
+          {/* The cookie banner sits over the page: it never pushes the
+              content down and never locks the scroll. */}
+          <CookieConsent />
         </ProductRatingsProvider>
       </CartProvider>
     </CurrencyProvider>

@@ -4,6 +4,7 @@ import {
   submitReview,
   type ReviewPhoto,
 } from "@/lib/reviews";
+import { RATE_LIMITS, rateLimit, rateLimitKey } from "@/lib/rate-limit";
 
 /**
  * Take a new review from the form.
@@ -15,8 +16,27 @@ import {
  *
  * A review that passes these checks is saved as "pending" — it is not
  * public until somebody approves it.
+ *
+ * The endpoint is rate limited, so the form cannot be used to fill the
+ * queue with reviews from one address.
  */
 export async function POST(request: Request) {
+  const limit = rateLimit(
+    rateLimitKey(request, "reviews"),
+    RATE_LIMITS.review.limit,
+    RATE_LIMITS.review.windowMs
+  );
+
+  if (!limit.ok) {
+    return Response.json(
+      {
+        ok: false,
+        error: "Too many reviews from this connection. Please try again later.",
+      },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
+    );
+  }
+
   let formData: FormData;
   try {
     formData = await request.formData();
