@@ -11,10 +11,8 @@
  *      full and change its status, its tracking number, its payment state
  *      and its notes.
  *
- * Storage is a JSON file under `.data/`, the same place the reviews live,
- * so the store runs with no extra packages and no database. When the real
- * database arrives, replace the two functions in the storage section and
- * the rest of the app keeps working — the same names, the same shapes.
+ * Orders are stored in Supabase in production. Local development can still
+ * use the JSON file when no server-side Supabase key is configured.
  *
  * Two promises the order model keeps:
  *
@@ -24,6 +22,11 @@
  *     reference — never a number, never a security code.
  */
 
+import "server-only";
+import {
+  createClient as createSupabaseClient,
+  type SupabaseClient,
+} from "@supabase/supabase-js";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import type { Measurements, StitchingOption } from "@/lib/products";
@@ -289,9 +292,84 @@ export function isPaymentStatus(value: string): value is PaymentStatus {
 
 const DATA_DIR = path.join(process.cwd(), ".data");
 const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
+const ORDER_TABLE = "store_orders" as const;
+const PAGE_SIZE = 1000;
 
-/** Read every stored order. A missing or damaged file reads as no orders. */
-async function readOrders(): Promise<StoredOrder[]> {
+type OrderDatabase = {
+  public: {
+    Tables: {
+      store_orders: {
+        Row: {
+          id: string;
+          email: string;
+          order_date: string;
+          idempotency_key: string | null;
+          payload: StoredOrder;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          order_date: string;
+          idempotency_key?: string | null;
+          payload: StoredOrder;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          order_date?: string;
+          idempotency_key?: string | null;
+          payload?: StoredOrder;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: {
+      update_store_order: {
+        Args: {
+          p_order_id: string;
+          p_expected: StoredOrder;
+          p_order: StoredOrder;
+        };
+        Returns: StoredOrder | null;
+      };
+    };
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
+  };
+};
+
+let supabaseClient: SupabaseClient<OrderDatabase, "public"> | null = null;
+
+/** The server-only database client, or null for local file-backed development. */
+function getSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+
+  if (!key && process.env.NODE_ENV !== "production") return null;
+  if (!url || !key) {
+    throw new Error(
+      "Order storage requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
+    );
+  }
+
+  if (!supabaseClient) {
+    supabaseClient = createSupabaseClient<OrderDatabase>(url, key, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+  }
+
+  return supabaseClient;
+}
+
+/** Read the order records stored in a local development file. */
+async function readLocalOrders(): Promise<StoredOrder[]> {
   try {
     const raw = await fs.readFile(ORDERS_FILE, "utf8");
     const parsed = JSON.parse(raw) as unknown;
@@ -304,8 +382,6 @@ async function readOrders(): Promise<StoredOrder[]> {
       )
       .map((entry) => ({
         ...entry,
-        // Orders saved before the rename still read back with a status we
-        // know, so nothing has to be migrated by hand.
         status: normaliseStatus(entry.status),
       }));
   } catch {
@@ -313,12 +389,133 @@ async function readOrders(): Promise<StoredOrder[]> {
   }
 }
 
-/** Write the orders back, replacing the file in one go. */
-async function writeOrders(orders: StoredOrder[]): Promise<void> {
+/** Write local development orders back, replacing the file in one go. */
+async function writeLocalOrders(orders: StoredOrder[]): Promise<void> {
   await fs.mkdir(DATA_DIR, { recursive: true });
   const temporary = `${ORDERS_FILE}.${process.pid}.tmp`;
   await fs.writeFile(temporary, JSON.stringify(orders, null, 2), "utf8");
   await fs.rename(temporary, ORDERS_FILE);
+}
+
+function storedOrderFromPayload(payload: unknown): StoredOrder | null {
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    !("id" in payload) ||
+    typeof payload.id !== "string"
+  ) {
+    return null;
+  }
+
+  const order = payload as StoredOrder;
+  return { ...order, status: normaliseStatus(order.status) };
+}
+
+function orderRow(order: StoredOrder) {
+  return {
+    id: order.id,
+    email: order.email ?? order.customer?.email ?? "",
+    order_date: order.date,
+    idempotency_key: order.idempotencyKey ?? null,
+    payload: order,
+  };
+}
+
+/** Read every stored order from Supabase or the local development file. */
+async function readOrders(): Promise<StoredOrder[]> {
+  const client = getSupabaseClient();
+  if (!client) return readLocalOrders();
+
+  const orders: StoredOrder[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await client
+      .from(ORDER_TABLE)
+      .select("payload")
+      .order("order_date", { ascending: false })
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (error) {
+      throw new Error(`Could not read orders from Supabase: ${error.message}`);
+    }
+
+    const rows = data ?? [];
+    for (const row of rows) {
+      const order = storedOrderFromPayload(row.payload);
+      if (order) orders.push(order);
+    }
+    if (rows.length < PAGE_SIZE) break;
+  }
+
+  return orders;
+}
+
+/** Save one existing order without overwriting other concurrent changes. */
+async function saveOrder(
+  order: StoredOrder,
+  previous: StoredOrder
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) {
+    const orders = await readLocalOrders();
+    const index = orders.findIndex((entry) => entry.id === previous.id);
+    if (index === -1) throw new Error(`Order ${previous.id} no longer exists.`);
+    orders[index] = order;
+    await writeLocalOrders(orders);
+    return;
+  }
+
+  const { data, error } = await client.rpc("update_store_order", {
+    p_order_id: previous.id,
+    p_expected: previous,
+    p_order: order,
+  });
+
+  if (error) {
+    throw new Error(`Could not save order ${order.id}: ${error.message}`);
+  }
+  if (!data) {
+    throw new Error(
+      `Order ${order.id} changed while it was being edited. Reload it and try again.`
+    );
+  }
+}
+
+/** Insert a new order; the database enforces idempotency across requests. */
+async function insertOrder(
+  order: StoredOrder
+): Promise<{ order: StoredOrder; created: boolean }> {
+  const client = getSupabaseClient();
+  if (!client) {
+    const orders = await readLocalOrders();
+    const existing = orders.find(
+      (entry) => entry.idempotencyKey === order.idempotencyKey
+    );
+    if (existing) return { order: existing, created: false };
+    await writeLocalOrders([...orders, order]);
+    return { order, created: true };
+  }
+
+  const { error } = await client.from(ORDER_TABLE).insert(orderRow(order));
+  if (!error) return { order, created: true };
+
+  if (error.code === "23505" && order.idempotencyKey) {
+    const { data, error: lookupError } = await client
+      .from(ORDER_TABLE)
+      .select("payload")
+      .eq("idempotency_key", order.idempotencyKey)
+      .maybeSingle();
+
+    if (lookupError) {
+      throw new Error(
+        `Could not check an existing order after an insert conflict: ${lookupError.message}`
+      );
+    }
+
+    const existing = data ? storedOrderFromPayload(data.payload) : null;
+    if (existing) return { order: existing, created: false };
+  }
+
+  throw new Error(`Could not create order ${order.id}: ${error.message}`);
 }
 
 /* ------------------------------------------------------------------ *
@@ -514,8 +711,7 @@ export async function changeOrderStatus(
     ],
   };
 
-  orders[index] = updated;
-  await writeOrders(orders);
+  await saveOrder(updated, order);
 
   return { ok: true, order: updated };
 }
@@ -560,8 +756,7 @@ export async function setOrderTracking(
     ],
   };
 
-  orders[index] = updated;
-  await writeOrders(orders);
+  await saveOrder(updated, order);
 
   return { ok: true, order: updated };
 }
@@ -626,8 +821,7 @@ export async function markOrderAsPaid(
     history: events,
   };
 
-  orders[index] = updated;
-  await writeOrders(orders);
+  await saveOrder(updated, order);
 
   return { ok: true, order: updated };
 }
@@ -673,8 +867,7 @@ export async function cancelOrder(
     ],
   };
 
-  orders[index] = updated;
-  await writeOrders(orders);
+  await saveOrder(updated, order);
 
   return { ok: true, order: updated };
 }
@@ -709,8 +902,7 @@ export async function saveOrderNotes(
     ],
   };
 
-  orders[index] = updated;
-  await writeOrders(orders);
+  await saveOrder(updated, order);
 
   return { ok: true, order: updated };
 }
@@ -859,10 +1051,8 @@ export async function createOrder(
     ],
   };
 
-  orders.push(order);
-  await writeOrders(orders);
-
-  return { ok: true, order, created: true };
+  const inserted = await insertOrder(order);
+  return { ok: true, order: inserted.order, created: inserted.created };
 }
 
 /**
@@ -967,8 +1157,7 @@ export async function markOrderPaid(
     ];
   }
 
-  orders[index] = paid;
-  await writeOrders(orders);
+  await saveOrder(paid, order);
 
   return { ok: true, order: paid, alreadyPaid: false };
 }
@@ -1025,8 +1214,7 @@ export async function setPaymentReference(
     payment: { ...order.payment, reference },
   };
 
-  orders[index] = updated;
-  await writeOrders(orders);
+  await saveOrder(updated, order);
 
   return { ok: true, order: updated };
 }
@@ -1061,8 +1249,7 @@ export async function setPaymentAmount(
     },
   };
 
-  orders[index] = updated;
-  await writeOrders(orders);
+  await saveOrder(updated, order);
 
   return { ok: true, order: updated };
 }
@@ -1093,8 +1280,7 @@ export async function markNotificationSent(
     notifications: { ...(order.notifications ?? {}), [kind]: now },
   };
 
-  orders[index] = updated;
-  await writeOrders(orders);
+  await saveOrder(updated, order);
 
   return { ok: true, order: updated };
 }

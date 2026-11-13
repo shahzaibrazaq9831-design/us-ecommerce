@@ -94,22 +94,34 @@ it and keep notes on it. Every action is a server action that re-checks the
 sign-in and checks what it is given, and every status change is written to
 the order's history with the time it happened.
 
-The sign-in is a signed cookie. Three environment variables run it:
+The sign-in is a signed cookie. Production order storage also requires the
+Supabase settings below:
 
 | Variable | What it is |
 |---|---|
 | `ADMIN_EMAIL` | The address the studio signs in with |
 | `ADMIN_PASSWORD` | The password for that address |
 | `ADMIN_SESSION_SECRET` | A long random string that signs the session cookie |
+| `NEXT_PUBLIC_SUPABASE_URL` | The Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase key used for durable production order storage |
 
-Copy `.env.example` to `.env.local` and fill them in. Without them a
+Set the variables in `.env.local` for local use and in Vercel's project
+environment-variable settings for deployment. Without admin credentials a
 development machine falls back to a clearly marked development sign-in
 (`admin@storestudio.local` / `admin-dev`) and a production server signs
 nobody in at all.
 
-The orders themselves live in `.data/orders.json` — the same JSON-file store
-the reviews use, so there is no database to run. Card details are never
-stored there: a payment is a method, a state and the provider's reference.
+In local development, orders use `.data/orders.json` unless both Supabase
+environment variables are configured. Production requires
+`NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`; apply
+[`db/orders.sql`](./db/orders.sql) to the Supabase project first. The service
+role key must only be configured as a server-side environment variable in
+Vercel and must never use a `NEXT_PUBLIC_` prefix. Card details are never
+stored in orders: a payment is a method, a state and the provider's reference.
+To preserve existing local orders, set the same two Supabase variables in
+`.env.local` and run `npm run migrate:orders` before deploying. The migration
+script inserts missing orders and stops rather than overwriting different
+records with the same order number.
 
 ## Checkout, Payments & Emails
 
