@@ -38,23 +38,27 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="footer">
+    <footer className="footer bg-[var(--color-gray-100)] pb-0 pt-[var(--spacing-xl)] text-[var(--color-gray-700)]">
       <div className="container">
-        <div className="footer-grid">
+        <div className="footer-grid grid grid-cols-4 items-start gap-[var(--spacing-lg)] border-b border-[var(--color-gray-300)] pb-[var(--spacing-lg)]">
           {/* Column 1: company and how to reach us */}
           <div className="footer-brand">
-            <Link href="/#hero" className="logo" aria-label={siteConfig.company}>
+            <Link
+              href="/#hero"
+              className="logo mb-[var(--spacing-md)] block text-black"
+              aria-label={siteConfig.company}
+            >
               <Image
                 src="/images/logo-damsa.webp"
                 alt={siteConfig.company}
                 width={889}
                 height={220}
                 priority
-                className="footer-logo-img"
+                className="block h-[46px] w-auto"
               />
             </Link>
-            <p className="footer-company">{siteConfig.company}</p>
-            <p>
+            <p className="mb-[var(--spacing-sm)] font-heading text-[1.05rem] font-semibold leading-[1.7] text-black">{siteConfig.company}</p>
+            <p className="mb-[var(--spacing-md)] text-[0.9rem] leading-[1.7]">
               {siteConfig.tagline}. Made to order, shipped worldwide, and finished by
               hand. If anything is unclear, write to us and we will sort it out.
             </p>
@@ -70,43 +74,56 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Column 2: shop and help links */}
-          <div className="footer-col">
-            <h4>Shop</h4>
+          {/* Column 2: shop links */}
+          <div>
+            <h4 className="mb-[var(--spacing-md)] font-heading text-[1.1rem] font-semibold text-black">Shop</h4>
             <ul>
               {footerNavItems.slice(0, 6).map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href}>{link.label}</Link>
-                </li>
-              ))}
-            </ul>
-
-            <h4 className="footer-col-heading">Help</h4>
-            <ul>
-              {helpLinks.map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href}>{link.label}</Link>
+                <li key={link.href} className="mb-[var(--spacing-xs)]">
+                  <Link
+                    href={link.href}
+                    className="text-[0.9rem] text-[var(--color-gray-700)] [transition:all_var(--transition-fast)] hover:pl-[4px] hover:text-gold"
+                  >
+                    {link.label}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Column 3: newsletter */}
-          <div className="footer-col">
-            <div className="footer-newsletter">
-              <p className="footer-newsletter-title">Join the list</p>
-              <p className="footer-newsletter-text">
+          {/* Column 3: help links */}
+          <div>
+            <h4 className="mb-[var(--spacing-md)] font-heading text-[1.1rem] font-semibold text-black">Help</h4>
+            <ul>
+              {helpLinks.map((link) => (
+                <li key={link.href} className="mb-[var(--spacing-xs)]">
+                  <Link
+                    href={link.href}
+                    className="text-[0.9rem] text-[var(--color-gray-700)] [transition:all_var(--transition-fast)] hover:pl-[4px] hover:text-gold"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column 4: newsletter */}
+          <div>
+            <div className="mb-[var(--spacing-md)]">
+              <p className="mb-[6px] font-heading text-[1.05rem] font-semibold text-black">Join the list</p>
+              <p className="mb-[var(--spacing-sm)] text-[0.85rem] leading-[1.6] text-[var(--color-gray-700)]">
                 New arrivals and sale notices, sent a couple of times a month. No
                 spam, and one click to leave whenever you want.
               </p>
               <NewsletterForm />
-              <p className="newsletter-note">
+              <p className="text-[0.8rem] opacity-60">
                 By subscribing you agree to receive up to two marketing emails a month.
                 Unsubscribe anytime.
               </p>
             </div>
 
-            <div className="social-links" aria-label="Social media">
+            <div className="flex gap-[var(--spacing-md)]" aria-label="Social media">
               {SOCIAL_ICONS.map((social) => (
                 <a
                   key={social.key}
@@ -114,6 +131,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.label}
+                  className="flex h-[40px] w-[40px] items-center justify-center rounded-[var(--radius-full)] border border-[var(--color-gray-700)] text-[1rem] text-[var(--color-gray-400)] [transition:all_var(--transition-fast)] hover:border-primary hover:bg-primary hover:text-white hover:[transform:translateY(-3px)]"
                 >
                   <i className={social.icon} aria-hidden="true" />
                 </a>
@@ -122,13 +140,13 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="footer-bottom">
-          <p className="footer-copyright">
+        <div className="footer-bottom flex items-center justify-between py-[var(--spacing-md)] text-[0.85rem]">
+          <p className="text-[var(--color-gray-600)]">
             © {siteConfig.copyrightYear} {siteConfig.company}. All rights reserved.
           </p>
 
           {/* Payment methods — placeholders, edit to match your checkout. */}
-          <div className="payment-icons" aria-label="Payment methods we accept">
+          <div className="flex gap-[var(--spacing-md)] text-[1.5rem] text-[var(--color-gray-600)]" aria-label="Payment methods we accept">
             {PAYMENT_ICONS.map((payment) => (
               <i
                 key={payment.key}
@@ -137,12 +155,12 @@ export default function Footer() {
                 aria-label={payment.label}
               />
             ))}
-            <span className="payment-note">Cash on delivery available</span>
+            <span className="self-center text-[0.75rem] text-[var(--color-gray-500)]">Cash on delivery available</span>
           </div>
         </div>
 
-        <div className="footer-mark">
-          <DotMark text={siteConfig.company.toUpperCase()} height={150} color="#9E9E9E" />
+        <div className="mt-[var(--spacing-md)] w-full pb-[var(--spacing-md)]">
+          <DotMark text={siteConfig.company.toUpperCase()} height={90} color="#9E9E9E" />
         </div>
       </div>
     </footer>

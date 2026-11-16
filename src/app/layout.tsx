@@ -114,9 +114,14 @@ async function CurrencyInit({ children }: { children: React.ReactNode }) {
               header block, so scrolling a little slides it out of view the way
               it does on the reference store. */}
           <AnnouncementBar />
-          <div className="site-topbar">
+          <div className="site-topbar sticky top-0 z-[1000] bg-white">
             <Suspense
-              fallback={<header className="header header--placeholder" aria-hidden="true" />}
+              fallback={
+                <header
+                  className="header header--placeholder h-[var(--header-total-height)] [border-bottom:none]! [box-shadow:none]!"
+                  aria-hidden="true"
+                />
+              }
             >
               <Header />
             </Suspense>

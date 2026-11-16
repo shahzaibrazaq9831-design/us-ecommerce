@@ -31,8 +31,8 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
 
   return (
     <>
-      <div className="search-bar active">
-        <div className="search-container">
+      <div className="fixed inset-x-0 top-0 z-[2000] bg-white px-[var(--container-padding)] py-[var(--spacing-xl)] shadow-[var(--shadow-lg)]">
+        <div className="mx-auto flex max-w-[700px] items-center gap-[var(--spacing-md)] border-b-2 border-[var(--color-gray-300)] pb-[var(--spacing-sm)]">
           <i className="fas fa-search" style={{ color: "var(--color-gray-400)" }} />
           <input
             id="site-search-input"
@@ -40,8 +40,13 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
             placeholder="Search by dress, category or designer..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            className="flex-1 text-[1.1rem] text-secondary placeholder:text-[var(--color-gray-400)]"
           />
-          <button className="search-close" onClick={onClose} aria-label="Close search">
+          <button
+            className="p-[var(--spacing-sm)] text-[1.25rem] text-[var(--color-gray-500)]"
+            onClick={onClose}
+            aria-label="Close search"
+          >
             <i className="fas fa-times" />
           </button>
         </div>
@@ -75,7 +80,7 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
           </div>
         )}
       </div>
-      <div className="overlay active" onClick={onClose} />
+      <div className="fixed inset-0 z-[1500] bg-[rgba(0,0,0,0.5)]" onClick={onClose} />
     </>
   );
 }

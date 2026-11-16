@@ -135,7 +135,7 @@ export default function HeroSlider() {
   return (
     <section
       id="hero"
-      className={`hero${running ? "" : " paused"}${autoPlay ? "" : " no-autoplay"}`}
+      className={`hero relative aspect-[16/9] touch-pan-y overflow-hidden [scroll-margin-top:var(--header-total-height)] ${running ? "" : " paused"}${autoPlay ? "" : " no-autoplay"}`}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
@@ -151,7 +151,7 @@ export default function HeroSlider() {
         swipeStart.current = null;
       }}
     >
-      <div className="hero-slider" aria-live={running ? "off" : "polite"}>
+      <div className="hero-slider relative h-full" aria-live={running ? "off" : "polite"}>
         {heroSlides.map((slide, index) => {
           /* Phone artwork: portrait 427 x 534 shots served to the phone hero. */
           const { props: mobileProps } = getImageProps({
@@ -166,7 +166,9 @@ export default function HeroSlider() {
           return (
             <div
               key={slide.title}
-              className={`hero-slide${index === current ? " active" : ""}`}
+              className={`absolute inset-0 [transition:opacity_0.6s_ease,visibility_0.6s_ease] ${
+                index === current ? " visible opacity-100" : " invisible opacity-0"
+              }`}
               role="group"
               aria-roledescription="slide"
               aria-label={`${index + 1} of ${total}: ${slide.title}`}
@@ -174,11 +176,11 @@ export default function HeroSlider() {
             >
               <Link
                 href={slide.href}
-                className="hero-slide-link"
+                className="hero-slide-link relative block h-full w-full"
                 draggable={false}
                 tabIndex={index === current ? undefined : -1}
               >
-                <picture className="hero-picture">
+                <picture className="hero-picture relative block h-full w-full">
                   <source
                     media="(max-width: 1023px)"
                     srcSet={mobileProps.srcSet}
@@ -191,10 +193,10 @@ export default function HeroSlider() {
                     loading={index === 0 ? "eager" : "lazy"}
                     fetchPriority={index === 0 ? "high" : "auto"}
                     sizes="100vw"
-                    className="hero-slide-image"
+                    className="hero-slide-image block h-full w-full object-cover object-center"
                   />
                 </picture>
-                <span className="hero-sr-only">
+                <span className="absolute -m-px h-px w-px overflow-hidden border-0 p-0 whitespace-nowrap [clip:rect(0,0,0,0)]">
                   {slide.title}. {slide.subtitle}. {slide.cta}.
                 </span>
               </Link>
@@ -217,7 +219,7 @@ export default function HeroSlider() {
 
       <button
         type="button"
-        className="hero-arrow hero-arrow-prev"
+        className="hero-arrow hero-arrow-prev absolute left-[12px] top-1/2 z-10 hidden h-[44px] w-[44px] cursor-pointer items-center justify-center border-0 bg-transparent text-white [filter:drop-shadow(0_1px_5px_rgba(0,0,0,0.65))] [transform:translateY(-50%)] [transition:opacity_var(--transition-fast),transform_var(--transition-fast)] hover:opacity-[0.78] hover:[transform:translateY(-50%)_scale(1.06)] focus-visible:opacity-[0.78] focus-visible:[transform:translateY(-50%)_scale(1.06)] min-[640px]:inline-flex"
         onClick={goPrev}
         aria-label="Previous slide"
       >
@@ -232,6 +234,7 @@ export default function HeroSlider() {
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden="true"
+          className="h-[20px] w-[20px]"
         >
           <path d="m15 18-6-6 6-6" />
         </svg>
@@ -239,7 +242,7 @@ export default function HeroSlider() {
 
       <button
         type="button"
-        className="hero-arrow hero-arrow-next"
+        className="hero-arrow hero-arrow-next absolute right-[12px] top-1/2 z-10 hidden h-[44px] w-[44px] cursor-pointer items-center justify-center border-0 bg-transparent text-white [filter:drop-shadow(0_1px_5px_rgba(0,0,0,0.65))] [transform:translateY(-50%)] [transition:opacity_var(--transition-fast),transform_var(--transition-fast)] hover:opacity-[0.78] hover:[transform:translateY(-50%)_scale(1.06)] focus-visible:opacity-[0.78] focus-visible:[transform:translateY(-50%)_scale(1.06)] min-[640px]:inline-flex"
         onClick={goNext}
         aria-label="Next slide"
       >
@@ -254,26 +257,40 @@ export default function HeroSlider() {
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden="true"
+          className="h-[20px] w-[20px]"
         >
           <path d="m9 18 6-6-6-6" />
         </svg>
       </button>
 
-      <div className="hero-dots" role="group" aria-label="Choose slide">
+      <div
+        className="hero-dots absolute bottom-[8px] left-1/2 z-10 flex items-center rounded-[9999px] bg-[rgba(23,23,23,0.25)] p-[2px] [transform:translateX(-50%)] [backdrop-filter:blur(8px)] [-webkit-backdrop-filter:blur(8px)]"
+        role="group"
+        aria-label="Choose slide"
+      >
         {heroSlides.map((slide, index) => (
           <button
             key={slide.title}
             type="button"
-            className={`dot${index === current ? " active" : ""}`}
+            className={`dot flex h-[44px] w-[44px] cursor-pointer items-center justify-center rounded-[var(--radius-full)] border-0 bg-transparent p-0 ${
+              index === current ? " active" : ""
+            }`}
             aria-label={`Show slide ${index + 1}: ${slide.title}`}
             aria-current={index === current}
             onClick={() => navigateTo(index)}
           >
-            <span aria-hidden="true">
+            <span
+              aria-hidden="true"
+              className={`block h-[10px] overflow-hidden rounded-[9999px] [transition:width_var(--transition-fast),background-color_var(--transition-fast)] ${
+                index === current
+                  ? "w-[24px] bg-[rgba(255,255,255,0.4)]"
+                  : "w-[10px] bg-[rgba(255,255,255,0.6)]"
+              }`}
+            >
               {index === current && autoPlay && (
                 <span
                   key={current}
-                  className="hero-dot-fill"
+                  className="hero-dot-fill block h-full w-full origin-left animate-hero-progress bg-white"
                   style={{ animationDuration: `${interval}ms` }}
                 />
               )}
@@ -283,10 +300,10 @@ export default function HeroSlider() {
       </div>
 
       {autoPlay && (
-        <div className="hero-progress" aria-hidden="true">
+        <div className="absolute inset-x-0 bottom-0 z-10 h-[3px] bg-[rgba(23,23,23,0.15)]" aria-hidden="true">
           <div
             key={current}
-            className="hero-progress-fill"
+            className="hero-progress-fill h-full w-full origin-left animate-hero-progress bg-primary"
             style={{ animationDuration: `${interval}ms` }}
           />
         </div>

@@ -164,13 +164,15 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
   return (
     <div
       ref={ref}
-      className={`currency-selector${isDrawer ? " currency-selector--drawer" : ""}`}
+      className={`relative z-[1200] ${isDrawer ? "currency-selector--drawer" : ""}`}
       onKeyDown={handleKeyDown}
     >
       <button
         type="button"
         onClick={toggleOpen}
-        className={`currency-trigger${isDrawer ? " currency-trigger--drawer" : ""}`}
+        className={`flex h-[35px] items-center gap-[6px] rounded-[8px] border-[1.5px] border-[#8B6B2E] bg-[#FBF7F1] px-[9px] text-[#1A1A1A] [transition:background-color_var(--transition-fast),box-shadow_var(--transition-fast)] hover:bg-[#F6F0E6] focus-visible:[outline:2px_solid_rgba(139,107,46,0.45)] focus-visible:outline-offset-2 ${
+          isDrawer ? " currency-trigger--drawer" : ""
+        }`}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`Country and currency: ${activeMarket.name}. Change`}
@@ -182,27 +184,45 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
           width={20}
           height={14}
           decoding="async"
+          className="h-[14px] w-[20px] flex-none rounded-[2px] object-cover shadow-[0_0_0_1px_rgba(0,0,0,0.07)]"
         />
         {isDrawer ? (
           <span className="currency-trigger-label">
             {activeMarket.name}
           </span>
         ) : (
-          <span className="currency-trigger-code">{activeMarket.currency}</span>
+          <span className="text-[11.5px] font-semibold uppercase leading-none tracking-[0.02em]">{activeMarket.currency}</span>
         )}
-        <ChevronDown size={12} strokeWidth={2} aria-hidden="true" className={open ? "currency-chevron is-open" : "currency-chevron"} />
+        <ChevronDown
+          size={12}
+          strokeWidth={2}
+          aria-hidden="true"
+          className={`text-[#6E5A2E] [transition:transform_0.2s_ease] ${
+            open ? " [transform:rotate(180deg)]" : ""
+          }`}
+        />
       </button>
 
       {open || closing ? (
         <div
-          className={`currency-panel${closing ? " is-closing" : ""}`}
+          className={`currency-panel absolute right-0 top-[calc(100%_+_7px)] z-[1200] w-[20rem] max-w-[calc(100vw_-_1.5rem)] origin-top-right overflow-hidden rounded-[12px] border border-[rgba(23,23,23,0.12)] bg-white shadow-[0_18px_44px_rgba(23,60,53,0.12)] [--currency-row-height:44px] ${
+            closing
+              ? "is-closing pointer-events-none animate-currency-panel-out"
+              : "animate-currency-panel-in"
+          }`}
           data-open={open ? "true" : "false"}
           role="dialog"
           aria-label="Choose a country and currency"
         >
-          <ul ref={listRef} tabIndex={-1} className="currency-list" role="listbox" aria-label="Countries">
+          <ul
+            ref={listRef}
+            tabIndex={-1}
+            className="currency-list relative max-h-[min(22rem,55dvh)] overflow-y-auto overscroll-contain py-[0.25rem] [scrollbar-color:#8f8f8f_transparent] [scrollbar-width:thin]"
+            role="listbox"
+            aria-label="Countries"
+          >
             {filtered.length === 0 ? (
-              <li className="currency-empty">No currencies found</li>
+              <li className="p-[12px] text-[12.5px] text-[#767676]">No currencies found</li>
             ) : (
               filtered.map((m, idx) => {
                 const isSelected = m.code === activeMarket.code;
@@ -218,7 +238,9 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
                       setShowActive(false);
                     }}
                     onClick={() => selectMarket(m.code)}
-                    className={`currency-option${isActive && showActive ? " is-active" : ""}`}
+                    className={`currency-option flex min-h-[var(--currency-row-height)] cursor-pointer items-center gap-[0.75rem] p-[0.75rem] text-[0.875rem] font-normal leading-[1.4286] text-[#171717] hover:bg-[rgba(23,23,23,0.05)] ${
+                      isActive && showActive ? " is-active bg-[rgba(23,23,23,0.05)]" : ""
+                    }`}
                     title={m.name}
                   >
                     <img
@@ -228,11 +250,19 @@ export default function CurrencySelector({ variant = "header" }: { variant?: Cur
                       width={24}
                       height={16}
                       decoding="async"
+                      className="h-[16px] w-[24px] flex-none rounded-[2px] object-cover shadow-[0_0_0_1px_rgba(0,0,0,0.05)]"
                     />
-                    <span className="currency-option-label">
+                    <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
                       {m.name}
                     </span>
-                    {isSelected ? <Check size={14} strokeWidth={2.5} aria-hidden="true" /> : null}
+                    {isSelected ? (
+                      <Check
+                        size={14}
+                        strokeWidth={2.5}
+                        aria-hidden="true"
+                        className="flex-none text-[#8a6a2f]"
+                      />
+                    ) : null}
                   </li>
                 );
               })

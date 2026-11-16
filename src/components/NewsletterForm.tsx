@@ -68,7 +68,7 @@ export default function NewsletterForm() {
 
   if (status === "sent") {
     return (
-      <p className="newsletter-note" style={{ color: "var(--color-gold)" }}>
+      <p className="text-[0.8rem] opacity-60" style={{ color: "var(--color-gold)" }}>
         Thank you — please check your inbox and click the link to confirm. Once
         you have, use code <strong>{siteConfig.promoCode}</strong> for{" "}
         {siteConfig.promoDiscount} off your first prepaid order.
@@ -77,7 +77,7 @@ export default function NewsletterForm() {
   }
 
   return (
-    <form className="newsletter-form" onSubmit={handleSubmit}>
+    <form className="flex gap-[var(--spacing-md)] [@media(max-width:768px)]:flex-col" onSubmit={handleSubmit}>
       <label className="sr-only" htmlFor="newsletter-email">
         Email address
       </label>
@@ -89,6 +89,7 @@ export default function NewsletterForm() {
         required
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        className="flex-1 rounded-[var(--radius-md)] border border-[var(--color-gray-300)] bg-white px-[20px] py-[14px] text-[0.95rem] text-[var(--color-gray-700)] [transition:all_var(--transition-fast)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-gold)] focus:bg-white"
       />
 
       {/* Honeypot — hidden from people, tempting for bots. */}
@@ -103,7 +104,7 @@ export default function NewsletterForm() {
         {status === "busy" ? "Signing you up…" : "Subscribe"}
       </button>
 
-      {error ? <p className="newsletter-error">{error}</p> : null}
+      {error ? <p className="mt-[8px] text-[0.82rem] text-[var(--color-error)]">{error}</p> : null}
     </form>
   );
 }

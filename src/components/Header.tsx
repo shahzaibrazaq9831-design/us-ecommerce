@@ -128,52 +128,68 @@ export default function Header() {
 
   return (
     <>
-      <header className="header" data-scrolled="false" ref={headerRef}>
+      <header
+        className="header group relative z-[1] border-b border-[rgba(23,23,23,0.12)] bg-white shadow-[var(--shadow-sm)] [transition:box-shadow_var(--duration-base)_var(--ease-luxe)] data-[scrolled=true]:shadow-[0_10px_30px_rgba(23,60,53,0.12)]"
+        data-scrolled="false"
+        ref={headerRef}
+      >
         {/* Desktop bar */}
-        <div className="header-top">
-          <div className="header-top-left">
+        <div className="header-top mx-auto grid h-[var(--header-height)] max-w-[var(--container-max)] grid-cols-[1fr_auto_1fr] items-center gap-[var(--spacing-md)] px-[var(--container-padding)]">
+          <div className="header-top-left flex flex-none items-center justify-self-start gap-[var(--spacing-sm)]">
             <button
-              className="header-search-btn"
+              className="header-search-btn relative flex h-[44px] w-[44px] items-center justify-center rounded-[var(--radius-sm)] bg-transparent p-[var(--spacing-sm)] text-[1.1rem] text-secondary [transition:color_var(--transition-fast)] hover:bg-[rgba(0,0,0,0.04)] hover:text-primary"
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
             >
               <i className="fas fa-search" />
             </button>
           </div>
-          <Link href="/#hero" className="logo header-logo" aria-label="Rung E Bahar">
+          <Link
+            href="/#hero"
+            className="logo header-logo flex items-center justify-center leading-[0]"
+            aria-label="Rung E Bahar"
+          >
             <Image
               src="/images/logo-damsa.webp"
               alt="Rung E Bahar"
               width={889}
               height={220}
               priority
-              className="header-logo-img"
+              className="header-logo-img block h-[50px] w-auto [transition:height_var(--duration-base)_var(--ease-luxe)] group-data-[scrolled=true]:h-[38px]"
             />
           </Link>
-          <div className="header-actions">
+          <div className="header-actions flex items-center justify-self-end gap-[var(--spacing-md)]">
             <CurrencySelector />
-            <Link href="/account" className="header-icon" aria-label="Account">
+            <Link
+              href="/account"
+              className="header-icon relative flex items-center justify-center p-[var(--spacing-sm)] text-[1.2rem] text-secondary [transition:color_var(--transition-fast)] hover:text-primary"
+              aria-label="Account"
+            >
               <i className="far fa-user" />
             </Link>
             <Link
               href="/wishlist"
-              className="header-icon"
+              className="header-icon relative flex items-center justify-center p-[var(--spacing-sm)] text-[1.2rem] text-secondary [transition:color_var(--transition-fast)] hover:text-primary"
               aria-label="Wishlist"
             >
               <i className="far fa-heart" />
               {wishlist.length > 0 ? (
-                <span className="badge">{wishlist.length}</span>
+                <span className="absolute -right-[4px] -top-[2px] flex h-[18px] min-w-[18px] animate-badge-pop items-center justify-center rounded-[var(--radius-full)] bg-primary px-[4px] text-[0.65rem] font-semibold text-white">
+                  {wishlist.length}
+                </span>
               ) : null}
             </Link>
             <button
               type="button"
-              className="header-icon"
+              className="header-icon relative flex items-center justify-center p-[var(--spacing-sm)] text-[1.2rem] text-secondary [transition:color_var(--transition-fast)] hover:text-primary"
               onClick={openCart}
               aria-label="Cart"
             >
               <i className="fas fa-shopping-bag" />
               {cartCount > 0 ? (
-                <span className="badge">{cartCount}</span>
+                <span className="absolute -right-[4px] -top-[2px] flex h-[18px] min-w-[18px] animate-badge-pop items-center justify-center rounded-[var(--radius-full)] bg-primary px-[4px] text-[0.65rem] font-semibold text-white">
+                  {cartCount}
+                </span>
               ) : null}
             </button>
           </div>
@@ -220,14 +236,16 @@ export default function Header() {
             >
               <ShoppingBag size={22} strokeWidth={1.5} aria-hidden="true" />
               {cartCount > 0 ? (
-                <span className="badge m-header-badge">{cartCount}</span>
+                <span className="m-header-badge absolute -right-[4px] -top-[2px] flex h-[18px] min-w-[18px] animate-badge-pop items-center justify-center rounded-[var(--radius-full)] bg-primary px-[4px] text-[0.65rem] font-semibold text-white">
+                  {cartCount}
+                </span>
               ) : null}
             </button>
           </div>
         </div>
 
-        <nav className="main-nav">
-          <ul className="nav-list">
+        <nav className="main-nav h-[var(--nav-height)] border-t border-t-[rgba(23,23,23,0.12)]">
+          <ul className="nav-list mx-auto flex h-full max-w-[var(--container-max)] items-center justify-center gap-[var(--spacing-xs)] px-[var(--container-padding)]">
             {navItems.map((item) => {
               const isCollections = Boolean(item.children && item.children.length > 0);
               const isItemActive = isActive(item.href);
@@ -235,9 +253,11 @@ export default function Header() {
               return (
                 <li
                   key={item.label}
-                  className={`${isCollections ? "nav-dropdown" : ""}${isItemActive ? " active" : ""}${
-                    isCollections && collectionsOpen ? " open" : ""
-                  }${isCollections && collectionsClosing ? " closing" : ""}`}
+                  className={`group relative ${isCollections ? "nav-dropdown" : ""}${
+                    isItemActive ? " active" : ""
+                  }${isCollections && collectionsOpen ? " open" : ""}${
+                    isCollections && collectionsClosing ? " closing" : ""
+                  }`}
                   onMouseEnter={isCollections ? openCollections : undefined}
                   onMouseLeave={isCollections ? closeCollections : undefined}
                   onFocus={isCollections ? openCollections : undefined}
@@ -247,20 +267,29 @@ export default function Header() {
                     href={item.href}
                     aria-haspopup={isCollections ? "true" : undefined}
                     aria-expanded={isCollections ? collectionsOpen : undefined}
+                    className="relative flex items-center gap-[4px] px-[var(--spacing-lg)] py-[var(--spacing-md)] text-[0.9rem] font-medium text-secondary [transition:color_var(--duration-fast)_var(--ease-luxe)] after:absolute after:bottom-0 after:left-1/2 after:h-[2px] after:w-0 after:bg-primary after:content-[''] after:[transform:translateX(-50%)] after:[transition:width_var(--duration-base)_var(--ease-luxe),transform_var(--duration-base)_var(--ease-luxe)] hover:text-primary hover:after:w-[60%] group-[.active]:text-primary group-[.active]:after:w-[60%]"
                   >
                     {item.label}
                     {isCollections ? (
                       <i
-                        className="fas fa-chevron-down"
+                        className="fas fa-chevron-down [transition:transform_var(--duration-fast)_var(--ease-luxe)] group-[.open]:[transform:rotate(180deg)]"
                         style={{ fontSize: "0.7rem" }}
                       />
                     ) : null}
                   </Link>
                   {isCollections && item.children ? (
-                    <ul className="dropdown" ref={collectionsPanelRef}>
+                    <ul
+                      className="dropdown invisible absolute left-0 top-full min-w-[200px] origin-top rounded-b-[var(--radius-md)] bg-white py-[var(--spacing-sm)] opacity-0 shadow-[var(--shadow-lg)] pointer-events-none [transform:translateY(10px)_scale(0.98)] [transition:opacity_var(--duration-base)_var(--ease-luxe),transform_var(--duration-base)_var(--ease-luxe),visibility_0s_linear_var(--duration-base)] group-[.closing]:animate-currency-panel-out group-[.open]:visible group-[.open]:animate-currency-panel-in group-[.open]:opacity-100 group-[.open]:pointer-events-auto group-[.open]:[transform:translateY(0)_scale(1)] group-[.open]:[transition-delay:0s]"
+                      ref={collectionsPanelRef}
+                    >
                       {item.children.map((child) => (
                         <li key={child.label}>
-                          <Link href={child.href}>{child.label}</Link>
+                          <Link
+                            href={child.href}
+                            className="block px-[var(--spacing-lg)] py-[var(--spacing-sm)] text-[0.85rem] text-gray-700 [transition:all_var(--transition-fast)] hover:bg-cream hover:pl-[calc(var(--spacing-lg)_+_4px)] hover:text-primary"
+                          >
+                            {child.label}
+                          </Link>
                         </li>
                       ))}
                     </ul>
