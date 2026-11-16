@@ -347,15 +347,18 @@ type OrderDatabase = {
 
 let supabaseClient: SupabaseClient<OrderDatabase, "public"> | null = null;
 
+/** The project URL is public metadata, so it can default in code. */
+const DEFAULT_SUPABASE_URL = "https://ylhtywpwykiakfzaades.supabase.co";
+
 /** The server-only database client, or null for local file-backed development. */
 function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || DEFAULT_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
   if (!key && process.env.NODE_ENV !== "production") return null;
-  if (!url || !key) {
+  if (!key) {
     throw new Error(
-      "Order storage requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
+      "Order storage requires SUPABASE_SERVICE_ROLE_KEY on the server."
     );
   }
 
