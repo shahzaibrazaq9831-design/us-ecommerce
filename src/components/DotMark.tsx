@@ -51,6 +51,7 @@ export default function DotMark({
   introStagger = 500, // ms, total stagger window left→right
   introDistance = 300, // px, how far dots start from their origin
   replay = false, // replay intro each time the section re-enters viewport
+  headroom = 0, // px of empty space above the text for upward drift
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -108,19 +109,22 @@ export default function DotMark({
       off.height = h;
       const o = off.getContext("2d");
       if (!o) return;
-      let size = h;
+      // `headroom` is reserved above the letters so scattered dots can drift
+      // upward without being clipped by the canvas edge.
+      const textH = Math.max(1, h - headroom);
+      let size = textH;
       o.font = `${fontWeight} ${size}px ${fontFamily}`;
       size = Math.min(
-        h * 0.95,
+        textH * 0.95,
         size * (w / o.measureText(text).width) * 0.98
       );
       o.font = `${fontWeight} ${size}px ${fontFamily}`;
       o.textAlign = "center";
       o.textBaseline = "middle";
-      // stretch letters vertically so they fill the full height
+      // stretch letters vertically so they fill the full text area
       const capH = size * 0.72;
-      const scaleY = stretch ? Math.max(1, (h * 0.9) / capH) : 1;
-      o.translate(w / 2, h / 2);
+      const scaleY = stretch ? Math.max(1, (textH * 0.9) / capH) : 1;
+      o.translate(w / 2, headroom + textH / 2);
       o.scale(1, scaleY);
       o.fillText(text, 0, 0);
 
@@ -443,6 +447,7 @@ export default function DotMark({
     introStagger,
     introDistance,
     replay,
+    headroom,
   ]);
 
   return (

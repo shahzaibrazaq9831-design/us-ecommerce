@@ -160,7 +160,21 @@ export default function Footer() {
         </div>
 
         <div className="mt-[var(--spacing-md)] w-full pb-[var(--spacing-md)]">
-          <DotMark text={siteConfig.company.toUpperCase()} height={90} color="#9E9E9E" />
+          <DotMark
+            text="DAMSA COTURE"
+            height={170}
+            headroom={80}
+            upward={130}
+            radius={95}
+            ringSize={22}
+            color="#9E9E9E"
+            introEase={0.16}
+            introStagger={220}
+            introDistance={200}
+            spreadEase={0.16}
+            returnEase={0.05}
+            mouseEase={0.28}
+          />
         </div>
       </div>
     </footer>
