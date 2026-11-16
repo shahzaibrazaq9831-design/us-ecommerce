@@ -21,6 +21,7 @@ import FloatingElements from "@/components/FloatingElements";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import CookieConsent from "@/components/CookieConsent";
 import { Suspense } from "react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -93,6 +94,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Suspense fallback={null}>
           <CurrencyInit>{children}</CurrencyInit>
         </Suspense>
+        <SpeedInsights />
       </body>
     </html>
   );
