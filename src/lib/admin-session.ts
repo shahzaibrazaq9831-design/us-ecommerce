@@ -8,9 +8,10 @@
  *
  * Two rules shape this module:
  *
- *   1. The key and the credentials come from the environment
- *      (`ADMIN_SESSION_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`) and are
- *      read at request time — never baked into the build.
+ *   1. The key and the password come from the environment
+ *      (`ADMIN_SESSION_SECRET`, `ADMIN_PASSWORD`) and are read at request
+ *      time — never baked into the build. The email falls back to the studio
+ *      address, which is not a secret.
  *   2. Every server action re-checks the session for itself. A check on the
  *      page does not protect the action, so `requireAdmin()` is called
  *      inside the action as well as inside the page.
@@ -49,12 +50,22 @@ interface AdminCredentials {
   password: string;
 }
 
+/**
+ * The studio address used when `ADMIN_EMAIL` is not set on the server.
+ *
+ * The address is not a secret — it is printed on the contact pages and shown
+ * in the sign-in form — so it can safely live in the code. The password is a
+ * secret and must always come from the environment. Setting `ADMIN_EMAIL` in
+ * the environment still overrides this fallback.
+ */
+const DEFAULT_ADMIN_EMAIL = "damsacoture@gmail.com";
+
 /** The sign-in this server accepts, or null when none is configured. */
 function adminCredentials(): AdminCredentials | null {
-  const email = process.env.ADMIN_EMAIL?.trim();
+  const email = process.env.ADMIN_EMAIL?.trim() || DEFAULT_ADMIN_EMAIL;
   const password = process.env.ADMIN_PASSWORD;
 
-  if (!email || !password) {
+  if (!password) {
     if (process.env.NODE_ENV === "production") return null;
     warnAboutDevelopmentFallback();
     return { email: DEV_EMAIL, password: DEV_PASSWORD };
@@ -103,7 +114,7 @@ function warnAboutDevelopmentFallback(): void {
   if (warnedAboutDevelopmentFallback) return;
   warnedAboutDevelopmentFallback = true;
   console.warn(
-    "[admin] ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_SESSION_SECRET are not set — " +
+    "[admin] ADMIN_PASSWORD / ADMIN_SESSION_SECRET are not set — " +
       `using the development sign-in (${DEV_EMAIL} / ${DEV_PASSWORD}). Set the real ` +
       "values before deploying."
   );

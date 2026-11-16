@@ -12,7 +12,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   missing: "Enter both the email address and the password.",
   invalid: "That email address and password do not match.",
   "not-configured":
-    "No admin sign-in is configured on this server. Set ADMIN_EMAIL and ADMIN_PASSWORD.",
+    "No admin sign-in is configured on this server. Set ADMIN_PASSWORD in the environment.",
 };
 
 interface AdminLoginPageProps {
@@ -55,8 +55,8 @@ async function LoginPanel({ searchParams }: AdminLoginPageProps) {
 
         {!configured ? (
           <p className="admin-alert admin-alert--warning" role="status">
-            No admin sign-in is configured on this server. Set ADMIN_EMAIL and
-            ADMIN_PASSWORD in the environment.
+            No admin sign-in is configured on this server. Set ADMIN_PASSWORD in
+            the environment.
           </p>
         ) : null}
 
