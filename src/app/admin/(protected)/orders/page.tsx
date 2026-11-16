@@ -70,7 +70,26 @@ async function OrdersPanel({ searchParams }: AdminOrdersPageProps) {
 
   const params = await searchParams;
   const filters = readFilters(params);
-  const result = await queryOrders(filters);
+
+  // A missing server-side order store must not turn the whole admin area into
+  // a 500. Show the reason instead so the sign-in still completes and the
+  // setup step is obvious.
+  let result: Awaited<ReturnType<typeof queryOrders>>;
+  try {
+    result = await queryOrders(filters);
+  } catch (error) {
+    return (
+      <div className="admin-panel">
+        <h1 className="admin-title">Orders</h1>
+        <p className="admin-subtitle">
+          Order storage is not available on this server yet.
+        </p>
+        <p className="admin-alert admin-alert--error" role="alert">
+          {error instanceof Error ? error.message : String(error)}
+        </p>
+      </div>
+    );
+  }
 
   const hasFilters = Boolean(filters.query || filters.status || filters.payment);
 
