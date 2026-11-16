@@ -5592,6 +5592,13 @@ input[type="submit"] {
 
 /* ---------- Footer extras ---------- */
 
+/* The footer spans the full viewport; only the storefront content is capped
+   at --container-max. A small responsive gutter keeps it off the edges. */
+.footer > .container {
+  max-width: none;
+  padding-inline: clamp(16px, 3vw, 40px);
+}
+
 /* Footer meta text is styled in Footer.tsx. */
 
 .footer .contact-list li {

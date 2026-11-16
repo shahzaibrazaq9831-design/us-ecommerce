@@ -38,7 +38,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="footer bg-[var(--color-gray-100)] pb-0 pt-[var(--spacing-xl)] text-[var(--color-gray-700)]">
+    <footer className="footer bg-[var(--color-gray-100)] pb-0 pt-[var(--spacing-lg)] text-[var(--color-gray-700)]">
       <div className="container">
         <div className="footer-grid grid grid-cols-4 items-start gap-[var(--spacing-lg)] border-b border-[var(--color-gray-300)] pb-[var(--spacing-lg)]">
           {/* Column 1: company and how to reach us */}
@@ -162,9 +162,9 @@ export default function Footer() {
         <div className="mt-[var(--spacing-md)] w-full pb-[var(--spacing-md)]">
           <DotMark
             text="DAMSA COTURE"
-            height={170}
-            headroom={80}
-            upward={130}
+            height={120}
+            headroom={45}
+            upward={100}
             radius={95}
             ringSize={22}
             color="#9E9E9E"
