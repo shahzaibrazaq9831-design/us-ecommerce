@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   experimental: {
     agentFeedback: true,
+    // CI builds (including Vercel) are non-interactive. Next's default
+    // security-upgrade reminder stops the build there before it can compile.
+    // Disable the reminder so deployments work; keep track of advisories and
+    // upgrade Next.js separately.
+    agentUpgrade: false,
     // This machine has only ~4 GB of RAM, so the default worker counts run
     // the build out of memory. One worker keeps it inside the budget.
     // (`cpus` and `workerThreads` are `experimental` options in Next 16.)
