@@ -46,7 +46,7 @@ export async function signInAction(formData: FormData): Promise<void> {
 
   await startAdminSession(email.toLowerCase());
 
-  redirect(next || "/admin/orders");
+  redirect(next || "/admin");
 }
 
 /** The sign-out button posts here. */

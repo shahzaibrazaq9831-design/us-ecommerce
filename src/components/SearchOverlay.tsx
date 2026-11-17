@@ -11,13 +11,13 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
   const { formatPrice } = useCurrency();
 
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+    const timer = window.setTimeout(() => {
       setQuery("");
-      setTimeout(() => {
-        const input = document.getElementById("site-search-input") as HTMLInputElement | null;
-        input?.focus();
-      }, 50);
-    }
+      const input = document.getElementById("site-search-input") as HTMLInputElement | null;
+      input?.focus();
+    }, 50);
+    return () => window.clearTimeout(timer);
   }, [open]);
 
   const results = useMemo(() => {

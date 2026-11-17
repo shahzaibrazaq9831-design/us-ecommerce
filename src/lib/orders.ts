@@ -30,19 +30,20 @@ import {
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import type { Measurements, StitchingOption } from "@/lib/products";
+import {
+  ADMIN_ORDER_STATUSES,
+  ADMIN_ORDER_STATUS_LABELS,
+  canTransitionStatus,
+  normaliseAdminOrderStatus,
+  type AdminOrderStatus,
+} from "@/lib/admin/status";
 
 /* ------------------------------------------------------------------ *
  * Types
  * ------------------------------------------------------------------ */
 
 /** Where an order is in the workshop. */
-export type OrderStatus =
-  | "new"
-  | "paid"
-  | "stitching"
-  | "shipped"
-  | "delivered"
-  | "cancelled";
+export type OrderStatus = AdminOrderStatus;
 
 /** How the customer is paying. */
 export type PaymentMethod = "cod" | "card" | "bank_transfer";
@@ -217,40 +218,16 @@ export interface OrderRecord {
  * ------------------------------------------------------------------ */
 
 /** Every status, in the order they happen. */
-export const orderStatuses: OrderStatus[] = [
-  "new",
-  "paid",
-  "stitching",
-  "shipped",
-  "delivered",
-  "cancelled",
-];
+export const orderStatuses: OrderStatus[] = [...ADMIN_ORDER_STATUSES];
 
 /** What each status is called on screen. */
 export const orderStatusLabels: Record<OrderStatus, string> = {
-  new: "New",
-  paid: "Paid",
-  stitching: "Stitching",
-  shipped: "Shipped",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
-};
-
-/**
- * The statuses older records were saved under, and what they are called
- * now. Orders written before the rename still read back correctly.
- */
-const legacyStatusNames: Record<string, OrderStatus> = {
-  pending: "new",
-  confirmed: "paid",
-  in_production: "stitching",
+  ...ADMIN_ORDER_STATUS_LABELS,
 };
 
 /** The status of an order, whatever it was saved as. */
 export function normaliseStatus(value: string | undefined | null): OrderStatus {
-  const raw = (value ?? "").trim();
-  if (isOrderStatus(raw)) return raw;
-  return legacyStatusNames[raw] ?? "new";
+  return normaliseAdminOrderStatus(value ?? "");
 }
 
 /** Every payment state. */
@@ -563,6 +540,14 @@ export async function findOrderForReview(
  * The admin screens
  * ------------------------------------------------------------------ */
 
+/**
+ * Every stored order in full. The dashboard uses this for its statistics,
+ * customer list and order table; it is server-only.
+ */
+export async function listStoredOrders(): Promise<StoredOrder[]> {
+  return readOrders();
+}
+
 /** How many orders one page of the list holds. */
 export const ORDERS_PER_PAGE = 20;
 
@@ -685,12 +670,14 @@ export async function changeOrderStatus(
 
   const order = orders[index];
 
-  if (order.status === "cancelled") {
-    return { ok: false, error: "cancelled" };
-  }
-
   if (order.status === status) {
     return { ok: false, error: "same-status" };
+  }
+
+  // The workshop workflow is enforced on the server, not just in the UI:
+  // a delivered piece cannot jump back to pending, and a refund is final.
+  if (!canTransitionStatus(order.status, status)) {
+    return { ok: false, error: "invalid-transition" };
   }
 
   const from = order.status;
@@ -804,22 +791,22 @@ export async function markOrderAsPaid(
     message: "Cash on delivery marked as paid",
   });
 
-  // The money has arrived, so the order is paid — unless it has already
-  // moved further along.
-  if (from === "new") {
+  // The money has arrived, so a pending order is confirmed — unless it has
+  // already moved further along the workshop pipeline.
+  if (from === "pending") {
     events.push({
       at: now,
       type: "status",
       by: actor,
       from,
-      to: "paid",
-      message: `Status changed from ${orderStatusLabels[from]} to ${orderStatusLabels.paid}`,
+      to: "confirmed",
+      message: `Status changed from ${orderStatusLabels[from]} to ${orderStatusLabels.confirmed}`,
     });
   }
 
   const updated: StoredOrder = {
     ...order,
-    status: from === "new" ? "paid" : order.status,
+    status: from === "pending" ? "confirmed" : order.status,
     payment: { ...order.payment, status: "paid", paidAt: now },
     history: events,
   };
@@ -1038,7 +1025,7 @@ export async function createOrder(
         ? { chargedCurrency: input.payment.chargedCurrency }
         : {}),
     },
-    status: "new",
+    status: "pending",
     ...(input.deliveryNote ? { deliveryNote: input.deliveryNote } : {}),
     ...(input.termsAcceptedAt ? { termsAcceptedAt: input.termsAcceptedAt } : {}),
     idempotencyKey: key,
@@ -1048,7 +1035,7 @@ export async function createOrder(
         at: now,
         type: "status",
         by: "customer",
-        to: "new",
+        to: "pending",
         message: "Order placed",
       },
     ],
@@ -1133,7 +1120,7 @@ export async function markOrderPaid(
 
   const paid: StoredOrder = {
     ...order,
-    status: from === "new" ? "paid" : order.status,
+    status: from === "pending" ? "confirmed" : order.status,
     payment: {
       ...order.payment,
       status: "paid",
@@ -1146,7 +1133,7 @@ export async function markOrderPaid(
     history: events,
   };
 
-  if (from === "new") {
+  if (from === "pending") {
     paid.history = [
       ...events,
       {
@@ -1154,8 +1141,8 @@ export async function markOrderPaid(
         type: "status",
         by: actor,
         from,
-        to: "paid",
-        message: `Status changed from ${orderStatusLabels[from]} to ${orderStatusLabels.paid}`,
+        to: "confirmed",
+        message: `Status changed from ${orderStatusLabels[from]} to ${orderStatusLabels.confirmed}`,
       },
     ];
   }

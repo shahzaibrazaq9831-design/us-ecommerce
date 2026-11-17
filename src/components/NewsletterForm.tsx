@@ -77,7 +77,10 @@ export default function NewsletterForm() {
   }
 
   return (
-    <form className="flex gap-[var(--spacing-md)] [@media(max-width:768px)]:flex-col" onSubmit={handleSubmit}>
+    <form
+      className="grid grid-cols-[minmax(0,1fr)_auto] gap-[var(--spacing-md)] [@media(max-width:768px)]:grid-cols-1"
+      onSubmit={handleSubmit}
+    >
       <label className="sr-only" htmlFor="newsletter-email">
         Email address
       </label>
@@ -89,7 +92,7 @@ export default function NewsletterForm() {
         required
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="flex-1 rounded-[var(--radius-md)] border border-[var(--color-gray-300)] bg-white px-[20px] py-[14px] text-[0.95rem] text-[var(--color-gray-700)] [transition:all_var(--transition-fast)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-gold)] focus:bg-white"
+        className="w-full min-w-0 rounded-[var(--radius-md)] border border-[var(--color-gray-300)] bg-white px-[20px] py-[14px] text-[0.95rem] text-[var(--color-gray-700)] [transition:all_var(--transition-fast)] placeholder:text-[var(--color-gray-400)] focus:border-[var(--color-gold)] focus:bg-white"
       />
 
       {/* Honeypot — hidden from people, tempting for bots. */}
@@ -100,7 +103,11 @@ export default function NewsletterForm() {
         </label>
       </div>
 
-      <button type="submit" className="btn btn-primary" disabled={status === "busy"}>
+      <button
+        type="submit"
+        className="btn btn-primary whitespace-nowrap px-[16px]"
+        disabled={status === "busy"}
+      >
         {status === "busy" ? "Signing you up…" : "Subscribe"}
       </button>
 
