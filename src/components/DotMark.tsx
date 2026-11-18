@@ -86,8 +86,9 @@ export default function DotMark({
   ballColor = "#111",
   style = {},
   intro = true,
-  introDuration = 1000, // ms, fixed time for the cloud to gather into the wordmark
+  introDuration = 1000, // ms, quick exponential-style gather (matches the reference footer)
   introStagger = 500, // ms, total stagger window left→right
+  introLead = 1, // band heights above the viewport before the gather starts
   replay = false, // replay intro each time the section re-enters viewport
   headroom = 0, // px of empty space above the text for upward drift
 }) {
@@ -286,7 +287,12 @@ export default function DotMark({
         Math.min(vh, rect.bottom) - Math.max(0, rect.bottom - bandPx)
       );
       colorTarget = Math.min(1, visible / (bandPx * 0.85));
-      if (visible > 16) {
+      // The reference starts its particle gather before the wordmark itself
+      // appears: its canvas is three band-heights tall, so it enters view one
+      // band early. Start by the same lead instead of waiting for the band to
+      // cross into the viewport.
+      const startsAt = rect.bottom - bandPx * (1 + introLead);
+      if (startsAt < vh && rect.bottom > 0) {
         if (introArmed) {
           introArmed = false;
           startIntro();
@@ -317,9 +323,9 @@ export default function DotMark({
 
       if (intro && !reducedMotion && !introFinished && introActive) {
         // ---- Intro phase: the loose cloud gathers into the wordmark ----
-        // Time-based instead of per-frame exponential easing: the gather
-        // always finishes in ~introDuration (1s by default) no matter how far
-        // each dot starts or how fast the device paints frames.
+        // Time-based version of the reference's per-frame exponential ease:
+        // the gather always finishes in introDuration (1s by default), no
+        // matter how far each dot starts or how fast the device paints frames.
         let allDone = true;
         const duration = Math.max(1, introDuration);
 
@@ -333,10 +339,10 @@ export default function DotMark({
             continue;
           }
           allDone = false;
-          // easeInOutSine: a gentle start and even travel across the whole
-          // duration, so the name only becomes readable near the end of the
-          // second instead of snapping together in the first half.
-          const e = (1 - Math.cos(Math.PI * t)) / 2;
+          // easeOutCubic: a quick rush in, then a gentle settle. This is the
+          // shape of the reference's exponential particle motion; a slow
+          // ease-in makes the wordmark appear far too late.
+          const e = 1 - Math.pow(1 - t, 3);
           d.x = d.sx + (d.ox - d.sx) * e;
           d.y = d.sy + (d.oy - d.sy) * e;
           d.ialpha = 0.3 + 0.7 * e;
@@ -602,6 +608,7 @@ export default function DotMark({
     intro,
     introDuration,
     introStagger,
+    introLead,
     replay,
     headroom,
   ]);

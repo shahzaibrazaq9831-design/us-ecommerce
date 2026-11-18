@@ -75,6 +75,7 @@ export default function Footer() {
           idle={1.1}
           introDuration={1000}
           introStagger={0}
+          introLead={1}
           spreadEase={0.075}
           returnEase={0.028}
           mouseEase={0.18}
