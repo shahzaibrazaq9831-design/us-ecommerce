@@ -265,18 +265,31 @@ export default function CheckoutForm({
         body: JSON.stringify(payload),
       });
 
-      const data = (await response.json()) as {
+      // An infrastructure failure can arrive as an empty body (a bare 500),
+      // so read the text first. Parsing it as JSON unconditionally used to
+      // turn a real server error into "we could not reach the shop".
+      const raw = await response.text();
+      let data: {
         ok?: boolean;
         error?: string;
+        code?: string;
         issues?: { field: string; message: string }[];
         redirect?: string;
-      };
+      } = {};
+
+      try {
+        data = raw ? (JSON.parse(raw) as typeof data) : {};
+      } catch {
+        data = {};
+      }
 
       if (!response.ok || !data.ok) {
-        applyIssues(
-          data.issues ?? [],
-          data.error ?? "We could not place that order. Please try again."
-        );
+        const fallback = data.error
+          ? data.error
+          : response.status >= 500
+            ? "The shop could not save your order just now. Please try again in a moment."
+            : "We could not place that order. Please try again.";
+        applyIssues(data.issues ?? [], fallback);
         setSubmitting(false);
         return;
       }

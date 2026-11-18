@@ -122,6 +122,16 @@ create table if not exists public.store_orders (
   updated_at timestamptz not null default now()
 );
 
+-- Repair a table created by an earlier, partial migration. These match the
+-- columns written by the checkout in src/lib/orders.ts.
+alter table public.store_orders add column if not exists email text not null default '';
+alter table public.store_orders add column if not exists order_date timestamptz not null default now();
+alter table public.store_orders add column if not exists idempotency_key text;
+alter table public.store_orders add column if not exists payload jsonb not null default '{}'::jsonb;
+alter table public.store_orders add column if not exists created_at timestamptz not null default now();
+alter table public.store_orders add column if not exists updated_at timestamptz not null default now();
+
+create unique index if not exists store_orders_idempotency_key_key on public.store_orders (idempotency_key);
 create index if not exists idx_store_orders_order_date on public.store_orders (order_date desc);
 create index if not exists idx_store_orders_email on public.store_orders (lower(email));
 

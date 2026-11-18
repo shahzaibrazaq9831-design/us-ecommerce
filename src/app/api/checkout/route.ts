@@ -134,35 +134,62 @@ export async function POST(request: Request) {
     ...(line.notes ? { notes: line.notes } : {}),
   }));
 
-  const created = await createOrder({
-    idempotencyKey: input.idempotencyKey,
-    customer: {
-      name: input.contact.name,
-      email: input.contact.email,
-      phone: input.contact.phone,
-    },
-    address: input.address,
-    items,
-    totals: {
-      subtotal: priced.order.subtotal,
-      shipping: priced.order.shipping,
-      discount: priced.order.discount,
-      total: priced.order.total,
-      currency: priced.order.currency,
-      discountCode: priced.order.discountCode,
-    },
-    payment: {
-      method: input.paymentMethod === "cod" ? "cod" : "card",
-      status: "unpaid",
-    },
-    deliveryNote: input.deliveryNote || undefined,
-    termsAcceptedAt: new Date().toISOString(),
-  });
+  let created: Awaited<ReturnType<typeof createOrder>>;
+
+  try {
+    created = await createOrder({
+      idempotencyKey: input.idempotencyKey,
+      customer: {
+        name: input.contact.name,
+        email: input.contact.email,
+        phone: input.contact.phone,
+      },
+      address: input.address,
+      items,
+      totals: {
+        subtotal: priced.order.subtotal,
+        shipping: priced.order.shipping,
+        discount: priced.order.discount,
+        total: priced.order.total,
+        currency: priced.order.currency,
+        discountCode: priced.order.discountCode,
+      },
+      payment: {
+        method: input.paymentMethod === "cod" ? "cod" : "card",
+        status: "unpaid",
+      },
+      deliveryNote: input.deliveryNote || undefined,
+      termsAcceptedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    // createOrder reports storage failures as a result; this only catches
+    // something genuinely unexpected, but it still must not become a bare 500.
+    console.error("[checkout] Unexpected error while creating the order:", error);
+    return Response.json(
+      {
+        ok: false,
+        error: "We could not save that order. Please try again in a moment.",
+      },
+      { status: 500 }
+    );
+  }
 
   if (!created.ok) {
+    // The message is customer-safe; the database's own words were logged by
+    // the order store. A missing table or key is a deployment fault, so it is
+    // reported as unavailable rather than as a bad request.
+    console.error(
+      `[checkout] Order was not saved (code=${created.code ?? "unknown"}): ${created.error}`
+    );
+
+    const unavailable =
+      created.code === "not-configured" ||
+      created.code === "missing-table" ||
+      created.code === "permission";
+
     return Response.json(
-      { ok: false, error: "We could not save that order. Please try again." },
-      { status: 500 }
+      { ok: false, error: created.error, code: created.code },
+      { status: unavailable ? 503 : 500 }
     );
   }
 
@@ -192,7 +219,11 @@ export async function POST(request: Request) {
 
       await setPaymentReference(order.id, start.reference);
       redirect = start.url;
-    } catch {
+    } catch (error) {
+      console.error(
+        `[checkout] Could not start the card payment for order ${order.id}:`,
+        error
+      );
       return Response.json(
         {
           ok: false,

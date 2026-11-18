@@ -332,15 +332,115 @@ let supabaseClient: SupabaseClient<OrderDatabase, "public"> | null = null;
 /** The project URL is public metadata, so it can default in code. */
 const DEFAULT_SUPABASE_URL = "https://ylhtywpwykiakfzaades.supabase.co";
 
+/**
+ * The server-only key used to reach Supabase.
+ *
+ * Two names are in use in this repository: the checkout has always read
+ * `SUPABASE_SERVICE_ROLE_KEY`, while the admin dashboard documents
+ * `SUPABASE_SERVICE_KEY`. Accepting both means either one set in Vercel is
+ * enough — a deployment is never left unable to save orders because the key
+ * was stored under the other name.
+ */
+export function supabaseServiceKey(): string {
+  return (
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
+    process.env.SUPABASE_SERVICE_KEY?.trim() ||
+    ""
+  );
+}
+
+/** The project URL the server talks to. */
+export function supabaseProjectUrl(): string {
+  return process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || DEFAULT_SUPABASE_URL;
+}
+
+/** What went wrong when the order store was used. */
+export type OrderStoreErrorCode =
+  | "not-configured"
+  | "missing-table"
+  | "permission"
+  | "read-failed"
+  | "write-failed";
+
+/** A failure from the order store, carrying enough detail to be actionable. */
+export class OrderStoreError extends Error {
+  readonly code: OrderStoreErrorCode;
+  /** The database's own words, for the server log. Never sent to a browser. */
+  readonly detail: string;
+
+  constructor(code: OrderStoreErrorCode, detail: string) {
+    super(detail);
+    this.name = "OrderStoreError";
+    this.code = code;
+    this.detail = detail;
+  }
+}
+
+/** Turn a Supabase/PostgREST failure into a specific order-store error. */
+function toOrderStoreError(
+  error: { code?: string; message?: string; details?: string | null; hint?: string | null },
+  action: "read" | "write"
+): OrderStoreError {
+  const detail = [
+    error.code ? `code=${error.code}` : "",
+    error.message ?? "",
+    error.details ?? "",
+    error.hint ?? "",
+  ]
+    .filter(Boolean)
+    .join(" | ");
+
+  const text = `${error.code ?? ""} ${error.message ?? ""}`.toLowerCase();
+
+  if (
+    error.code === "PGRST205" ||
+    error.code === "42P01" ||
+    text.includes("could not find the table") ||
+    text.includes("does not exist")
+  ) {
+    return new OrderStoreError("missing-table", detail);
+  }
+
+  if (
+    error.code === "42501" ||
+    text.includes("permission denied") ||
+    text.includes("invalid api key") ||
+    text.includes("no api key") ||
+    text.includes("jwt")
+  ) {
+    return new OrderStoreError("permission", detail);
+  }
+
+  return new OrderStoreError(action === "read" ? "read-failed" : "write-failed", detail);
+}
+
+/** The safe sentence the checkout can show for an order-store failure. */
+export function orderStoreErrorMessage(code: OrderStoreErrorCode | undefined): string {
+  switch (code) {
+    case "not-configured":
+      return "Order storage is not configured on this server. Set SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SERVICE_KEY) and redeploy.";
+    case "missing-table":
+      return "Order storage is not set up yet: the Supabase store_orders table is missing. Apply db/orders.sql in the Supabase SQL editor, then try again.";
+    case "permission":
+      return "Order storage rejected the request. Check that the Supabase service key belongs to this project and has not been restricted.";
+    case "read-failed":
+      return "We could not read the order store. Please try again in a moment.";
+    case "write-failed":
+    default:
+      return "We could not save that order. Please try again in a moment.";
+  }
+}
+
 /** The server-only database client, or null for local file-backed development. */
 function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || DEFAULT_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const url = supabaseProjectUrl();
+  const key = supabaseServiceKey();
 
   if (!key && process.env.NODE_ENV !== "production") return null;
   if (!key) {
-    throw new Error(
-      "Order storage requires SUPABASE_SERVICE_ROLE_KEY on the server."
+    throw new OrderStoreError(
+      "not-configured",
+      "Order storage requires SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SERVICE_KEY) on the server."
     );
   }
 
@@ -420,7 +520,11 @@ async function readOrders(): Promise<StoredOrder[]> {
       .range(from, from + PAGE_SIZE - 1);
 
     if (error) {
-      throw new Error(`Could not read orders from Supabase: ${error.message}`);
+      const storeError = toOrderStoreError(error, "read");
+      console.error(
+        `[orders] Could not read ${ORDER_TABLE} from Supabase: ${storeError.code}: ${storeError.detail}`
+      );
+      throw storeError;
     }
 
     const rows = data ?? [];
@@ -456,7 +560,11 @@ async function saveOrder(
   });
 
   if (error) {
-    throw new Error(`Could not save order ${order.id}: ${error.message}`);
+    const storeError = toOrderStoreError(error, "write");
+    console.error(
+      `[orders] Could not save order ${order.id} in Supabase: ${storeError.code}: ${storeError.detail}`
+    );
+    throw storeError;
   }
   if (!data) {
     throw new Error(
@@ -491,16 +599,22 @@ async function insertOrder(
       .maybeSingle();
 
     if (lookupError) {
-      throw new Error(
-        `Could not check an existing order after an insert conflict: ${lookupError.message}`
+      const storeError = toOrderStoreError(lookupError, "read");
+      console.error(
+        `[orders] Could not check an existing order after an insert conflict: ${storeError.code}: ${storeError.detail}`
       );
+      throw storeError;
     }
 
     const existing = data ? storedOrderFromPayload(data.payload) : null;
     if (existing) return { order: existing, created: false };
   }
 
-  throw new Error(`Could not create order ${order.id}: ${error.message}`);
+  const storeError = toOrderStoreError(error, "write");
+  console.error(
+    `[orders] Could not create order ${order.id} in Supabase: ${storeError.code}: ${storeError.detail}`
+  );
+  throw storeError;
 }
 
 /* ------------------------------------------------------------------ *
@@ -988,7 +1102,7 @@ export interface CreateOrderInput {
 /** What creating an order says. */
 export type CreateOrderResult =
   | { ok: true; order: StoredOrder; created: boolean }
-  | { ok: false; error: string };
+  | { ok: false; error: string; code?: OrderStoreErrorCode };
 
 /**
  * Create an order — or hand back the one that already exists.
@@ -997,57 +1111,83 @@ export type CreateOrderResult =
  * presses "Place order" twice, or a request that arrives again because
  * the connection dropped, gets the same order both times instead of two
  * orders and two charges.
+ *
+ * A storage failure is turned into a result with a specific code rather
+ * than thrown into the route handler, so the checkout can say what is
+ * actually wrong (missing table, bad key, …) and the server log can keep
+ * the database's own words.
  */
 export async function createOrder(
   input: CreateOrderInput
 ): Promise<CreateOrderResult> {
-  const orders = await readOrders();
   const key = (input.idempotencyKey ?? "").trim();
 
   if (!key) return { ok: false, error: "missing-idempotency-key" };
 
-  const existing = orders.find((order) => order.idempotencyKey === key);
-  if (existing) return { ok: true, order: existing, created: false };
+  try {
+    const orders = await readOrders();
 
-  const now = new Date().toISOString();
+    const existing = orders.find((order) => order.idempotencyKey === key);
+    if (existing) return { ok: true, order: existing, created: false };
 
-  const order: StoredOrder = {
-    id: pickOrderId(orders),
-    date: now,
-    email: (input.customer.email ?? "").trim().toLowerCase(),
-    customer: input.customer,
-    address: input.address,
-    items: input.items,
-    totals: input.totals,
-    payment: {
-      method: input.payment.method,
-      status: input.payment.status ?? "unpaid",
-      ...(input.payment.reference ? { reference: input.payment.reference } : {}),
-      ...(input.payment.chargedAmount !== undefined
-        ? { chargedAmount: input.payment.chargedAmount }
-        : {}),
-      ...(input.payment.chargedCurrency
-        ? { chargedCurrency: input.payment.chargedCurrency }
-        : {}),
-    },
-    status: "pending",
-    ...(input.deliveryNote ? { deliveryNote: input.deliveryNote } : {}),
-    ...(input.termsAcceptedAt ? { termsAcceptedAt: input.termsAcceptedAt } : {}),
-    idempotencyKey: key,
-    notifications: {},
-    history: [
-      {
-        at: now,
-        type: "status",
-        by: "customer",
-        to: "pending",
-        message: "Order placed",
+    const now = new Date().toISOString();
+
+    const order: StoredOrder = {
+      id: pickOrderId(orders),
+      date: now,
+      email: (input.customer.email ?? "").trim().toLowerCase(),
+      customer: input.customer,
+      address: input.address,
+      items: input.items,
+      totals: input.totals,
+      payment: {
+        method: input.payment.method,
+        status: input.payment.status ?? "unpaid",
+        ...(input.payment.reference ? { reference: input.payment.reference } : {}),
+        ...(input.payment.chargedAmount !== undefined
+          ? { chargedAmount: input.payment.chargedAmount }
+          : {}),
+        ...(input.payment.chargedCurrency
+          ? { chargedCurrency: input.payment.chargedCurrency }
+          : {}),
       },
-    ],
-  };
+      status: "pending",
+      ...(input.deliveryNote ? { deliveryNote: input.deliveryNote } : {}),
+      ...(input.termsAcceptedAt ? { termsAcceptedAt: input.termsAcceptedAt } : {}),
+      idempotencyKey: key,
+      notifications: {},
+      history: [
+        {
+          at: now,
+          type: "status",
+          by: "customer",
+          to: "pending",
+          message: "Order placed",
+        },
+      ],
+    };
 
-  const inserted = await insertOrder(order);
-  return { ok: true, order: inserted.order, created: inserted.created };
+    const inserted = await insertOrder(order);
+    return { ok: true, order: inserted.order, created: inserted.created };
+  } catch (error) {
+    const storeError =
+      error instanceof OrderStoreError
+        ? error
+        : new OrderStoreError(
+            "write-failed",
+            error instanceof Error ? error.message : String(error)
+          );
+
+    console.error(
+      `[orders] Could not create order: ${storeError.code}: ${storeError.detail}`
+    );
+
+    return {
+      ok: false,
+      error: orderStoreErrorMessage(storeError.code),
+      code: storeError.code,
+    };
+  }
 }
 
 /**

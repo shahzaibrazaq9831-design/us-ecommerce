@@ -1,6 +1,10 @@
 -- Durable order storage for production deployments.
 -- Run this in the Supabase SQL Editor before setting the Vercel environment
 -- variables documented in README.md.
+--
+-- It is safe to re-run. If the table already exists but is missing a column
+-- the insert needs, the ALTER statements below add it without touching the
+-- rows already stored.
 
 create table if not exists public.store_orders (
   id text primary key,
@@ -11,6 +15,21 @@ create table if not exists public.store_orders (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Repair a partially-created table. Every column the checkout writes is
+-- listed here, so "column does not exist" cannot come back after this file
+-- has been run.
+alter table public.store_orders add column if not exists email text not null default '';
+alter table public.store_orders add column if not exists order_date timestamptz not null default now();
+alter table public.store_orders add column if not exists idempotency_key text;
+alter table public.store_orders add column if not exists payload jsonb not null default '{}'::jsonb;
+alter table public.store_orders add column if not exists created_at timestamptz not null default now();
+alter table public.store_orders add column if not exists updated_at timestamptz not null default now();
+
+-- The idempotency key is what makes placing the same order twice safe. The
+-- table declaration makes it unique; this covers a table created without it.
+create unique index if not exists store_orders_idempotency_key_key
+  on public.store_orders (idempotency_key);
 
 create index if not exists idx_store_orders_order_date
   on public.store_orders (order_date desc);
@@ -52,3 +71,10 @@ revoke all on function public.update_store_order(text, jsonb, jsonb)
   from public, anon, authenticated;
 grant execute on function public.update_store_order(text, jsonb, jsonb)
   to service_role;
+
+-- A quick answer in the SQL Editor: this should return one row with
+-- table_name = store_orders.
+select table_name
+from information_schema.tables
+where table_schema = 'public'
+  and table_name = 'store_orders';

@@ -4,11 +4,13 @@ import { createClient } from "@supabase/supabase-js";
 
 const ordersPath = path.join(process.cwd(), ".data", "orders.json");
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+const serviceRoleKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
+  process.env.SUPABASE_SERVICE_KEY?.trim();
 
 if (!supabaseUrl || !serviceRoleKey) {
   throw new Error(
-    "Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY before migrating orders."
+    "Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SERVICE_KEY) before migrating orders."
   );
 }
 

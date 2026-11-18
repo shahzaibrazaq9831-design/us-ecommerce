@@ -133,6 +133,18 @@ To preserve existing local orders, set the same two Supabase variables in
 script inserts missing orders and stops rather than overwriting different
 records with the same order number.
 
+`SUPABASE_SERVICE_KEY` is accepted as an alternative name for
+`SUPABASE_SERVICE_ROLE_KEY`, so a deployment that already stores the key under
+either name works. To check a project before or after deploying, run
+`npm run check:supabase`: it reports whether `store_orders` and `products`
+exist, and names the SQL file to apply when one is missing.
+
+If checkout answers **“Order storage is not set up yet: the Supabase
+store_orders table is missing”**, the code is deployed but the database schema
+has not been applied. Open the Supabase SQL editor, run
+[`db/orders.sql`](./db/orders.sql), then place the order again — no redeploy is
+needed.
+
 ## Checkout, Payments & Emails
 
 The checkout at `/checkout` is a real guest checkout: contact details, the
