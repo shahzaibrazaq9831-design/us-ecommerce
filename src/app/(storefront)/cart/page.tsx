@@ -6,7 +6,7 @@ import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart, cartLineKey } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import CartItemDetails from "@/components/CartItemDetails";
-import DiscountCodeField from "@/components/DiscountCodeField";
+import { MULTI_BUY_DISCOUNT_LABEL } from "@/lib/offers";
 
 export default function CartPage() {
   const {
@@ -112,8 +112,6 @@ export default function CartPage() {
           <aside className="cart-summary">
             <h2 className="cart-summary-title">Order Summary</h2>
 
-            <DiscountCodeField />
-
             <div className="cart-totals">
               <div className="cart-total-row">
                 <span>Subtotal</span>
@@ -121,7 +119,7 @@ export default function CartPage() {
               </div>
               {discount > 0 && (
                 <div className="cart-total-row cart-total-row--discount">
-                  <span>Discount</span>
+                  <span>{MULTI_BUY_DISCOUNT_LABEL}</span>
                   <span>-{formatPrice(discount)}</span>
                 </div>
               )}

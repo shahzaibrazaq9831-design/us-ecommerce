@@ -99,7 +99,12 @@ export interface OrderTotals {
   total: number;
   /** The currency the totals are in. */
   currency?: string;
-  /** The discount code that was applied, or "" when none was. */
+  /**
+   * The offer that reduced the order, or "" when none did.
+   *
+   * This is an internal marker (see `MULTI_BUY_DISCOUNT_REF`), not a
+   * customer-entered code.
+   */
   discountCode?: string;
 }
 

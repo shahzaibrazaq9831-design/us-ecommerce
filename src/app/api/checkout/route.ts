@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { validateCheckoutInput } from "@/lib/checkout-validation";
+import { firstCheckoutIssue, validateCheckoutInput } from "@/lib/checkout-validation";
 import { priceCart } from "@/lib/pricing";
 import {
   createOrder,
@@ -20,6 +20,7 @@ import { baseUrlFromRequest, isLocalRequest } from "@/lib/seo";
 import { sendNewOrderNotice, sendOrderConfirmation } from "@/lib/email";
 import { RATE_LIMITS, rateLimit, rateLimitKey } from "@/lib/rate-limit";
 import { convertPrice, getExchangeRates } from "@/lib/currency";
+import { countryCurrency } from "@/lib/countries";
 import type { OrderItem } from "@/lib/orders";
 
 /**
@@ -72,10 +73,13 @@ export async function POST(request: Request) {
   const validation = validateCheckoutInput(body);
 
   if (!validation.valid) {
+    const first = firstCheckoutIssue(validation.issues);
     return Response.json(
       {
         ok: false,
-        error: "Please check the highlighted fields and try again.",
+        error: first
+          ? `Please fix ${validation.issues.length} field${validation.issues.length === 1 ? "" : "s"}. First: ${first.message}`
+          : "We could not place that order. Please try again.",
         issues: validation.issues,
       },
       { status: 400 }
@@ -85,7 +89,7 @@ export async function POST(request: Request) {
   const input = validation.value;
 
   /* 3. Work the money out from the catalogue. ------------------------ */
-  const priced = priceCart(input.items, input.discountCode);
+  const priced = priceCart(input.items);
 
   if (!priced.ok) {
     return Response.json({ ok: false, error: priced.error }, { status: 400 });
@@ -166,7 +170,9 @@ export async function POST(request: Request) {
 
   /* 5. Start the payment. ------------------------------------------- */
   const cookieStore = await cookies();
-  const currency = resolveChargeCurrency(cookieStore.get("ppd_currency")?.value);
+  // The shipping country decides the money, not a browser cookie that may be
+  // from an earlier visit or from another tab.
+  const currency = resolveChargeCurrency(countryCurrency(input.address.country));
   const baseUrl = baseUrlFromRequest(request);
 
   let redirect = `/order/${encodeURIComponent(order.id)}`;

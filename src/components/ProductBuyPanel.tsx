@@ -16,12 +16,7 @@ import StitchingSelector, {
   emptySelection,
   type StitchingSelection,
 } from "@/components/StitchingSelector";
-
-const OFFER_POINTS = [
-  "30% OFF Storewide",
-  "Free Shipping Worldwide",
-  "Buy 2 & Get Extra 10% OFF",
-] as const;
+import { PRODUCT_OFFER_POINTS } from "@/lib/offers";
 
 interface ProductBuyPanelProps {
   product: Product;
@@ -169,7 +164,7 @@ export default function ProductBuyPanel({ product, rating }: ProductBuyPanelProp
 
       {/* Store offers */}
       <ul className="buy-panel-offers">
-        {OFFER_POINTS.map((offer) => (
+        {PRODUCT_OFFER_POINTS.map((offer) => (
           <li key={offer}>
             <Check size={15} strokeWidth={3} aria-hidden="true" />
             <strong>{offer}</strong>
@@ -248,12 +243,6 @@ export default function ProductBuyPanel({ product, rating }: ProductBuyPanelProp
         <i className={wishlisted ? "fas fa-heart" : "far fa-heart"} aria-hidden="true" />
         {wishlisted ? "In Wishlist" : "Add to Wishlist"}
       </button>
-
-      {/* Express delivery notice */}
-      <p className="buy-panel-express">
-        <strong>If you need your order Within 10 Days</strong> – Just Pay an <strong>$30 USD Extra</strong>{" "}
-        You&apos;ll get your Dress in 10 Days. <strong>Guaranteed!</strong>
-      </p>
 
       {/* Description */}
       <p className="buy-panel-description">{product.description}</p>

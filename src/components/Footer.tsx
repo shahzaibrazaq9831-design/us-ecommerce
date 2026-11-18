@@ -161,7 +161,7 @@ export default function Footer() {
 
         <div className="mt-[var(--spacing-md)] w-full pb-[var(--spacing-md)]">
           <DotMark
-            text="DAMSA COTURE"
+            text="RUNG E BAHAR"
             height={120}
             headroom={45}
             upward={100}

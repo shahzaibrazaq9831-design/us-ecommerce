@@ -6,7 +6,6 @@ import { ProductRatingsProvider } from "@/components/ProductRatingsProvider";
 import { getExchangeRates, resolveCurrency } from "@/lib/currency";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import Header from "@/components/Header";
-import OfferStrip from "@/components/OfferStrip";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import Footer from "@/components/Footer";
 import FloatingElements from "@/components/FloatingElements";
@@ -16,9 +15,9 @@ import CookieConsent from "@/components/CookieConsent";
 import { getStorefrontSettings } from "@/lib/storefront-settings";
 
 /**
- * Everything a customer sees around a page — including the announcement and
- * offer strips — belongs to this group only. Admin screens use the root layout
- * directly, so there is no flash of storefront chrome on login or refresh.
+ * Everything a customer sees around a page — including the announcement bar —
+ * belongs to this group only. Admin screens use the root layout directly, so
+ * there is no flash of storefront chrome on login or refresh.
  */
 export default function StorefrontLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -63,22 +62,13 @@ async function StorefrontShell({ children }: { children: React.ReactNode }) {
             >
               <Header />
             </Suspense>
-            <OfferStrip
-              enabled={settings.offerEnabled}
-              endDate={settings.offerEndDate}
-              discountCode={settings.discountCode}
-              discountPercent={settings.discountPercent}
-            />
           </div>
           <Suspense fallback={null}>
             <Breadcrumbs />
           </Suspense>
           <main id="main-content">{children}</main>
           <Footer />
-          <FloatingElements
-            promoCode={settings.discountCode}
-            promoDiscount={`${settings.discountPercent}%`}
-          />
+          <FloatingElements />
           <FloatingWhatsApp />
           <CartDrawer />
           {/* The cookie banner sits over the page: it never pushes the

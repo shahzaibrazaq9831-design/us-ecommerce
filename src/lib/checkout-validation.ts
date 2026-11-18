@@ -1,29 +1,28 @@
 /**
- * Checkout validation — the rules the checkout form follows.
+ * Checkout validation — one Zod schema, used in the browser and on the server.
  *
- * This module is shared by the browser and the server, and that is the
- * whole point of it. The form in the browser checks the fields as the
- * customer types, so mistakes are caught early; the route handler checks
- * the very same rules again when the form is sent, because a form can be
- * edited in the browser and a request can be written by hand. One set of
- * rules means the two checks can never drift apart.
- *
- * The rules are deliberately plain: required fields, sensible lengths,
- * and the stitching rules the catalogue already defines (a piece is only
- * offered in the ways the catalogue says it is, custom stitching needs
- * measurements, standard stitching needs a size).
+ * The form checks the schema as the customer submits, so mistakes are caught
+ * before a request is sent. The API checks the very same schema again, because
+ * a request can be written by hand. One schema means the two checks cannot
+ * drift apart, and every failed check carries the exact field path so the
+ * server can tell the form which box to mark and which message to show.
  */
 
+import { z } from "zod";
 import {
   getProductBySlug,
   measurementFields,
   standardSizes,
   validateMeasurements,
-  type Measurements,
   type MeasurementKey,
+  type Measurements,
   type StitchingOption,
 } from "@/lib/products";
 import { MAX_QUANTITY_PER_LINE, MAX_LINES_PER_ORDER, type CartLineInput } from "@/lib/pricing";
+import {
+  isSupportedShippingCountry,
+  normalizeCountryCode,
+} from "@/lib/countries";
 
 /* ------------------------------------------------------------------ *
  * Types
@@ -36,7 +35,7 @@ export interface CheckoutContact {
   phone: string;
 }
 
-/** Where the order is going. */
+/** Where the order is going. `country` is one of the shipping market codes. */
 export interface CheckoutAddress {
   line1: string;
   line2?: string;
@@ -59,8 +58,6 @@ export interface CheckoutInput {
   termsAccepted: boolean;
   /** The pieces, as the browser describes them. */
   items: CartLineInput[];
-  /** The discount code, if there is one. */
-  discountCode: string;
   /** How the customer wants to pay. */
   paymentMethod: PaymentMethodChoice;
   /** A key that makes creating the order safe to repeat. */
@@ -84,387 +81,301 @@ export type CheckoutValidation =
  * Limits
  * ------------------------------------------------------------------ */
 
-/** The longest name we keep. */
 export const MAX_NAME_LENGTH = 80;
-
-/** The longest email address we keep. */
 export const MAX_EMAIL_LENGTH = 200;
-
-/** The longest phone number we keep. */
 export const MAX_PHONE_LENGTH = 25;
-
-/** The longest address line we keep. */
 export const MAX_ADDRESS_LENGTH = 200;
-
-/** The longest city, state or country name we keep. */
 export const MAX_PLACE_LENGTH = 80;
-
-/** The longest postal code we keep. */
 export const MAX_POSTAL_CODE_LENGTH = 20;
-
-/** The longest delivery note we keep. */
 export const MAX_DELIVERY_NOTE_LENGTH = 500;
-
-/** The longest note on one piece we keep. */
 export const MAX_ITEM_NOTE_LENGTH = 300;
 
-/** A plain, forgiving email check — the provider is the real judge. */
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-/** Phone numbers may hold spaces, brackets and a leading plus. */
-const PHONE_PATTERN = /^[0-9+()\-.\s]{6,25}$/;
+/** The order the form is laid out in, used to focus the first bad field. */
+export const CHECKOUT_FIELD_ORDER = [
+  "contact.name",
+  "contact.email",
+  "contact.phone",
+  "address.line1",
+  "address.line2",
+  "address.city",
+  "address.state",
+  "address.postalCode",
+  "address.country",
+  "deliveryNote",
+  "items",
+  "paymentMethod",
+  "termsAccepted",
+  "idempotencyKey",
+] as const;
 
 /* ------------------------------------------------------------------ *
- * Helpers
+ * Phone numbers
  * ------------------------------------------------------------------ */
 
-/** Read a string field, trimmed. */
-function readString(value: unknown): string {
-  if (typeof value === "string") return value.trim();
-  if (typeof value === "number" && Number.isFinite(value)) return String(value);
-  return "";
+/** Digits only, so spaces, brackets and dashes are all accepted. */
+function phoneDigits(value: string): string {
+  return value.replace(/\D/g, "");
 }
 
-/** Read a boolean field. */
-function readBoolean(value: unknown): boolean {
-  return value === true || value === "true" || value === "on" || value === "1";
+/**
+ * Check a phone number against the selected shipping market.
+ *
+ * Pakistan and the UK have their own familiar national formats. Everywhere
+ * else we ask for an international number with its country code, because a
+ * bare local number cannot tell us which country it belongs to.
+ */
+export function isValidPhone(value: string, countryCode: string): boolean {
+  const phone = value.trim();
+
+  // The character check keeps letters and punctuation out before we look at
+  // the digit count. A leading + or 00 is the only country-code marker.
+  if (!/^\+?[0-9()\-. ]{6,25}$/.test(phone)) return false;
+
+  const digits = phoneDigits(phone).replace(/^0092/, "92").replace(/^0044/, "44");
+  const hasPlus = phone.startsWith("+");
+
+  if (countryCode === "PK") {
+    const national = digits.startsWith("92") ? digits.slice(2) : digits;
+    return /^0?3\d{9}$/.test(national);
+  }
+
+  if (countryCode === "GB") {
+    if (digits.startsWith("44")) return /^44\d{9,10}$/.test(digits);
+    return /^0\d{9,10}$/.test(digits);
+  }
+
+  // Outside the two national formats, the number has to carry its country
+  // code: either +<code> or the 00<code> international dialling prefix.
+  if (hasPlus) return /^[1-9]\d{7,14}$/.test(digits);
+  return /^00[1-9]\d{7,14}$/.test(digits);
 }
 
-/** Read a plain object, or an empty one when it is not an object. */
-function readObject(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
-}
-
-/** The measurements as the catalogue expects them, or null when they are broken. */
-function readMeasurements(value: unknown): Measurements | null {
-  if (!value || typeof value !== "object") return null;
-
-  const raw = value as Record<string, unknown>;
-  const unit = raw.unit === "cm" ? "cm" : "in";
-
-  const measurements: Measurements = {
-    unit,
-    bust: Number(raw.bust),
-    waist: Number(raw.waist),
-    hip: Number(raw.hip),
-    shoulder: Number(raw.shoulder),
-    sleeveLength: Number(raw.sleeveLength),
-    dressLength: Number(raw.dressLength),
-  };
-
-  return measurements;
-}
-
-/** The measurements as typed values, so the catalogue can check them. */
-function measurementValues(measurements: Measurements) {
-  const values: Record<MeasurementKey, string> = {
-    bust: String(measurements.bust),
-    waist: String(measurements.waist),
-    hip: String(measurements.hip),
-    shoulder: String(measurements.shoulder),
-    sleeveLength: String(measurements.sleeveLength),
-    dressLength: String(measurements.dressLength),
-  };
-
-  return values;
+/** The phone message that matches the market the customer picked. */
+export function phoneErrorMessage(countryCode: string): string {
+  if (countryCode === "PK") {
+    return "Enter a valid Pakistani number, e.g. 0300 1234567 or +92 300 1234567.";
+  }
+  if (countryCode === "GB") {
+    return "Enter a valid UK number, e.g. 07700 900123 or +44 7700 900123.";
+  }
+  return "Enter a valid phone number with country code, e.g. +1 555 123 4567.";
 }
 
 /* ------------------------------------------------------------------ *
- * Validation
+ * Zod schema
+ * ------------------------------------------------------------------ */
+
+/** Trim a required string before the other rules run. */
+function requiredText(max: number, message: string, maxMessage: string) {
+  return z.preprocess(
+    (value) => (typeof value === "string" ? value.trim() : value),
+    z.string({ error: message }).min(1, message).max(max, maxMessage)
+  );
+}
+
+/** An empty optional string is treated as "not supplied". */
+function optionalText(max: number, message: string) {
+  return z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    z.string({ error: message }).trim().max(max, message).optional()
+  );
+}
+
+const measurementsSchema = z.object({
+  unit: z.enum(["cm", "in"], { error: "Choose cm or inches." }),
+  bust: z.number({ error: "Enter the bust measurement." }),
+  waist: z.number({ error: "Enter the waist measurement." }),
+  hip: z.number({ error: "Enter the hip measurement." }),
+  shoulder: z.number({ error: "Enter the shoulder measurement." }),
+  sleeveLength: z.number({ error: "Enter the sleeve measurement." }),
+  dressLength: z.number({ error: "Enter the dress length." }),
+});
+
+const itemSchema = z.object({
+  slug: requiredText(200, "One of the pieces in your cart has no design.", "That design is not valid."),
+  quantity: z.number({ error: "Enter a quantity." }).int("Enter a whole number.").min(1, "Choose at least one.").max(
+    MAX_QUANTITY_PER_LINE,
+    `Please choose no more than ${MAX_QUANTITY_PER_LINE} of one piece.`
+  ),
+  stitching: z.enum(["unstitched", "standard", "custom"], {
+    error: "Choose how you would like that piece made.",
+  }).default("standard"),
+  size: optionalText(80, "Please keep the size under 80 characters."),
+  lining: optionalText(80, "Please keep the lining under 80 characters."),
+  measurements: measurementsSchema.optional(),
+  notes: optionalText(MAX_ITEM_NOTE_LENGTH, `Please keep notes under ${MAX_ITEM_NOTE_LENGTH} characters.`),
+});
+
+/** The single source of truth for checkout input. */
+export const checkoutSchema = z
+  .object({
+    contact: z.object({
+      name: requiredText(MAX_NAME_LENGTH, "Please tell us your name.", `Please keep your name under ${MAX_NAME_LENGTH} characters.`),
+      email: z
+        .string({ error: "We need an email address to send your confirmation." })
+        .trim()
+        .min(1, "We need an email address to send your confirmation.")
+        .max(MAX_EMAIL_LENGTH, `Please keep your email under ${MAX_EMAIL_LENGTH} characters.`)
+        .email("That email address does not look right."),
+      phone: requiredText(MAX_PHONE_LENGTH, "We need a phone number for the courier.", `Please keep your phone number under ${MAX_PHONE_LENGTH} characters.`),
+    }),
+    address: z.object({
+      line1: requiredText(MAX_ADDRESS_LENGTH, "Please give us the street address.", `Please keep the address under ${MAX_ADDRESS_LENGTH} characters.`),
+      line2: optionalText(MAX_ADDRESS_LENGTH, `Please keep this under ${MAX_ADDRESS_LENGTH} characters.`),
+      city: requiredText(MAX_PLACE_LENGTH, "Please give us the city.", `Please keep the city under ${MAX_PLACE_LENGTH} characters.`),
+      state: optionalText(MAX_PLACE_LENGTH, `Please keep this under ${MAX_PLACE_LENGTH} characters.`),
+      postalCode: optionalText(MAX_POSTAL_CODE_LENGTH, `Please keep the postal code under ${MAX_POSTAL_CODE_LENGTH} characters.`),
+      country: z
+        .string({ error: "Please tell us which country to send it to." })
+        .trim()
+        .min(1, "Please tell us which country to send it to.")
+        .transform(normalizeCountryCode)
+        .refine(isSupportedShippingCountry, "Choose one of the shipping countries from the list."),
+    }),
+    deliveryNote: optionalText(MAX_DELIVERY_NOTE_LENGTH, `Please keep the delivery note under ${MAX_DELIVERY_NOTE_LENGTH} characters.`),
+    termsAccepted: z.literal(true, {
+      error: "Please accept the terms and the returns policy to place your order.",
+    }),
+    items: z
+      .array(itemSchema)
+      .min(1, "Your cart is empty.")
+      .max(MAX_LINES_PER_ORDER, `An order can hold ${MAX_LINES_PER_ORDER} different pieces at once.`),
+    paymentMethod: z.enum(["card", "cod"], {
+      error: "Please choose how you would like to pay.",
+    }),
+    idempotencyKey: z
+      .string({ error: "This checkout could not be started. Please refresh the page and try again." })
+      .trim()
+      .min(8, "This checkout could not be started. Please refresh the page and try again.")
+      .max(128, "This checkout could not be started. Please refresh the page and try again."),
+  })
+  .superRefine((value, ctx) => {
+    if (value.contact.phone && !isValidPhone(value.contact.phone, value.address.country)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["contact", "phone"],
+        message: phoneErrorMessage(value.address.country),
+      });
+    }
+
+    value.items.forEach((line, index) => {
+      const product = getProductBySlug(line.slug);
+      if (!product) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["items", index, "slug"],
+          message: "One of the pieces in your cart is no longer in our collection.",
+        });
+        return;
+      }
+
+      if (product.availability === "out_of_stock") {
+        ctx.addIssue({
+          code: "custom",
+          path: ["items", index, "slug"],
+          message: `${product.name} has sold out. Please remove it to place your order.`,
+        });
+        return;
+      }
+
+      const stitching = line.stitching as StitchingOption;
+      if (!product.stitching.includes(stitching)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["items", index, "stitching"],
+          message: `${product.name} is not available with that stitching.`,
+        });
+        return;
+      }
+
+      if (stitching === "standard") {
+        if (!line.size) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["items", index, "size"],
+            message: `Please choose a size for ${product.name}.`,
+          });
+          return;
+        }
+        if (!standardSizes.includes(line.size)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["items", index, "size"],
+            message: "That size is not one we make.",
+          });
+          return;
+        }
+      }
+
+      if (stitching === "custom") {
+        const measurements = line.measurements as Measurements | undefined;
+        if (!measurements) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["items", index, "measurements"],
+            message: `Please add your measurements for ${product.name}.`,
+          });
+          return;
+        }
+
+        const keys = measurementFields.map((field) => field.key);
+        const values = Object.fromEntries(
+          keys.map((key) => [key, String(measurements[key])])
+        ) as Record<MeasurementKey, string>;
+        const check = validateMeasurements(values, measurements.unit);
+
+        if (!check.valid) {
+          const firstField = keys.find((key) => check.errors[key]);
+          ctx.addIssue({
+            code: "custom",
+            path: ["items", index, "measurements"],
+            message:
+              (firstField ? check.errors[firstField] : undefined) ??
+              "Those measurements do not look right.",
+          });
+          return;
+        }
+      }
+    });
+  });
+
+/* ------------------------------------------------------------------ *
+ * Validation entry points
  * ------------------------------------------------------------------ */
 
 /**
  * Check everything the checkout form sent.
  *
- * Returns the cleaned-up input when it is all good, and a list of
- * messages when it is not. The messages are written for customers, so
- * they can be shown as they are.
+ * Returns the cleaned-up input when it is all good, and a field-addressable
+ * list of messages when it is not. The messages are written for customers,
+ * so they can be shown as they are.
  */
 export function validateCheckoutInput(raw: unknown): CheckoutValidation {
-  const issues: CheckoutIssue[] = [];
-  const input = readObject(raw);
+  const parsed = checkoutSchema.safeParse(raw);
 
-  /* Contact ---------------------------------------------------------- */
-  const contactRaw = readObject(input.contact);
-  const name = readString(contactRaw.name);
-  const email = readString(contactRaw.email);
-  const phone = readString(contactRaw.phone);
-
-  if (name.length < 2) {
-    issues.push({ field: "contact.name", message: "Please tell us your name." });
-  } else if (name.length > MAX_NAME_LENGTH) {
-    issues.push({
-      field: "contact.name",
-      message: `Please keep your name under ${MAX_NAME_LENGTH} characters.`,
-    });
+  if (!parsed.success) {
+    return {
+      valid: false,
+      issues: parsed.error.issues.map((issue) => ({
+        field: issue.path.join("."),
+        message: issue.message,
+      })),
+    };
   }
 
-  if (!email) {
-    issues.push({ field: "contact.email", message: "We need an email address to send your confirmation." });
-  } else if (email.length > MAX_EMAIL_LENGTH || !EMAIL_PATTERN.test(email)) {
-    issues.push({ field: "contact.email", message: "That email address does not look right." });
-  }
-
-  if (!phone) {
-    issues.push({ field: "contact.phone", message: "We need a phone number for the courier." });
-  } else if (!PHONE_PATTERN.test(phone)) {
-    issues.push({ field: "contact.phone", message: "That phone number does not look right." });
-  }
-
-  /* Address --------------------------------------------------------- */
-  const addressRaw = readObject(input.address);
-  const line1 = readString(addressRaw.line1);
-  const line2 = readString(addressRaw.line2);
-  const city = readString(addressRaw.city);
-  const state = readString(addressRaw.state);
-  const postalCode = readString(addressRaw.postalCode);
-  const country = readString(addressRaw.country);
-
-  if (!line1) {
-    issues.push({ field: "address.line1", message: "Please give us the street address." });
-  } else if (line1.length > MAX_ADDRESS_LENGTH) {
-    issues.push({
-      field: "address.line1",
-      message: `Please keep the address under ${MAX_ADDRESS_LENGTH} characters.`,
-    });
-  }
-
-  if (line2.length > MAX_ADDRESS_LENGTH) {
-    issues.push({
-      field: "address.line2",
-      message: `Please keep this under ${MAX_ADDRESS_LENGTH} characters.`,
-    });
-  }
-
-  if (!city) {
-    issues.push({ field: "address.city", message: "Please give us the city." });
-  } else if (city.length > MAX_PLACE_LENGTH) {
-    issues.push({
-      field: "address.city",
-      message: `Please keep the city under ${MAX_PLACE_LENGTH} characters.`,
-    });
-  }
-
-  if (state.length > MAX_PLACE_LENGTH) {
-    issues.push({
-      field: "address.state",
-      message: `Please keep this under ${MAX_PLACE_LENGTH} characters.`,
-    });
-  }
-
-  if (postalCode.length > MAX_POSTAL_CODE_LENGTH) {
-    issues.push({
-      field: "address.postalCode",
-      message: `Please keep the postal code under ${MAX_POSTAL_CODE_LENGTH} characters.`,
-    });
-  }
-
-  if (!country) {
-    issues.push({ field: "address.country", message: "Please tell us which country to send it to." });
-  } else if (country.length > MAX_PLACE_LENGTH) {
-    issues.push({
-      field: "address.country",
-      message: `Please keep the country under ${MAX_PLACE_LENGTH} characters.`,
-    });
-  }
-
-  /* Delivery note ---------------------------------------------------- */
-  const deliveryNote = readString(input.deliveryNote);
-  if (deliveryNote.length > MAX_DELIVERY_NOTE_LENGTH) {
-    issues.push({
-      field: "deliveryNote",
-      message: `Please keep the delivery note under ${MAX_DELIVERY_NOTE_LENGTH} characters.`,
-    });
-  }
-
-  /* Terms ------------------------------------------------------------ */
-  const termsAccepted = readBoolean(input.termsAccepted);
-  if (!termsAccepted) {
-    issues.push({
-      field: "termsAccepted",
-      message: "Please accept the terms and the returns policy to place your order.",
-    });
-  }
-
-  /* Payment method --------------------------------------------------- */
-  const paymentMethodRaw = readString(input.paymentMethod).toLowerCase();
-  const paymentMethod: PaymentMethodChoice | null =
-    paymentMethodRaw === "cod" ? "cod" : paymentMethodRaw === "card" ? "card" : null;
-
-  if (!paymentMethod) {
-    issues.push({ field: "paymentMethod", message: "Please choose how you would like to pay." });
-  }
-
-  /* Idempotency key -------------------------------------------------- */
-  const idempotencyKey = readString(input.idempotencyKey);
-  if (idempotencyKey.length < 8 || idempotencyKey.length > 128) {
-    issues.push({
-      field: "idempotencyKey",
-      message: "This checkout could not be started. Please refresh the page and try again.",
-    });
-  }
-
-  /* Items ------------------------------------------------------------ */
-  const itemsRaw = Array.isArray(input.items) ? input.items : [];
-  const items: CartLineInput[] = [];
-
-  if (itemsRaw.length === 0) {
-    issues.push({ field: "items", message: "Your cart is empty." });
-  } else if (itemsRaw.length > MAX_LINES_PER_ORDER) {
-    issues.push({
-      field: "items",
-      message: `An order can hold ${MAX_LINES_PER_ORDER} different pieces at once.`,
-    });
-  }
-
-  itemsRaw.forEach((entry, index) => {
-    const line = readObject(entry);
-    const slug = readString(line.slug);
-    const product = getProductBySlug(slug);
-
-    if (!product) {
-      issues.push({
-        field: `items.${index}.slug`,
-        message: "One of the pieces in your cart is no longer in our collection.",
-      });
-      return;
-    }
-
-    if (product.availability === "out_of_stock") {
-      issues.push({
-        field: `items.${index}.slug`,
-        message: `${product.name} has sold out. Please remove it to place your order.`,
-      });
-      return;
-    }
-
-    const quantity = Number(line.quantity);
-    if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY_PER_LINE) {
-      issues.push({
-        field: `items.${index}.quantity`,
-        message: `Please choose between 1 and ${MAX_QUANTITY_PER_LINE} of ${product.name}.`,
-      });
-      return;
-    }
-
-    const stitchingRaw = readString(line.stitching);
-    const stitching = (["unstitched", "standard", "custom"] as StitchingOption[]).includes(
-      stitchingRaw as StitchingOption
-    )
-      ? (stitchingRaw as StitchingOption)
-      : "standard";
-
-    if (!product.stitching.includes(stitching)) {
-      issues.push({
-        field: `items.${index}.stitching`,
-        message: `${product.name} is not available with that stitching.`,
-      });
-      return;
-    }
-
-    const size = readString(line.size);
-    const lining = readString(line.lining);
-    const notes = readString(line.notes);
-
-    if (stitching === "standard") {
-      if (!size) {
-        issues.push({
-          field: `items.${index}.size`,
-          message: `Please choose a size for ${product.name}.`,
-        });
-        return;
-      }
-
-      if (!standardSizes.includes(size)) {
-        issues.push({
-          field: `items.${index}.size`,
-          message: "That size is not one we make.",
-        });
-        return;
-      }
-    }
-
-    let measurements: Measurements | undefined;
-
-    if (stitching === "custom") {
-      const raw = readMeasurements(line.measurements);
-
-      if (!raw) {
-        issues.push({
-          field: `items.${index}.measurements`,
-          message: `Please add your measurements for ${product.name}.`,
-        });
-        return;
-      }
-
-      const check = validateMeasurements(measurementValues(raw), raw.unit);
-
-      if (!check.valid) {
-        const firstField = Object.keys(check.errors)[0] as MeasurementKey | undefined;
-        const message =
-          (firstField ? check.errors[firstField] : undefined) ??
-          "Those measurements do not look right.";
-
-        issues.push({ field: `items.${index}.measurements`, message });
-        return;
-      }
-
-      measurements = raw;
-    }
-
-    if (notes.length > MAX_ITEM_NOTE_LENGTH) {
-      issues.push({
-        field: `items.${index}.notes`,
-        message: `Please keep notes under ${MAX_ITEM_NOTE_LENGTH} characters.`,
-      });
-      return;
-    }
-
-    const priced: CartLineInput = { slug: product.slug, quantity, stitching };
-    if (size) priced.size = size;
-    if (lining) priced.lining = lining;
-    if (measurements) priced.measurements = measurements;
-    if (notes) priced.notes = notes;
-
-    items.push(priced);
-  });
-
-  /* The discount code ------------------------------------------------ */
-  const discountCode = readString(input.discountCode).toUpperCase();
-
-  if (issues.length > 0) {
-    return { valid: false, issues };
-  }
+  const value = parsed.data;
 
   return {
     valid: true,
     value: {
-      contact: { name, email, phone },
-      address: {
-        line1,
-        ...(line2 ? { line2 } : {}),
-        city,
-        ...(state ? { state } : {}),
-        ...(postalCode ? { postalCode } : {}),
-        country,
-      },
-      deliveryNote,
-      termsAccepted,
-      items,
-      discountCode,
-      paymentMethod: paymentMethod ?? "card",
-      idempotencyKey,
+      ...value,
+      deliveryNote: value.deliveryNote ?? "",
+      items: value.items as CartLineInput[],
     },
   };
 }
 
-/**
- * The messages for a list of issues, keyed by field.
- *
- * The form uses this to put each message under the box it belongs to.
- */
+/** The messages for a list of issues, keyed by field. */
 export function issuesByField(issues: CheckoutIssue[]): Record<string, string> {
   const map: Record<string, string> = {};
 
@@ -473,6 +384,28 @@ export function issuesByField(issues: CheckoutIssue[]): Record<string, string> {
   }
 
   return map;
+}
+
+/**
+ * The first issue in the order the customer sees. `items.3.size` counts as
+ * the "items" field, because all cart problems are shown in that section.
+ */
+export function firstCheckoutIssue(
+  issues: CheckoutIssue[]
+): CheckoutIssue | undefined {
+  const byField = issuesByField(issues);
+
+  for (const field of CHECKOUT_FIELD_ORDER) {
+    const exact = byField[field];
+    if (exact) return { field, message: exact };
+
+    const nested = issues.find(
+      (issue) => issue.field.startsWith(`${field}.`) || issue.field.startsWith(`${field}[`)
+    );
+    if (nested) return { field, message: nested.message };
+  }
+
+  return issues[0];
 }
 
 /** The measurements fields, re-exported so the form and the rules agree. */

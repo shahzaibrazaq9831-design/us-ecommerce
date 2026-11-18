@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { siteConfig } from "@/data/site";
+import { multiBuy } from "@/lib/offers";
 
 /**
  * Newsletter sign-up.
@@ -70,8 +70,8 @@ export default function NewsletterForm() {
     return (
       <p className="text-[0.8rem] opacity-60" style={{ color: "var(--color-gold)" }}>
         Thank you — please check your inbox and click the link to confirm. Once
-        you have, use code <strong>{siteConfig.promoCode}</strong> for{" "}
-        {siteConfig.promoDiscount} off your first prepaid order.
+        you have, your {multiBuy.percentOff}% off {multiBuy.minItems} or more
+        dresses is applied automatically at checkout.
       </p>
     );
   }
@@ -97,10 +97,14 @@ export default function NewsletterForm() {
 
       {/* Honeypot — hidden from people, tempting for bots. */}
       <div className="honeypot-field" aria-hidden="true">
-        <label>
-          Company
-          <input name="company" type="text" tabIndex={-1} autoComplete="off" />
-        </label>
+        <label htmlFor="newsletter-company">Company</label>
+        <input
+          id="newsletter-company"
+          name="company"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+        />
       </div>
 
       <button

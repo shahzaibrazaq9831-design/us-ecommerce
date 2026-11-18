@@ -56,7 +56,7 @@ export default function FirstVisitRegionDialog() {
    * Pin the card just below the real sticky topbar.
    *
    * The header is not the same height on every screen (announcement bar,
-   * offer strip, safe-area insets), so its height is measured instead of
+   * safe-area insets), so its height is measured instead of
    * guessed. That keeps the card under the header — never cut by it — on
    * phones, tablets and laptops alike.
    */

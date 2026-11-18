@@ -12,7 +12,7 @@
 param(
   [string] $TeamSlug = "micro-div",
   [string] $Project = "us-ecommerce",
-  [string] $AdminEmail = "damsacoture@gmail.com"
+  [string] $AdminEmail = "rungebahar@gmail.com"
 )
 
 $ErrorActionPreference = "Stop"

@@ -430,12 +430,8 @@ async function loadSettings(): Promise<{ settings: AdminSettings; notice: string
     contactEmail: siteConfig.email,
     contactPhone: siteConfig.phone,
     shippingText:
-      "Free worldwide delivery on every order. Dispatch takes 3–5 working days, with made-to-order stitching adding 7–10 days.",
+      "Free worldwide delivery on every order, delivered within 2 weeks. Made-to-order stitching is included in that time.",
     announcementText: DEFAULT_STOREFRONT_SETTINGS.announcementText,
-    offerEnabled: DEFAULT_STOREFRONT_SETTINGS.offerEnabled,
-    offerEndDate: DEFAULT_STOREFRONT_SETTINGS.offerEndDate,
-    discountCode: DEFAULT_STOREFRONT_SETTINGS.discountCode,
-    discountPercent: DEFAULT_STOREFRONT_SETTINGS.discountPercent,
     returnsText: DEFAULT_STOREFRONT_SETTINGS.returnsText,
   };
 
@@ -457,9 +453,6 @@ async function loadSettings(): Promise<{ settings: AdminSettings; notice: string
     ((data ?? []) as SettingRow[]).map((row) => [row.key, row.value])
   );
 
-  const offerEnabled = values.get("offer_enabled");
-  const discountPercent = Number(values.get("discount_percent"));
-
   return {
     settings: {
       storeName: values.get("store_name") || defaults.storeName,
@@ -467,17 +460,6 @@ async function loadSettings(): Promise<{ settings: AdminSettings; notice: string
       contactPhone: values.get("contact_phone") || defaults.contactPhone,
       shippingText: values.get("shipping_text") || defaults.shippingText,
       announcementText: values.get("announcement_bar_text") || defaults.announcementText,
-      offerEnabled:
-        offerEnabled === undefined
-          ? defaults.offerEnabled
-          : ["true", "1", "yes"].includes(offerEnabled.trim().toLowerCase()),
-      offerEndDate: values.get("offer_end_date") || defaults.offerEndDate,
-      discountCode:
-        values.get("discount_code")?.trim().toUpperCase() || defaults.discountCode,
-      discountPercent:
-        Number.isFinite(discountPercent) && discountPercent > 0 && discountPercent <= 100
-          ? Math.round(discountPercent)
-          : defaults.discountPercent,
       returnsText: values.get("returns_text") || defaults.returnsText,
     },
     notice: null,

@@ -28,6 +28,7 @@ import path from "node:path";
 import Stripe from "stripe";
 import { expireOrder, markOrderPaid, type StoredOrder } from "@/lib/orders";
 import { BASE_CURRENCY } from "@/lib/pricing";
+import { MULTI_BUY_DISCOUNT_LABEL } from "@/lib/offers";
 import { stitchingLabels } from "@/lib/products";
 
 /* ------------------------------------------------------------------ *
@@ -141,6 +142,7 @@ export const SUPPORTED_CHARGE_CURRENCIES = [
   "GBP",
   "CAD",
   "AUD",
+  "PKR",
   "NZD",
   "CHF",
   "SEK",
@@ -299,9 +301,7 @@ export async function startCardPayment(
       amount_off: discountAmount,
       currency,
       duration: "once",
-      name: order.totals.discountCode
-        ? `Discount ${order.totals.discountCode}`
-        : "Discount",
+      name: MULTI_BUY_DISCOUNT_LABEL,
     });
 
     discounts.push({ coupon: coupon.id });

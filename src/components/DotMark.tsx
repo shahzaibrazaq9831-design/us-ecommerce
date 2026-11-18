@@ -25,7 +25,7 @@ interface Dot {
 }
 
 export default function DotMark({
-  text = "DAMSA COTURE",
+  text = "RUNG E BAHAR",
   height = 160, // canvas height
   stretch = true, // true = letters grow taller to fill the height
   fontFamily = "'Arial Black', 'Helvetica Neue', Arial, sans-serif",

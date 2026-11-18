@@ -94,7 +94,7 @@ create table if not exists hero_slides (
 );
 
 -- ------------------------------------------------------------------
--- Table: site_settings (store-wide configuration read by offer strip, etc.)
+-- Table: site_settings (store-wide configuration read by the announcement bar, etc.)
 -- ------------------------------------------------------------------
 create table if not exists site_settings (
   key text primary key,
@@ -104,7 +104,6 @@ create table if not exists site_settings (
 
 -- Insert default site_settings rows
 insert into site_settings (key, value) values
-  ('offer_strip_end_date', null::text),     -- ISO date string or null
   ('announcement_bar_text', null::text),    -- null = show default; otherwise custom text
   ('contact_phone', '+447476469395'),       -- default from site config
   ('contact_email', 'rungebahar@gmail.com');-- default from site config

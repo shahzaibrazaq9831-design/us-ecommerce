@@ -5,7 +5,7 @@ import SettingsClient from "@/components/admin/settings/SettingsClient";
 
 export const metadata: Metadata = {
   title: "Settings",
-  description: "Storewide contact and shipping settings.",
+  description: "Contact and shipping settings for the shop.",
 };
 
 export default async function AdminSettingsPage() {

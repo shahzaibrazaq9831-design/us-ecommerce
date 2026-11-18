@@ -14,7 +14,7 @@ const SWIPE_THRESHOLD = 45;
 
 export default function HeroSlider() {
   const [current, setCurrent] = useState(0);
-  /** Hovering or focusing the slider freezes the slide and the countdown. */
+  /** Hovering or focusing the slider freezes the slide and the progress bar. */
   const [paused, setPaused] = useState(false);
   /** Once the visitor navigates by hand, auto-advance stays off (as on the reference store). */
   const [autoAdvance, setAutoAdvance] = useState(true);
@@ -29,7 +29,7 @@ export default function HeroSlider() {
   const total = heroSlides.length;
   /** Auto-advance is eligible unless there is a single slide or the visitor prefers reduced motion. */
   const autoPlay = total > 1 && !reducedMotion;
-  /** The countdown only runs while eligible, not manually stopped, and not hovered/focused. */
+  /** The progress bar only runs while eligible, not manually stopped, and not hovered/focused. */
   const running = autoPlay && autoAdvance && !paused;
 
   const goTo = useCallback(
@@ -56,7 +56,7 @@ export default function HeroSlider() {
     [current, navigateTo]
   );
 
-  // Respect the OS "reduce motion" setting: no auto-advance, no countdown.
+  // Respect the OS "reduce motion" setting: no auto-advance, no progress bar.
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
     const update = () => setReducedMotion(query.matches);
@@ -74,8 +74,8 @@ export default function HeroSlider() {
     return () => query.removeEventListener("change", update);
   }, []);
 
-  // The countdown resets whenever the slide changes. Declared before the timer
-  // effect so a fresh full interval is restored after each auto-advance.
+  // The progress bar resets whenever the slide changes. Declared before the
+  // auto-advance effect so a fresh full interval is restored after each slide.
   useEffect(() => {
     remaining.current = interval;
   }, [current, interval]);
@@ -88,12 +88,12 @@ export default function HeroSlider() {
   useEffect(() => {
     if (!running) return;
     startedAt.current = Date.now();
-    const timer = setTimeout(
+    const autoAdvanceTimeout = setTimeout(
       () => setCurrent((prev) => (prev + 1) % total),
       remaining.current
     );
     return () => {
-      clearTimeout(timer);
+      clearTimeout(autoAdvanceTimeout);
       remaining.current = Math.max(
         0,
         remaining.current - (Date.now() - startedAt.current)
@@ -211,7 +211,6 @@ export default function HeroSlider() {
         <p className="hero-overlay-plus" aria-hidden="true">
           +
         </p>
-        {/* <p className="hero-overlay-off">FLAT 50% OFF</p> */}
         <Link href="/shop" className="hero-overlay-cta" aria-hidden="true" tabIndex={-1}>
           Shop Now
         </Link>

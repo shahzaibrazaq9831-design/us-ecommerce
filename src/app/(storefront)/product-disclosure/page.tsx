@@ -85,8 +85,8 @@ export default function ProductDisclosurePage() {
         <h2>Returns and faults</h2>
         <p>
           Made-to-order pieces cannot be returned unless they are faulty or not as
-          described. If something is wrong with your order, write to us within seven
-          days of delivery with a photo and we will sort it out. The{" "}
+          described. If something is wrong with your order, write to us as soon as
+          you notice, with a photo, and we will sort it out. The{" "}
           <Link href="/returns">returns page</Link> has the detail.
         </p>
       </section>

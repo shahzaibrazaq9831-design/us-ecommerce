@@ -75,7 +75,7 @@ export default function SettingsClient({
             <p className="admin-eyebrow">Studio</p>
             <h1>Settings</h1>
             <p className="admin-subtitle">
-              Storewide details used across the storefront · source: {source}
+              Storefront details used across the shop · source: {source}
             </p>
           </div>
         </header>
@@ -228,90 +228,6 @@ export default function SettingsClient({
                     {errors.returnsText}
                   </small>
                 ) : null}
-              </div>
-            </section>
-          </motion.div>
-
-          <motion.div
-            initial={reduce ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <section className="admin-panel">
-              <header className="admin-card-head">
-                <div>
-                  <h2>Offer &amp; discount</h2>
-                  <p>One code and one campaign across the storefront</p>
-                </div>
-              </header>
-              <div className="admin-field">
-                <label className="admin-label">
-                  <input
-                    type="checkbox"
-                    checked={form.offerEnabled}
-                    onChange={(event) => update("offerEnabled", event.target.checked)}
-                  />
-                  Show the offer strip
-                </label>
-              </div>
-              <div className="admin-field">
-                <label className="admin-label" htmlFor="settings-offer-end">
-                  Offer end date (ISO)
-                </label>
-                <input
-                  id="settings-offer-end"
-                  className="admin-input"
-                  placeholder="2026-12-31T23:59:59Z"
-                  value={form.offerEndDate}
-                  onChange={(event) => update("offerEndDate", event.target.value)}
-                  aria-invalid={Boolean(errors.offerEndDate)}
-                />
-                <small className="admin-muted">Leave blank to show the offer without a countdown.</small>
-                {errors.offerEndDate ? (
-                  <small className="admin-muted" role="alert">
-                    {errors.offerEndDate}
-                  </small>
-                ) : null}
-              </div>
-              <div className="admin-form-row">
-                <div className="admin-field">
-                  <label className="admin-label" htmlFor="settings-discount-code">
-                    Discount code *
-                  </label>
-                  <input
-                    id="settings-discount-code"
-                    className="admin-input"
-                    value={form.discountCode}
-                    onChange={(event) => update("discountCode", event.target.value.toUpperCase())}
-                    aria-invalid={Boolean(errors.discountCode)}
-                    required
-                  />
-                  {errors.discountCode ? (
-                    <small className="admin-muted" role="alert">
-                      {errors.discountCode}
-                    </small>
-                  ) : null}
-                </div>
-                <div className="admin-field">
-                  <label className="admin-label" htmlFor="settings-discount-percent">
-                    Discount percent *
-                  </label>
-                  <input
-                    id="settings-discount-percent"
-                    className="admin-input"
-                    type="number"
-                    min={1}
-                    max={100}
-                    value={Number.isFinite(form.discountPercent) ? form.discountPercent : ""}
-                    onChange={(event) => update("discountPercent", Number(event.target.value))}
-                    aria-invalid={Boolean(errors.discountPercent)}
-                    required
-                  />
-                  {errors.discountPercent ? (
-                    <small className="admin-muted" role="alert">
-                      {errors.discountPercent}
-                    </small>
-                  ) : null}
-                </div>
               </div>
             </section>
           </motion.div>

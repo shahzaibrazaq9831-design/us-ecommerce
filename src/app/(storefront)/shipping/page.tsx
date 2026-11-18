@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import InfoPageLayout from "@/components/InfoPageLayout";
+import { shippingOffer } from "@/lib/offers";
 
 export const metadata: Metadata = {
   title: "Shipping & Delivery",
-  description:
-    "Processing time 1–3 days, delivery in 12–15 business days (max 20). Free standard delivery where available at checkout. Tracking and customs information.",
+  description: `Free shipping worldwide, delivered ${shippingOffer.window}. Made-to-order stitching is included in that time. Tracking and customs information.`,
 };
 
 export default function ShippingPage() {
@@ -16,26 +16,27 @@ export default function ShippingPage() {
       <section className="info-section">
         <h2>Processing time</h2>
         <p>
-          Orders are processed and dispatched within 1–3 business days of order
-          confirmation. Made-to-order stitched pieces may take longer — see our{" "}
-          <a href="/made-to-order">Made-to-Order Stitching</a> page for details.
+          Orders are prepared and dispatched within 1–3 business days of order
+          confirmation. Made-to-order pieces are stitched before dispatch; the
+          two-week delivery window below covers that work.
         </p>
       </section>
 
       <section className="info-section">
         <h2>Delivery time</h2>
         <p>
-          Standard delivery takes 12–15 business days after dispatch, depending on
-          your destination. Delivery may take up to a maximum of 20 business days
-          in peak periods or where customs clearance is slower.
+          Every order is delivered {shippingOffer.window} of being placed,
+          including made-to-order stitching. Remote destinations or customs
+          checks can occasionally add a little time; if anything changes we will
+          contact you.
         </p>
       </section>
 
       <section className="info-section">
         <h2>Shipping cost</h2>
         <p>
-          Free standard delivery where available — eligibility and rates are
-          shown at checkout for your destination.
+          Shipping is free worldwide on every order. There is no minimum spend
+          and no delivery charge is added at checkout.
         </p>
       </section>
 

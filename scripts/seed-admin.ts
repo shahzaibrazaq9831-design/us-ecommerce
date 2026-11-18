@@ -21,7 +21,7 @@ const DEFAULT_SUPABASE_URL = "https://ylhtywpwykiakfzaades.supabase.co";
 
 /** The dashboard's existing shipping default (src/lib/admin/data.ts). */
 const SHIPPING_TEXT =
-  "Free worldwide delivery on every order. Dispatch takes 3–5 working days, with made-to-order stitching adding 7–10 days.";
+  "Free worldwide delivery on every order, delivered within 2 weeks. Made-to-order stitching is included in that time.";
 
 const DATA_DIR = path.join(process.cwd(), ".data");
 const ORDERS_FILE = path.join(DATA_DIR, "orders.json");

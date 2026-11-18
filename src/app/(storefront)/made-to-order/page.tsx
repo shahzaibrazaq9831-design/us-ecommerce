@@ -86,8 +86,10 @@ export default function MadeToOrderPage() {
 
       <section className="info-section">
         <h2>Stitching time</h2>
-        {/* TODO: confirm and set the real made-to-order stitching time */}
-        <p>TODO — stitching time will be announced here (e.g. X–Y business days).</p>
+        <p>
+          Every piece is stitched to order and delivered within 2 weeks of being
+          placed, including the stitching time.
+        </p>
       </section>
     </InfoPageLayout>
   );

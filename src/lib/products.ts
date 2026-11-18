@@ -294,7 +294,7 @@ export const stitchingOptionCopy: Record<
     title: "Standard stitched",
     summary: "Stitched by us, ready-made sizes",
     detail:
-      "Our in-house team stitches the piece to one of our ready-made sizes. It ships in 7–10 days.",
+      "Our in-house team stitches the piece to one of our ready-made sizes. It ships within 2 weeks.",
   },
   custom: {
     title: "Custom stitched",

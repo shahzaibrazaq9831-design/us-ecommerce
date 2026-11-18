@@ -24,7 +24,7 @@ export const features: FeatureItem[] = [
   {
     title: "Worldwide Shipping",
     description:
-      "Free standard delivery where available at checkout. Dispatched in 1–3 days.",
+      "Free worldwide delivery on every order, within 2 weeks.",
     href: "/shipping",
     icon: "/brand/benefits/worldwide-delivery.png",
   },

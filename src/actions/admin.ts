@@ -411,10 +411,6 @@ export async function saveSettingsAction(input: SettingsInput): Promise<ActionRe
         { key: "contact_phone", value: parsed.data.contactPhone, updated_at },
         { key: "shipping_text", value: parsed.data.shippingText, updated_at },
         { key: "announcement_bar_text", value: parsed.data.announcementText, updated_at },
-        { key: "offer_enabled", value: String(parsed.data.offerEnabled), updated_at },
-        { key: "offer_end_date", value: parsed.data.offerEndDate, updated_at },
-        { key: "discount_code", value: parsed.data.discountCode, updated_at },
-        { key: "discount_percent", value: String(parsed.data.discountPercent), updated_at },
         { key: "returns_text", value: parsed.data.returnsText, updated_at },
       ],
       { onConflict: "key" }

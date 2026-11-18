@@ -102,7 +102,7 @@ export default function CustomStitchingPage() {
         <h2>How long it takes</h2>
         <p>
           Stitching starts once we have your measurements and the order is confirmed.
-          Most pieces are ready within 10–14 working days. If you have a date in mind,
+          Most pieces are ready within 2 weeks. If you have a date in mind,
           tell us before you order and we will tell you honestly whether we can hit it.
         </p>
       </section>

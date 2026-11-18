@@ -9,7 +9,6 @@
 
 import { occasions as catalogueOccasions } from "@/lib/products";
 import type { Review } from "@/lib/products";
-import { DEFAULT_DISCOUNT_CODE, DISCOUNT_CODES } from "@/lib/discounts";
 
 export const stylingAssistanceMessage =
   "Hello Rung E Bahar, I would like some styling assistance.";
@@ -26,10 +25,6 @@ export const siteConfig = {
   email: "rungebahar@gmail.com",
   phone: "+447476469395",
   whatsapp: `https://wa.me/447476469395?text=${encodeURIComponent(stylingAssistanceMessage)}`,
-  /* The discount code lives in `@/lib/discounts` — that is the one place a
-     code is defined and checked. */
-  promoCode: DEFAULT_DISCOUNT_CODE,
-  promoDiscount: `${DISCOUNT_CODES[DEFAULT_DISCOUNT_CODE].percent}%`,
   copyrightYear: "2026",
   social: {
     instagram: instagramUrl,
@@ -54,7 +49,7 @@ export interface HeroSlide {
 export const heroSlides: HeroSlide[] = [
   {
     eyebrow: "New Arrivals",
-    title: "New Arrivals — Flat 30% Off",
+    title: "New Arrivals — Freshly Dropped",
     subtitle: "Freshly dropped designs from our latest collection",
     cta: "Shop Now",
     href: "/new-arrivals",
@@ -63,7 +58,7 @@ export const heroSlides: HeroSlide[] = [
   },
   {
     eyebrow: "Best Sellers",
-    title: "Best Sellers — Flat 30% Off",
+    title: "Best Sellers — Most Loved",
     subtitle: "Our most loved pieces, back by popular demand",
     cta: "Shop Now",
     href: "/best-sellers",
@@ -72,7 +67,7 @@ export const heroSlides: HeroSlide[] = [
   },
   {
     eyebrow: "Formal Collection",
-    title: "Formal Collection — Flat 30% Off",
+    title: "Formal Collection — Occasion Ready",
     subtitle: "Statement outfits for weddings, Eid and evening events",
     cta: "Shop Now",
     href: "/categories/formals",

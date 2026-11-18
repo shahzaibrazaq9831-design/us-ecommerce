@@ -8,7 +8,7 @@ import { useCart, cartLineKey } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import { lockPageScroll, unlockPageScroll } from "@/lib/scrollLock";
 import CartItemDetails from "@/components/CartItemDetails";
-import DiscountCodeField from "@/components/DiscountCodeField";
+import { MULTI_BUY_DISCOUNT_LABEL } from "@/lib/offers";
 
 /**
  * The cart drawer.
@@ -162,8 +162,6 @@ export default function CartDrawer() {
             </ul>
 
             <div className="cart-drawer-foot">
-              <DiscountCodeField compact />
-
               <div className="cart-totals">
                 <div className="cart-total-row">
                   <span>Subtotal</span>
@@ -171,7 +169,7 @@ export default function CartDrawer() {
                 </div>
                 {discount > 0 && (
                   <div className="cart-total-row cart-total-row--discount">
-                    <span>Discount</span>
+                    <span>{MULTI_BUY_DISCOUNT_LABEL}</span>
                     <span>-{formatPrice(discount)}</span>
                   </div>
                 )}

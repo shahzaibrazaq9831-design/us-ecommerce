@@ -99,10 +99,6 @@ export interface AdminSettings {
   contactPhone: string;
   shippingText: string;
   announcementText: string;
-  offerEnabled: boolean;
-  offerEndDate: string;
-  discountCode: string;
-  discountPercent: number;
   returnsText: string;
 }
 

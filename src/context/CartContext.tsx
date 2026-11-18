@@ -11,11 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import type { Measurements, Product, StitchingOption } from "@/lib/products";
-import {
-  discountAmount,
-  validateDiscountCode,
-  type DiscountValidation,
-} from "@/lib/discounts";
+import { multiBuyDiscount } from "@/lib/offers";
 
 /**
  * What the customer chose on the product page. Every cart line keeps
@@ -104,15 +100,9 @@ interface StoreContextValue {
   removeFromCart: (lineKey: string) => void;
   updateQuantity: (lineKey: string, quantity: number) => void;
   clearCart: () => void;
-  /** The discount code in the cart — "" when there is none. */
-  discountCode: string;
-  /** Check a code and keep it when it is valid. */
-  applyDiscountCode: (code: string) => DiscountValidation;
-  /** Take the discount code off the cart. */
-  clearDiscountCode: () => void;
-  /** Sum of the lines, before the discount. */
+  /** Sum of the lines, before the multi-buy discount. */
   subtotal: number;
-  /** How much the discount code takes off. */
+  /** What the automatic multi-buy offer takes off. */
   discount: number;
   /** What the customer pays — subtotal minus the discount. */
   total: number;
@@ -136,16 +126,14 @@ const StoreContext = createContext<StoreContextValue | null>(null);
 /* ------------------------------------------------------------------ *
  * Saved state
  *
- * The cart, the wishlist and the discount code live in the browser, so
- * they are still there after a reload. They are read through
- * `useSyncExternalStore`: the server always sends the empty version and
- * the browser fills it in after the page is painted, which keeps the
- * first render identical on both sides.
+ * The cart and the wishlist live in the browser, so they are still there
+ * after a reload. They are read through `useSyncExternalStore`: the server
+ * always sends the empty version and the browser fills it in after the page
+ * is painted, which keeps the first render identical on both sides.
  * ------------------------------------------------------------------ */
 
 const CART_KEY = "ppd_cart";
 const WISHLIST_KEY = "ppd_wishlist";
-const DISCOUNT_KEY = "ppd_cart_discount";
 
 type Listener = () => void;
 
@@ -221,7 +209,6 @@ function createPersistentStore<T>(key: string, fallback: T): PersistentStore<T> 
 
 const cartStore = createPersistentStore<CartItem[]>(CART_KEY, []);
 const wishlistStore = createPersistentStore<string[]>(WISHLIST_KEY, []);
-const discountStore = createPersistentStore<string>(DISCOUNT_KEY, "");
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const cart = useSyncExternalStore(
@@ -233,11 +220,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     wishlistStore.subscribe,
     wishlistStore.getSnapshot,
     wishlistStore.getServerSnapshot
-  );
-  const discountCode = useSyncExternalStore(
-    discountStore.subscribe,
-    discountStore.getSnapshot,
-    discountStore.getServerSnapshot
   );
 
   const [quickView, setQuickView] = useState<Product | null>(null);
@@ -310,22 +292,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     cartStore.write([]);
   }, []);
 
-  const applyDiscountCode = useCallback(
-    (code: string) => {
-      const validation = validateDiscountCode(code);
-      if (validation.valid) {
-        discountStore.write(validation.code);
-        showToast(`${validation.code} applied`);
-      }
-      return validation;
-    },
-    [showToast]
-  );
-
-  const clearDiscountCode = useCallback(() => {
-    discountStore.write("");
-  }, []);
-
   const toggleWishlist = useCallback(
     (slug: string) => {
       const current = wishlistStore.getSnapshot();
@@ -360,8 +326,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const subtotal = cartTotal;
   const discount = useMemo(
-    () => discountAmount(subtotal, discountCode),
-    [subtotal, discountCode]
+    () => multiBuyDiscount(subtotal, cartCount),
+    [subtotal, cartCount]
   );
   const total = Math.max(0, subtotal - discount);
 
@@ -372,9 +338,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     removeFromCart,
     updateQuantity,
     clearCart,
-    discountCode,
-    applyDiscountCode,
-    clearDiscountCode,
     subtotal,
     discount,
     total,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -60,15 +61,23 @@ function SidebarContent({
   return (
     <>
       <div className="admin-sidebar-brand">
-        <span className="admin-brand-mark" aria-hidden="true">
-          RE
-        </span>
-        {!collapsed ? (
+        {collapsed ? (
+          <span className="admin-brand-mark" aria-hidden="true">
+            RB
+          </span>
+        ) : (
           <span className="admin-brand-copy">
-            <strong>Rung E Bahar</strong>
+            <Image
+              src="/images/logo-rung-e-bahar.webp"
+              alt="Rung E Bahar"
+              width={889}
+              height={220}
+              priority
+              className="admin-brand-logo"
+            />
             <small>Studio admin</small>
           </span>
-        ) : null}
+        )}
       </div>
 
       <nav className="admin-sidebar-nav" aria-label="Admin sections">

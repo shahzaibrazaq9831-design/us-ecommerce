@@ -31,8 +31,19 @@ export const MARKETS: Market[] = [
   { code: "PK", name: "Pakistan (PKR)", currency: "PKR", flag: "pk" },
 ];
 
+/**
+ * The markets we deliver to. The checkout country list, the region selector
+ * and the validation schema all read this one list, so they cannot disagree.
+ */
+export const SHIPPING_MARKETS = MARKETS;
+
 /** Market used when auto-detection cannot resolve anything (live-site default). */
 export const FALLBACK_MARKET: Market = MARKETS.find((m) => m.code === "US") ?? MARKETS[0];
+
+/** The currency used for a shipping country code. */
+export function marketCurrency(countryCode?: string | null): string {
+  return getMarketByCode(countryCode)?.currency ?? FALLBACK_MARKET.currency;
+}
 
 /** Look up a market by its code (case-insensitive). */
 export function getMarketByCode(code?: string | null): Market | undefined {

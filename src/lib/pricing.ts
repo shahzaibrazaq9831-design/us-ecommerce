@@ -20,7 +20,11 @@
  */
 
 import { getProductBySlug, type Measurements, type StitchingOption } from "@/lib/products";
-import { discountAmount, validateDiscountCode } from "@/lib/discounts";
+import {
+  multiBuy,
+  multiBuyDiscount,
+  MULTI_BUY_DISCOUNT_REF,
+} from "@/lib/offers";
 
 /** The currency the catalogue keeps every price in. */
 export const BASE_CURRENCY = "PKR";
@@ -103,9 +107,14 @@ export interface PriceBreakdown {
   subtotal: number;
   /** What delivery costs. */
   shipping: number;
-  /** What the discount code takes off. */
+  /** What the automatic multi-buy offer takes off. */
   discount: number;
-  /** The code that was applied, or "" when none was. */
+  /**
+   * The offer that was applied, or "" when none was.
+   *
+   * This is an internal marker (see `MULTI_BUY_DISCOUNT_REF`) so an order can
+   * record which offer reduced it. It is not a customer-entered code.
+   */
   discountCode: string;
   /** The percentage that was taken off, or 0. */
   discountPercent: number;
@@ -130,8 +139,12 @@ export type PriceResult =
  * Every price comes from the catalogue. The only thing the browser is
  * believed about is *which* pieces were wanted and how many — and even
  * that is checked against the catalogue before it counts.
+ *
+ * The multi-buy discount is decided here, never from a value the browser can
+ * change. There are no discount codes: a typed code has nothing to apply to,
+ * so one offer can never stack on another.
  */
-export function priceCart(lines: CartLineInput[], discountCode: string): PriceResult {
+export function priceCart(lines: CartLineInput[]): PriceResult {
   if (!Array.isArray(lines) || lines.length === 0) {
     return { ok: false, error: "Your cart is empty." };
   }
@@ -201,11 +214,13 @@ export function priceCart(lines: CartLineInput[], discountCode: string): PriceRe
 
   const subtotal = priced.reduce((sum, line) => sum + line.lineTotal, 0);
 
-  // The code is checked against the one list of codes we accept. A code
-  // we do not know simply takes nothing off — it is never an error, so a
-  // stale code in the cart cannot block an order.
-  const validation = validateDiscountCode(discountCode ?? "");
-  const discount = validation.valid ? discountAmount(subtotal, validation.code) : 0;
+  // The live shop promises "buy 2 dresses, get extra 10% off". It is applied
+  // automatically once the cart holds two pieces: there is no code to type,
+  // so no stale or missing code can take the offer away, and no second code
+  // can stack on top of it. A single dress gets no extra discount, so the
+  // offer cannot quietly become a 10% discount on everything.
+  const unitCount = priced.reduce((sum, line) => sum + line.quantity, 0);
+  const discount = multiBuyDiscount(subtotal, unitCount);
   const shipping = SHIPPING_FLAT_RATE;
   const total = Math.max(0, subtotal - discount + shipping);
 
@@ -216,8 +231,8 @@ export function priceCart(lines: CartLineInput[], discountCode: string): PriceRe
       subtotal,
       shipping,
       discount,
-      discountCode: validation.valid ? validation.code : "",
-      discountPercent: validation.valid ? validation.percent : 0,
+      discountCode: discount > 0 ? MULTI_BUY_DISCOUNT_REF : "",
+      discountPercent: discount > 0 ? multiBuy.percentOff : 0,
       total,
       currency: BASE_CURRENCY,
     },
@@ -232,7 +247,7 @@ export function priceCart(lines: CartLineInput[], discountCode: string): PriceRe
  * way `priceCart` does, so the screen and the invoice agree.
  */
 export function summariseLines(lines: CartLineInput[]): PriceBreakdown {
-  const result = priceCart(lines, "");
+  const result = priceCart(lines);
   return result.ok
     ? result.order
     : {

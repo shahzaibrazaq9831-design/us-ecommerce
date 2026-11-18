@@ -5,6 +5,7 @@ import {
   resolveChargeCurrency,
   resumeCardPayment,
 } from "@/lib/payments";
+import { countryCurrency } from "@/lib/countries";
 import { baseUrlFromRequest } from "@/lib/seo";
 import { RATE_LIMITS, rateLimit, rateLimitKey } from "@/lib/rate-limit";
 
@@ -84,7 +85,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const currency = resolveChargeCurrency(cookieStore.get("ppd_currency")?.value);
+  const currency = resolveChargeCurrency(countryCurrency(order.address?.country));
 
   try {
     const start = await resumeCardPayment(order, {

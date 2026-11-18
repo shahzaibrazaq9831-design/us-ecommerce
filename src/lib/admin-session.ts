@@ -58,7 +58,7 @@ interface AdminCredentials {
  * secret and must always come from the environment. Setting `ADMIN_EMAIL` in
  * the environment still overrides this fallback.
  */
-const DEFAULT_ADMIN_EMAIL = "damsacoture@gmail.com";
+const DEFAULT_ADMIN_EMAIL = "rungebahar@gmail.com";
 
 /** The sign-in this server accepts, or null when none is configured. */
 function adminCredentials(): AdminCredentials | null {

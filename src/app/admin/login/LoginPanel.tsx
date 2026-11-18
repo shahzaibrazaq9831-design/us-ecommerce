@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import { LockKeyhole, Sparkles } from "lucide-react";
 import { signInAction } from "../actions";
@@ -30,9 +31,14 @@ export default function LoginPanel({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 28 }}
       >
-        <div className="admin-login-mark" aria-hidden="true">
-          RE
-        </div>
+        <Image
+          src="/images/logo-rung-e-bahar.webp"
+          alt="Rung E Bahar"
+          width={889}
+          height={220}
+          priority
+          className="admin-login-logo"
+        />
         <p className="admin-login-eyebrow">
           <Sparkles size={14} aria-hidden="true" /> Studio access
         </p>

@@ -1,4 +1,4 @@
-import { DEFAULT_STOREFRONT_SETTINGS } from "@/data/settings";
+import { ANNOUNCEMENT_TEXT } from "@/lib/offers";
 
 /**
  * Single-line announcement marquee moving right to left.
@@ -27,7 +27,7 @@ function AnnouncementGroup({
 }
 
 export default function AnnouncementBar({
-  text = DEFAULT_STOREFRONT_SETTINGS.announcementText,
+  text = ANNOUNCEMENT_TEXT,
 }: {
   text?: string;
 }) {

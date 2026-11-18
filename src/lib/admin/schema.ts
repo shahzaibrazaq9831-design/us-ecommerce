@@ -76,18 +76,6 @@ export const settingsSchema = z.object({
   contactPhone: z.string().trim().min(5).max(40),
   shippingText: z.string().trim().min(10).max(1000),
   announcementText: z.string().trim().min(5).max(500),
-  offerEnabled: z.boolean(),
-  offerEndDate: z
-    .string()
-    .trim()
-    .refine((value) => !value || Number.isFinite(Date.parse(value)), "Use a valid date."),
-  discountCode: z
-    .string()
-    .trim()
-    .min(2)
-    .max(30)
-    .regex(/^[A-Z0-9_-]+$/, "Use capital letters, numbers, dashes or underscores."),
-  discountPercent: z.coerce.number().int().min(1).max(100),
   returnsText: z.string().trim().min(20).max(8000),
 });
 

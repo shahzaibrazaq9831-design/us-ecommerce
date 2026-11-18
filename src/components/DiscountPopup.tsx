@@ -1,22 +1,15 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type FormEvent,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Check, Copy, X } from "lucide-react";
-import { siteConfig } from "@/data/site";
+import { X } from "lucide-react";
 import { lockPageScroll, unlockPageScroll } from "@/lib/scrollLock";
 import { hasOpenModal } from "@/lib/overlay";
+import { FREE_SHIPPING_LABEL, multiBuy, MULTI_BUY_LABEL } from "@/lib/offers";
 
-const SEEN_KEY = "ppd_discount_popup_seen";
-const CLAIMED_KEY = "ppd_discount_popup_claimed";
+const SEEN_KEY = "ppd_offer_popup_seen";
 const OPEN_DELAY = 2000;
 const CLOSE_MS = 280;
 /** The offer waits for this much scroll-free time before it may open. */
@@ -24,35 +17,19 @@ const SCROLL_IDLE_MS = 900;
 
 type PopupState = "closed" | "open" | "closing";
 
-export interface DiscountPopupProps {
-  /** The one discount code advertised across the storefront. */
-  promoCode?: string;
-  /** Human-readable percentage, e.g. "10%". */
-  promoDiscount?: string;
-}
-
 /**
- * Welcome offer shown after the page finishes loading.
+ * The shop's two real offers, shown once after the page finishes loading.
  *
- * It appears once per browser session (and never again once the visitor has
- * claimed the code), uses a blurred page backdrop only while the popup is open,
- * and locks scrolling / focus while open. It must never open during scroll.
+ * There is no code and no email gate: both offers are applied automatically
+ * at checkout. The popup appears once per browser session, uses a blurred
+ * page backdrop only while it is open, and locks scrolling / focus while open.
+ * It must never open during scroll.
  */
-export default function DiscountPopup({
-  promoCode = siteConfig.promoCode,
-  promoDiscount = siteConfig.promoDiscount,
-}: DiscountPopupProps) {
+export default function DiscountPopup() {
   const pathname = usePathname();
   const [state, setState] = useState<PopupState>("closed");
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [claimed, setClaimed] = useState(false);
-  const [copied, setCopied] = useState(false);
-
   const cardRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const active = state !== "closed";
 
@@ -74,14 +51,12 @@ export default function DiscountPopup({
     if (pathname.startsWith("/checkout")) return;
 
     let seen = false;
-    let alreadyClaimed = false;
     try {
       seen = sessionStorage.getItem(SEEN_KEY) === "1";
-      alreadyClaimed = localStorage.getItem(CLAIMED_KEY) === "1";
     } catch {
       // Treat storage errors as "not seen" so the offer still has a chance.
     }
-    if (seen || alreadyClaimed) return;
+    if (seen) return;
 
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -253,59 +228,6 @@ export default function DiscountPopup({
     };
   }, [close, state]);
 
-  /* Keep focus inside the dialog when the form swaps to the success view. */
-  useEffect(() => {
-    if (!claimed || state !== "open") return;
-    const timer = setTimeout(() => cardRef.current?.focus({ preventScroll: true }), 40);
-    return () => clearTimeout(timer);
-  }, [claimed, state]);
-
-  useEffect(
-    () => () => {
-      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
-    },
-    []
-  );
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const value = email.trim();
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      setError("Please enter a valid email address.");
-      inputRef.current?.focus();
-      return;
-    }
-
-    setError("");
-    try {
-      localStorage.setItem(CLAIMED_KEY, "1");
-    } catch {
-      // The code is still displayed even if storage is blocked.
-    }
-    setClaimed(true);
-  };
-
-  const copyCode = async () => {
-    try {
-      await navigator.clipboard.writeText(promoCode);
-    } catch {
-      const field = document.createElement("textarea");
-      field.value = promoCode;
-      field.setAttribute("readonly", "");
-      field.style.position = "fixed";
-      field.style.opacity = "0";
-      document.body.appendChild(field);
-      field.select();
-      document.execCommand("copy");
-      document.body.removeChild(field);
-    }
-
-    setCopied(true);
-    if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
-    copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
-  };
-
   if (!active) return null;
 
   return (
@@ -317,124 +239,49 @@ export default function DiscountPopup({
     >
       <div
         ref={cardRef}
-        className={`dp-card${claimed ? " is-success" : ""}`}
+        className="dp-card"
         role="dialog"
         aria-modal="true"
         aria-labelledby="dp-title"
-        aria-describedby={claimed ? "dp-success-desc" : "dp-desc"}
+        aria-describedby="dp-desc"
         tabIndex={-1}
       >
         <button
           type="button"
           className="dp-close"
           onClick={close}
-          aria-label="Close discount offer"
+          aria-label="Close offer"
         >
           <X size={17} aria-hidden="true" />
         </button>
 
-        {claimed ? (
-          <div className="dp-success">
-            <span className="dp-success-icon" aria-hidden="true">
-              <Check size={26} strokeWidth={2.2} />
-            </span>
+        <Image
+          src="/images/logo-rung-e-bahar.webp"
+          alt="Rung E Bahar"
+          width={889}
+          height={220}
+          className="dp-logo"
+          sizes="180px"
+        />
 
-            <p className="dp-eyebrow">Welcome to Rung E Bahar</p>
-            <h2 id="dp-title" className="dp-title">
-              Your {promoDiscount} off is ready
-            </h2>
-            <p id="dp-success-desc" className="dp-desc">
-              Use this code at checkout on your first order.
-            </p>
+        <p className="dp-eyebrow">A little more from Rung E Bahar</p>
+        <h2 id="dp-title" className="dp-title">
+          {MULTI_BUY_LABEL}
+        </h2>
+        <p id="dp-desc" className="dp-desc">
+          Add any {multiBuy.minItems} dresses to your cart and the extra{" "}
+          {multiBuy.percentOff}% comes off automatically at checkout. No code
+          needed.
+        </p>
+        <p className="dp-desc">{FREE_SHIPPING_LABEL}.</p>
 
-            <button
-              type="button"
-              className="dp-code"
-              onClick={copyCode}
-              aria-label={
-                copied
-                  ? "Discount code copied"
-                  : `Copy discount code ${promoCode}`
-              }
-            >
-              <span className="dp-code-value">{promoCode}</span>
-              <span className="dp-code-action" aria-live="polite">
-                {copied ? (
-                  <>
-                    <Check size={14} aria-hidden="true" /> Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy size={14} aria-hidden="true" /> Copy
-                  </>
-                )}
-              </span>
-            </button>
+        <Link href="/shop" className="dp-submit" onClick={close}>
+          Shop the collection
+        </Link>
 
-            <Link href="/shop" className="dp-submit" onClick={close}>
-              Shop the collection
-            </Link>
-
-            <button type="button" className="dp-decline" onClick={close}>
-              Maybe later
-            </button>
-          </div>
-        ) : (
-          <>
-            <Image
-              src="/images/logo-rung-e-bahar.webp"
-              alt="Rung E Bahar"
-              width={889}
-              height={220}
-              className="dp-logo"
-              sizes="180px"
-            />
-
-            <p className="dp-eyebrow">Welcome to Rung E Bahar</p>
-            <h2 id="dp-title" className="dp-title">
-              Get {promoDiscount} off your first order
-            </h2>
-            <p id="dp-desc" className="dp-desc">
-              Join our community and enjoy exclusive offers, early access and
-              style inspiration.
-            </p>
-
-            <form className="dp-form" onSubmit={handleSubmit} noValidate>
-              <input
-                ref={inputRef}
-                className="dp-input"
-                type="email"
-                name="email"
-                value={email}
-                onChange={(event) => {
-                  setEmail(event.target.value);
-                  if (error) setError("");
-                }}
-                placeholder="Your email address"
-                aria-label="Email address"
-                aria-invalid={error ? "true" : undefined}
-                aria-describedby={error ? "dp-error" : undefined}
-                autoComplete="email"
-                inputMode="email"
-                required
-              />
-              <p
-                id="dp-error"
-                className={`dp-error${error ? " is-visible" : ""}`}
-                role="alert"
-              >
-                {error}
-              </p>
-              <button type="submit" className="dp-submit">
-                Claim my discount
-              </button>
-            </form>
-
-            <button type="button" className="dp-decline" onClick={close}>
-              No thanks, I&apos;ll pay full price
-            </button>
-          </>
-        )}
+        <button type="button" className="dp-decline" onClick={close}>
+          Maybe later
+        </button>
       </div>
     </div>
   );

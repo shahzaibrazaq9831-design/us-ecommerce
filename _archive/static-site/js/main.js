@@ -290,7 +290,7 @@ function openQuickView(productId) {
                 </div>
                 <div style="padding-top:16px; border-top:1px solid var(--color-gray-200);">
                     <p style="font-size:0.85rem; color:var(--color-gray-600);"><i class="fas fa-shipping-fast" style="color:var(--color-success); margin-right:8px;"></i>Free Worldwide Shipping</p>
-                    <p style="font-size:0.85rem; color:var(--color-gray-600); margin-top:8px;"><i class="fas fa-undo-alt" style="color:var(--color-success); margin-right:8px;"></i>7-Day Easy Returns</p>
+                    <p style="font-size:0.85rem; color:var(--color-gray-600); margin-top:8px;"><i class="fas fa-undo-alt" style="color:var(--color-success); margin-right:8px;"></i>Clear Returns Process</p>
                 </div>
             </div>
         </div>`;

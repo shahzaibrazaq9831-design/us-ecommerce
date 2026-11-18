@@ -128,9 +128,6 @@
      is the header's bottom hairline. */
   --header-total-height: calc(var(--header-height) + var(--nav-height) + 1px);
   --announcement-height: 40px;
-  /* Reserved space for the countdown strip. It is never collapsed, so the
-     page height cannot change when the strip hydrates. */
-  --offer-strip-height: 56px;
   --container-max: 1400px;
   --container-padding: 24px;
 }
@@ -2133,8 +2130,8 @@
 /* ============================================
    Mobile experience (below 1024px)
    Mirrors the reference store's phone layout:
-   announcement marquee → sticky header → offer
-   strip → hero → trust grid → slide-out drawer.
+   announcement marquee → sticky header → page
+   → hero → trust grid → slide-out drawer.
    ============================================ */
 
 @layer components {
@@ -2150,35 +2147,6 @@
   /* Expands a small icon button to a 44px tap target without changing layout. */
   .tap-target {
     @apply relative;
-  }
-
-  /* ---------- Offer strip — one-time 5-hour welcome offer, every device ---------- */
-  /* The outer box is sized before hydration and never collapses: the strip is
-     in the server HTML at its full height, and only the timer digits change. */
-  .offer-strip {
-    @apply flex h-[var(--offer-strip-height)] min-h-[var(--offer-strip-height)] flex-col items-center justify-center overflow-visible border-b border-[rgba(31,61,43,0.08)] bg-[#FBF7F1] px-[16px] text-center;
-  }
-
-  .offer-strip-main {
-    @apply flex min-w-0 flex-wrap items-center justify-center gap-x-[4px] gap-y-[2px] text-[12.5px] font-semibold leading-[1.4] text-[#1F3D2B];
-  }
-
-  .offer-strip-sep {
-    @apply text-[#8B6B2E];
-  }
-
-  .offer-strip-divider {
-    @apply px-[4px] text-[#CFC2AB];
-  }
-
-  /* Fixed-width, tabular digits: swapping 05:00:00 for the real remaining time
-     cannot change the width of the line. */
-  .offer-strip-timer {
-    @apply inline-block min-w-[8.6ch] text-center font-bold tracking-[0.04em] text-[#8B6B2E] [font-feature-settings:'tnum'_1] [font-variant-numeric:tabular-nums] whitespace-nowrap;
-  }
-
-  .offer-strip-sub {
-    @apply mt-[3px] text-[11px] leading-[1.4] text-[#7A746B];
   }
 }
 
@@ -2200,7 +2168,6 @@
     --nav-height: 0px;
     /* m-header (56px) + the header's 1px bottom border (+ notch inset). */
     --header-total-height: calc(var(--header-height) + 1px + env(safe-area-inset-top));
-    --offer-strip-height: 76px;
     --container-padding: 16px;
   }
 
@@ -2749,10 +2716,6 @@
     max-width: 50vw;
   }
 
-  .offer-strip-main {
-    font-size: 11.5px;
-  }
-
   .hero-overlay-title {
     font-size: 25px;
   }
@@ -3090,10 +3053,12 @@
 }
 
 /* ============================================
-   Welcome discount popup
-   Centered email capture shown two seconds after
-   the page loads. The overlay blurs the page and
-   the card scales in with a short content stagger.
+   Offer popup
+   Centered reminder of the two live offers, shown
+   two seconds after the page loads. The overlay
+   blurs the page and the card scales in with a
+   short content stagger. No email or code is asked
+   for: both offers apply automatically.
    ============================================ */
 :root {
   --dp-ink: #211b14;
@@ -4539,17 +4504,6 @@
   border-color: var(--color-primary);
 }
 
-.buy-panel-express {
-  margin: 0;
-  padding: 12px 14px;
-  border: 1px dashed var(--color-primary);
-  border-radius: var(--radius-md);
-  background: rgba(139, 105, 20, 0.06);
-  color: var(--color-secondary);
-  font-size: 0.88rem;
-  line-height: 1.6;
-}
-
 .buy-panel-description {
   color: var(--color-gray-700);
   line-height: 1.8;
@@ -5167,15 +5121,18 @@ input[type="submit"] {
   top: 0;
 }
 
-/* Honeypot fields: hidden from people, visible to bots. */
+/* Honeypot fields: hidden from people, visible to bots. The field sits
+   completely off-screen rather than relying on clip alone, so the "Company"
+   label can never appear in the newsletter layout. */
 .honeypot-field {
   position: absolute !important;
-  width: 1px;
-  height: 1px;
+  left: -9999px !important;
+  top: auto !important;
+  width: 1px !important;
+  height: 1px !important;
   padding: 0;
   margin: -1px;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
 }
@@ -6339,96 +6296,6 @@ input[type="submit"] {
   color: var(--color-gray-600);
 }
 
-/* ---------- Discount code ---------- */
-
-.discount-form {
-  display: grid;
-  gap: 8px;
-}
-
-.discount-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-secondary);
-}
-
-.discount-row {
-  display: flex;
-  gap: 8px;
-}
-
-.discount-row input {
-  flex: 1;
-  min-width: 0;
-  padding: 10px 12px;
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius-md);
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  text-transform: uppercase;
-}
-
-.discount-row input:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 1px;
-  border-color: var(--color-primary);
-}
-
-.discount-apply {
-  padding: 10px 18px;
-  white-space: nowrap;
-}
-
-.discount-message {
-  margin: 0;
-  font-size: 0.8rem;
-}
-
-.discount-message.is-accepted {
-  color: var(--color-success);
-}
-
-.discount-message.is-rejected {
-  color: var(--color-error);
-}
-
-.discount-applied {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 14px;
-  border: 1px dashed var(--color-primary);
-  border-radius: var(--radius-md);
-  background: var(--color-cream);
-}
-
-.discount-applied-code {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-primary);
-}
-
-.discount-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: none;
-  border-radius: var(--radius-full);
-  background: transparent;
-  color: var(--color-gray-600);
-  cursor: pointer;
-}
-
-.discount-remove:hover {
-  color: var(--color-error);
-}
-
 /* ---------- Wishlist ---------- */
 
 .wishlist-item {
@@ -7466,6 +7333,15 @@ body:has(.admin-shell) .fvrd {
   min-height: 96px;
 }
 
+.field__input[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.field__hint {
+  font-size: 0.8rem;
+  color: var(--color-gray-600);
+}
+
 .field__error {
   font-size: 0.82rem;
   color: var(--color-error);
@@ -7529,6 +7405,20 @@ body:has(.admin-shell) .fvrd {
   margin: 0 0 20px;
   display: grid;
   gap: 18px;
+}
+
+.checkout__items:focus,
+.checkout__error:focus {
+  outline: 3px solid rgba(139, 105, 20, 0.35);
+  outline-offset: 3px;
+}
+
+.checkout__item-errors {
+  list-style: none;
+  padding: 0;
+  margin: -8px 0 16px;
+  display: grid;
+  gap: 4px;
 }
 
 .checkout__item {

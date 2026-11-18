@@ -3,8 +3,8 @@ import "./admin.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Admin",
-    template: "%s | Admin",
+    default: "Rung E Bahar Admin",
+    template: "%s | Rung E Bahar Admin",
   },
   robots: { index: false, follow: false },
 };

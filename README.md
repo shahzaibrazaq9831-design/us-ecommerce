@@ -38,7 +38,7 @@ dress-store/
 │   ├── hooks/              <- useHydrated.ts (knows when the browser has taken over)
 │   ├── lib/                <- ⭐ THE BUSINESS RULES
 │   │   ├── products.ts     <-    The catalogue: pieces, prices, stitching, measurements
-│   │   ├── discounts.ts    <-    The discount codes
+│   │   ├── offers.ts       <-    The two real offers and the Buy 2 discount rule
 │   │   ├── orders.ts       <-    Orders: creating them, paying them, finding them
 │   │   ├── pricing.ts      <-    What an order costs (server-authoritative)
 │   │   ├── checkout-validation.ts <- The checkout rules, shared by browser and server
@@ -125,7 +125,7 @@ environment variables are configured. Production requires
 role key must only be configured as a server-side environment variable in
 Vercel and must never use a `NEXT_PUBLIC_` prefix. Apply
 [`db/phase1-settings-and-hardening.sql`](./db/phase1-settings-and-hardening.sql)
-as well: it adds the offer, discount, announcement and returns setting rows
+as well: it adds the announcement and returns setting rows
 without overwriting any existing values. Card details are never stored in
 orders: a payment is a method, a state and the provider's reference.
 To preserve existing local orders, set the same two Supabase variables in
@@ -193,7 +193,7 @@ every newsletter carries a one-click unsubscribe link.
 | I want to change… | Edit this file |
 |---|---|
 | Products (add/remove/edit) | `src/data/products.ts` |
-| Site name, email, phone, promo code, nav menu | `src/data/site.ts` |
+| Site name, email, phone, nav menu | `src/data/site.ts` |
 | Hero slides, occasions, categories, reviews | `src/data/site.ts` |
 | Colors, fonts, spacing, animations | `src/app/globals.css` (`:root` variables) |
 | Header / footer / shared UI | `src/components/` |
