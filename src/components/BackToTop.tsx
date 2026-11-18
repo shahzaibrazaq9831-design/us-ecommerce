@@ -31,7 +31,7 @@ export default function BackToTop() {
   const scrollToTop = () => {
     // Honour the OS "reduce motion" setting, the same way the CSS does.
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+    window.scrollTo({ top: 0, behavior: reduced ? "instant" : "smooth" });
   };
 
   return (

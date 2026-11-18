@@ -143,16 +143,19 @@
   }
 
   html {
-    scroll-behavior: smooth;
+    /* Same-page links opt into smooth scrolling in `SmoothScrollLinks`. Keeping
+       the root on `auto` means route changes and programmatic instant scrolls
+       (scroll-lock restore, wheel deltas, error focus) stay immediate. */
+    scroll-behavior: auto;
     scroll-padding-top: var(--header-total-height);
     font-size: 16px;
-    /* Smooth, momentum-preserving scroll on all devices */
+    /* Keep the root as the page scroller so the sticky header and the scroll
+       lock behave the same on every device. */
     overflow-y: scroll;
     /* Clip sideways overflow on the root scroller. Do NOT move this to <body>:
        overflow on <body> makes it a scroll container and breaks the sticky
        header (it then scrolls away with the page). */
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
   }
 
   body {

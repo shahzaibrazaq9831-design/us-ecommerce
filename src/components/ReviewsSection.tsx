@@ -152,7 +152,7 @@ export default function ReviewsSection({
 
       metrics.rail.scrollTo({
         left: Math.min(target * metrics.step * perView, metrics.maxScroll),
-        behavior: prefersReducedMotion() ? "auto" : "smooth",
+        behavior: prefersReducedMotion() ? "instant" : "smooth",
       });
     },
     [measure, pageCount, perView]

@@ -6,6 +6,7 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import SmoothScrollLinks from "@/components/SmoothScrollLinks";
 import { SITE_NAME, SITE_URL } from "@/lib/seo";
 
 const playfair = Playfair_Display({
@@ -66,7 +67,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      data-scroll-behavior="smooth"
       className={`${playfair.variable} ${inter.variable} ${plusJakarta.variable}`}
     >
       <head>
@@ -76,6 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <SmoothScrollLinks />
         {children}
         <SpeedInsights />
       </body>

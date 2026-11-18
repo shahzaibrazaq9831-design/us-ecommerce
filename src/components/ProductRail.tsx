@@ -268,7 +268,9 @@ export default function ProductRail({
     const rail = railRef.current;
     if (!rail) return;
     event.preventDefault();
-    rail.scrollBy({ left: event.deltaX, behavior: "auto" });
+    // `instant` keeps each wheel event 1:1 with the rail; `auto` would resolve
+    // to the rail's CSS `smooth` and queue an animation per event.
+    rail.scrollBy({ left: event.deltaX, behavior: "instant" });
   };
 
   // Grid layout — every item visible at once (no horizontal scroll). The

@@ -151,7 +151,11 @@ export default function CheckoutForm({
       const element = document.getElementById(id) ?? document.getElementById("checkout-error-summary");
 
       if (!element) return;
-      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      element.scrollIntoView({
+        behavior: reduced ? "instant" : "smooth",
+        block: "center",
+      });
       element.focus({ preventScroll: true });
     });
 

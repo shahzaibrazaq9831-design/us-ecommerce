@@ -86,9 +86,8 @@ export default function DotMark({
   ballColor = "#111",
   style = {},
   intro = true,
-  introEase = 0.06, // movement speed toward the text; lower = slower
+  introDuration = 1000, // ms, fixed time for the cloud to gather into the wordmark
   introStagger = 500, // ms, total stagger window left→right
-  introDistance = 300, // px, how far dots start from their origin
   replay = false, // replay intro each time the section re-enters viewport
   headroom = 0, // px of empty space above the text for upward drift
 }) {
@@ -128,8 +127,6 @@ export default function DotMark({
     let colorTarget = 0;
     /** Height of the wordmark band, refreshed on every build. */
     let band = 0;
-    /** Distance over which dots fade in during the intro. */
-    let fadeDistance = 300;
     const reducedMotion =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -209,7 +206,6 @@ export default function DotMark({
 
       const data = o.getImageData(0, 0, w, h).data;
       dots = [];
-      fadeDistance = Math.max(introDistance, Math.hypot(w, h) * 0.75);
       // Keep the dot count sane on very large canvases: the footer canvas is
       // the whole footer, so a fixed 3px grid would produce tens of
       // thousands of dots on a desktop and drop frames while scrolling.
@@ -321,44 +317,32 @@ export default function DotMark({
 
       if (intro && !reducedMotion && !introFinished && introActive) {
         // ---- Intro phase: the loose cloud gathers into the wordmark ----
+        // Time-based instead of per-frame exponential easing: the gather
+        // always finishes in ~introDuration (1s by default) no matter how far
+        // each dot starts or how fast the device paints frames.
         let allDone = true;
+        const duration = Math.max(1, introDuration);
 
         for (const d of dots) {
-          const start = introStartTime + d.idelay;
-          if (now < start) {
-            // Waiting for its stagger delay — stay at start pos, low alpha
-            d.ialpha = 0.3;
-            allDone = false;
-            continue;
-          }
-          // Move toward origin (exponential ease-out). Slightly different
-          // speed per dot keeps the cloud from snapping together as one block.
-          const ease = Math.min(0.16, introEase * d.back);
-          d.x += (d.ox - d.x) * ease;
-          d.y += (d.oy - d.y) * ease;
-          const dx = d.ox - d.x;
-          const dy = d.oy - d.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 1.5) {
+          const elapsed = now - introStartTime - d.idelay;
+          const t = Math.min(1, Math.max(0, elapsed / duration));
+          if (t >= 1) {
             d.x = d.ox;
             d.y = d.oy;
             d.ialpha = 1;
-          } else {
-            allDone = false;
-            // Fade in as it approaches its final spot
-            const progress = 1 - dist / fadeDistance;
-            d.ialpha = 0.3 + 0.7 * Math.min(1, Math.max(0, progress));
+            continue;
           }
+          allDone = false;
+          // easeOutCubic: a quick rush in, then a gentle settle into place.
+          const e = 1 - Math.pow(1 - t, 3);
+          d.x = d.sx + (d.ox - d.sx) * e;
+          d.y = d.sy + (d.oy - d.sy) * e;
+          d.ialpha = 0.3 + 0.7 * e;
         }
 
         if (allDone) {
           introFinished = true;
           introActive = false;
-          dots.forEach((d) => {
-            d.x = d.ox;
-            d.y = d.oy;
-            d.ialpha = 1;
-          });
         }
 
         // Draw intro dots only — cursor ring/ball stay hidden until intro ends
@@ -614,9 +598,8 @@ export default function DotMark({
     ringColor,
     ballColor,
     intro,
-    introEase,
+    introDuration,
     introStagger,
-    introDistance,
     replay,
     headroom,
   ]);

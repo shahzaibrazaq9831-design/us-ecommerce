@@ -52,11 +52,11 @@ export function unlockPageScroll(): void {
   if (lockCount === 0) {
     document.documentElement.style.overflow = "";
     document.body.style.paddingRight = "";
-    // Put the visitor back exactly where they were. `behavior: "auto"` keeps
-    // this instant — a smooth restore would glide the page while the overlay
-    // is still fading out.
+    // Put the visitor back exactly where they were. `instant` cannot be
+    // upgraded to smooth by a scroll container's CSS — a smooth restore would
+    // glide the page while the overlay is still fading out.
     if (Math.abs(window.scrollY - lockedScrollY) > 1) {
-      window.scrollTo({ top: lockedScrollY, behavior: "auto" });
+      window.scrollTo({ top: lockedScrollY, behavior: "instant" });
     }
   }
 }
