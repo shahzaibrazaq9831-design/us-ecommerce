@@ -10,7 +10,8 @@
     "test:checkout": "tsx scripts/test-checkout.ts",
     "migrate:orders": "node --env-file=.env.local scripts/migrate-orders-to-supabase.mjs",
     "check:supabase": "node --env-file=.env.local scripts/check-supabase.mjs",
-    "seed:admin": "node --env-file=.env.local --import tsx scripts/seed-admin.ts"
+    "seed:admin": "node --env-file=.env.local --import tsx scripts/seed-admin.ts",
+    "setup:vercel:admin": "powershell -ExecutionPolicy Bypass -File .\\scripts\\setup-vercel-admin.ps1"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

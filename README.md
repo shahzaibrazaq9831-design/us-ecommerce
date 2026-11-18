@@ -113,10 +113,15 @@ Two public values control branded links:
 | `NEXT_PUBLIC_INSTAGRAM_URL` | Instagram profile linked from the homepage and footer (defaults to `https://www.instagram.com/rungebahar/`) |
 
 Set the variables in `.env.local` for local use and in Vercel's project
-environment-variable settings for deployment. Without admin credentials a
-development machine falls back to a clearly marked development sign-in
-(`admin@storestudio.local` / `admin-dev`) and a production server signs
-nobody in at all.
+environment-variable settings for deployment. The sign-in page shows the
+accepted email address and fills it in for you, so only the password has to
+be remembered. Use `npm run setup:vercel:admin` (see
+`scripts/setup-vercel-admin.ps1`) to copy the email and session secret from
+`.env.local` to Vercel; a mismatched `ADMIN_EMAIL` is the most common reason
+a password that works locally is rejected after deployment. Without admin
+credentials a development machine falls back to a clearly marked development
+sign-in (`admin@storestudio.local` / `admin-dev`) and a production server
+signs nobody in at all.
 
 In local development, orders use `.data/orders.json` unless both Supabase
 environment variables are configured. Production requires

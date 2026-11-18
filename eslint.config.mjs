@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Archived static prototype, not part of the Next.js application.
     "_archive/**",
+    // Separate backend service (own tsconfig/build), not part of the Next app.
+    "backend/**",
   ]),
 ]);
 

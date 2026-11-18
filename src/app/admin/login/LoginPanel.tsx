@@ -9,16 +9,18 @@ export default function LoginPanel({
   error,
   next,
   configured,
+  email,
 }: {
   error: string;
   next: string;
   configured: boolean;
+  email: string;
 }) {
   const reduce = useReducedMotion();
 
   const messages: Record<string, string> = {
     missing: "Enter both the email address and the password.",
-    invalid: "That email address and password do not match.",
+    invalid: `That password does not match the sign-in for ${email}.`,
     "not-configured":
       "No admin sign-in is configured on this server. Set ADMIN_PASSWORD in the environment.",
   };
@@ -46,6 +48,11 @@ export default function LoginPanel({
         <p className="admin-login-copy">
           Sign in to manage orders, the catalogue and your customers.
         </p>
+        {configured ? (
+          <p className="admin-login-hint">
+            Studio sign-in: <strong>{email}</strong>
+          </p>
+        ) : null}
 
         {error ? (
           <p className="admin-alert admin-alert--error" role="alert">
@@ -68,6 +75,7 @@ export default function LoginPanel({
               type="email"
               name="email"
               autoComplete="username"
+              defaultValue={email}
               placeholder="you@studio.com"
               required
             />

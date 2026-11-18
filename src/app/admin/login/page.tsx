@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { isAdminConfigured } from "@/lib/admin-session";
+import { adminEmail, isAdminConfigured } from "@/lib/admin-session";
 import LoginPanel from "./LoginPanel";
 
 export const metadata: Metadata = {
@@ -31,6 +31,7 @@ async function LoginPanelWrapper({ searchParams }: AdminLoginPageProps) {
       error={first(params.error)}
       next={first(params.next)}
       configured={isAdminConfigured()}
+      email={adminEmail()}
     />
   );
 }

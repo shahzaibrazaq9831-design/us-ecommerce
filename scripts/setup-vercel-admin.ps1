@@ -5,14 +5,15 @@
     powershell -ExecutionPolicy Bypass -File .\scripts\setup-vercel-admin.ps1
 
   You will be asked for a Vercel access token and the admin password.
-  Neither is written to a file or to the repository. The session secret is
-  read from the local .env.local file.
+  Neither is written to a file or to the repository. The admin email and
+  session secret are read from the local .env.local file so the deployed
+  sign-in matches the one that works locally.
 #>
 
 param(
   [string] $TeamSlug = "micro-div",
   [string] $Project = "us-ecommerce",
-  [string] $AdminEmail = "rungebahar@gmail.com"
+  [string] $AdminEmail = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -26,15 +27,29 @@ $password = [System.Net.NetworkCredential]::new("", $passwordSecure).Password
 
 $envFile = Join-Path (Get-Location) ".env.local"
 if (-not (Test-Path $envFile)) {
-  throw "Missing $envFile - the session secret must be set locally first."
+  throw "Missing $envFile - the admin settings must be set locally first."
 }
-$secretMatch = Select-String -Path $envFile -Pattern '^ADMIN_SESSION_SECRET=(.*)$'
-if (-not $secretMatch) {
-  throw "ADMIN_SESSION_SECRET is missing from $envFile."
+
+function Read-EnvValue([string] $Key) {
+  $match = Select-String -Path $envFile -Pattern "^$Key=(.*)$"
+  if (-not $match) {
+    throw "$Key is missing from $envFile."
+  }
+  return $match.Matches[0].Groups[1].Value.Trim().Trim('"')
 }
-$secret = $secretMatch.Matches[0].Groups[1].Value.Trim().Trim('"')
+
+$secret = Read-EnvValue "ADMIN_SESSION_SECRET"
 if (-not $secret) {
   throw "ADMIN_SESSION_SECRET is empty in $envFile."
+}
+
+# Keep the deployed sign-in email in step with the local one. A mismatch here
+# is the usual reason the dashboard rejects a password that works locally.
+if (-not $AdminEmail) {
+  $AdminEmail = Read-EnvValue "ADMIN_EMAIL"
+}
+if (-not $AdminEmail) {
+  throw "ADMIN_EMAIL is empty in $envFile. Pass -AdminEmail to override it."
 }
 
 $headers = @{

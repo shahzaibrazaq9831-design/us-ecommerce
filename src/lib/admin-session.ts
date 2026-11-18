@@ -22,7 +22,7 @@
  * fails closed rather than open.
  */
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { io } from "next/cache";
 import {
@@ -80,9 +80,21 @@ export function isAdminConfigured(): boolean {
 }
 
 /**
+ * The address this server accepts at sign-in.
+ *
+ * It is not a secret: the sign-in page shows it so an admin only has to
+ * remember the password. Keeping this in one place stops the page and the
+ * credential check from drifting apart.
+ */
+export function adminEmail(): string {
+  return adminCredentials()?.email ?? DEFAULT_ADMIN_EMAIL;
+}
+
+/**
  * Check a sign-in. Both halves are compared with a constant-time compare so
  * the answer does not leak how much of the password was right.
- */export function verifyAdminCredentials(email: string, password: string): boolean {
+ */
+export function verifyAdminCredentials(email: string, password: string): boolean {
   const credentials = adminCredentials();
   if (!credentials) return false;
 
@@ -128,10 +140,8 @@ function warnAboutDevelopmentFallback(): void {
  * The signed-in admin, or null when nobody is signed in.
  *
  * The session is checked twice over: the signature has to be ours, and the
- * sign-in must not have run out. The clock is read here, right after
- * `io()`, because reading the current time inside a server render is an
- * unstable value — `io()` keeps it out of the static shell and lets it be
- * read afresh on every request.
+ * sign-in must not have run out. `io()` keeps the clock read below out of the
+ * static shell; callers render this behind a Suspense boundary.
  */
 export async function getAdminSession(): Promise<AdminSession | null> {
   await io();
@@ -140,6 +150,29 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   const token = store.get(ADMIN_SESSION_COOKIE)?.value;
 
   return readSessionToken(token, Date.now());
+}
+
+/**
+ * Should the session cookie carry the `Secure` flag?
+ *
+ * `NODE_ENV === "production"` on its own is not enough: a production build
+ * served over plain HTTP on localhost would set a cookie the browser refuses
+ * to send back, which looks exactly like a login that never works. Trust the
+ * forwarded protocol when there is one, then fall back to the host and the
+ * configured site URL.
+ */
+async function secureSessionCookie(): Promise<boolean> {
+  const requestHeaders = await headers();
+  const forwarded = requestHeaders.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  if (forwarded) return forwarded === "https";
+
+  const host = requestHeaders.get("host")?.trim().toLowerCase() ?? "";
+  if (/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host)) return false;
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (siteUrl) return siteUrl.toLowerCase().startsWith("https://");
+
+  return process.env.NODE_ENV === "production";
 }
 
 /** Sign an admin in. Only ever called from a server action. */
@@ -154,7 +187,7 @@ export async function startAdminSession(email: string): Promise<void> {
   store.set(ADMIN_SESSION_COOKIE, createSessionToken(session), {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: await secureSessionCookie(),
     path: "/",
     maxAge: SESSION_TTL_SECONDS,
   });
