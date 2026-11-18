@@ -73,7 +73,7 @@ export default function Footer() {
           color="#A8A29A"
           colorTo="#B08A4F"
           idle={1.1}
-          introDuration={1000}
+          introDuration={1600}
           introStagger={0}
           introLead={1}
           spreadEase={0.075}
