@@ -1,27 +1,12 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import {
   Playfair_Display,
   Inter,
   Plus_Jakarta_Sans,
 } from "next/font/google";
 import "./globals.css";
-import { CartProvider } from "@/context/CartContext";
-import { CurrencyProvider } from "@/context/CurrencyContext";
-import { ProductRatingsProvider } from "@/components/ProductRatingsProvider";
-import CartDrawer from "@/components/CartDrawer";
-import { getExchangeRates, resolveCurrency } from "@/lib/currency";
-import { SITE_NAME, SITE_URL } from "@/lib/seo";
-import AnnouncementBar from "@/components/AnnouncementBar";
-import Header from "@/components/Header";
-import OfferStrip from "@/components/OfferStrip";
-import Breadcrumbs from "@/components/Breadcrumbs";
-import Footer from "@/components/Footer";
-import FloatingElements from "@/components/FloatingElements";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
-import CookieConsent from "@/components/CookieConsent";
-import { Suspense } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SITE_NAME, SITE_URL } from "@/lib/seo";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -44,18 +29,18 @@ const plusJakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Premium Pakistani Dresses | Luxury Designer-Inspired Collection",
-    template: `%s | ${SITE_NAME}`,
+    default: "Rung E Bahar | Luxury Designer-Inspired Dresses",
+    template: "%s",
   },
   description:
-    "Shop luxury Pakistani designer-inspired dresses. Free worldwide delivery, 7-day returns and made-to-order stitching.",
+    "Shop luxury Pakistani designer-inspired dresses. Free worldwide delivery, made-to-order stitching and a clear returns process for eligible items.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
-    title: "Premium Pakistani Dresses | Luxury Designer-Inspired Collection",
+    title: "Rung E Bahar | Luxury Designer-Inspired Collection",
     description:
       "Bridal, wedding, formal and chiffon dresses made to order. Free worldwide shipping and three stitching options.",
     url: SITE_URL,
@@ -73,6 +58,10 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Keep the root layout limited to document-level concerns. The storefront
+ * chrome lives in the (storefront) layout so it never wraps /admin.
+ */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
@@ -87,61 +76,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        {/* Keyboard users can jump straight past the header and nav. */}
-        <a className="skip-link" href="#main-content">
-          Skip to content
-        </a>
-        <Suspense fallback={null}>
-          <CurrencyInit>{children}</CurrencyInit>
-        </Suspense>
+        {children}
         <SpeedInsights />
       </body>
     </html>
-  );
-}
-
-async function CurrencyInit({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies();
-  // The region provider writes `ppd_currency`; `currency` is the legacy name.
-  const initialCurrency = resolveCurrency(
-    cookieStore.get("ppd_currency")?.value ?? cookieStore.get("currency")?.value
-  );
-  const rates = await getExchangeRates();
-  return (
-    <CurrencyProvider initialCurrency={initialCurrency} rates={rates}>
-      <CartProvider>
-        {/* The real ratings, from the approved reviews only. */}
-        <ProductRatingsProvider>
-          {/* The announcement bar sits in the normal flow, above the sticky
-              header block, so scrolling a little slides it out of view the way
-              it does on the reference store. */}
-          <AnnouncementBar />
-          <div className="site-topbar sticky top-0 z-[1000] bg-white">
-            <Suspense
-              fallback={
-                <header
-                  className="header header--placeholder h-[var(--header-total-height)] [border-bottom:none]! [box-shadow:none]!"
-                  aria-hidden="true"
-                />
-              }
-            >
-              <Header />
-            </Suspense>
-            <OfferStrip />
-          </div>
-          <Suspense fallback={null}>
-            <Breadcrumbs />
-          </Suspense>
-          <main id="main-content">{children}</main>
-          <Footer />
-          <FloatingElements />
-          <FloatingWhatsApp />
-          <CartDrawer />
-          {/* The cookie banner sits over the page: it never pushes the
-              content down and never locks the scroll. */}
-          <CookieConsent />
-        </ProductRatingsProvider>
-      </CartProvider>
-    </CurrencyProvider>
   );
 }

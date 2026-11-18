@@ -150,7 +150,7 @@ export default function Header() {
             aria-label="Rung E Bahar"
           >
             <Image
-              src="/images/logo-damsa.webp"
+              src="/images/logo-rung-e-bahar.webp"
               alt="Rung E Bahar"
               width={889}
               height={220}
@@ -211,7 +211,7 @@ export default function Header() {
 
           <Link href="/#hero" className="m-header-logo" aria-label="Rung E Bahar">
             <Image
-              src="/images/logo-damsa.webp"
+              src="/images/logo-rung-e-bahar.webp"
               alt="Rung E Bahar"
               width={889}
               height={220}

@@ -4,16 +4,19 @@ import BackToTop from "./BackToTop";
 import Toast from "./Toast";
 import QuickViewModal from "./QuickViewModal";
 import RecentReviewPopup from "./RecentReviewPopup";
-import DiscountPopup from "./DiscountPopup";
+import DiscountPopup, { type DiscountPopupProps } from "./DiscountPopup";
 import FirstVisitRegionDialog from "./FirstVisitRegionDialog";
 
-export default function FloatingElements() {
+export default function FloatingElements({
+  promoCode,
+  promoDiscount,
+}: DiscountPopupProps) {
   return (
     <>
       <BackToTop />
       <Toast />
       <QuickViewModal />
-      <DiscountPopup />
+      <DiscountPopup promoCode={promoCode} promoDiscount={promoDiscount} />
       <RecentReviewPopup />
       <FirstVisitRegionDialog />
     </>

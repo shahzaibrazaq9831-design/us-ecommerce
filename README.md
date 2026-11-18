@@ -1,6 +1,6 @@
-# Premium Pakistani Dresses — Next.js
+# Rung E Bahar — Next.js
 
-A complete e-commerce storefront built with **Next.js 16** (App Router, React 19, TypeScript), matching the Premium Pakistani Dresses design. Fully responsive, animated, cart & wishlist support.
+A complete e-commerce storefront built with **Next.js 16** (App Router, React 19, TypeScript), matching the Rung E Bahar design. Fully responsive, animated, cart & wishlist support.
 
 ## Folder Structure
 
@@ -105,6 +105,13 @@ Supabase settings below:
 | `NEXT_PUBLIC_SUPABASE_URL` | The Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase key used for durable production order storage |
 
+Two public values control branded links:
+
+| Variable | What it is |
+|---|---|
+| `NEXT_PUBLIC_SITE_URL` | Canonical site URL for SEO, sitemaps and emails (defaults to `https://www.rungebahar.com`) |
+| `NEXT_PUBLIC_INSTAGRAM_URL` | Instagram profile linked from the homepage and footer (defaults to `https://www.instagram.com/rungebahar/`) |
+
 Set the variables in `.env.local` for local use and in Vercel's project
 environment-variable settings for deployment. Without admin credentials a
 development machine falls back to a clearly marked development sign-in
@@ -116,8 +123,11 @@ environment variables are configured. Production requires
 `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`; apply
 [`db/orders.sql`](./db/orders.sql) to the Supabase project first. The service
 role key must only be configured as a server-side environment variable in
-Vercel and must never use a `NEXT_PUBLIC_` prefix. Card details are never
-stored in orders: a payment is a method, a state and the provider's reference.
+Vercel and must never use a `NEXT_PUBLIC_` prefix. Apply
+[`db/phase1-settings-and-hardening.sql`](./db/phase1-settings-and-hardening.sql)
+as well: it adds the offer, discount, announcement and returns setting rows
+without overwriting any existing values. Card details are never stored in
+orders: a payment is a method, a state and the provider's reference.
 To preserve existing local orders, set the same two Supabase variables in
 `.env.local` and run `npm run migrate:orders` before deploying. The migration
 script inserts missing orders and stops rather than overwriting different
@@ -204,4 +214,4 @@ every newsletter carries a one-click unsubscribe link.
 - Rate limits (checkout, order lookup, reviews, newsletter) are counted in the memory of one server. Spread the shop over several servers and they need a shared store such as Redis.
 - The cookie banner is a fixed overlay: it never pushes the page down and never locks the scroll, and no analytics is loaded until the visitor accepts.
 
-© 2026 Premium Pakistani Dresses
+© 2026 Rung E Bahar

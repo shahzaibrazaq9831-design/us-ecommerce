@@ -3,7 +3,7 @@ import Link from "next/link";
 import InfoPageLayout from "@/components/InfoPageLayout";
 
 export const metadata: Metadata = {
-  title: "Made-to-Order Stitching | Premium Pakistani Dresses",
+  title: "Made-to-Order Stitching",
   description:
     "Choose a standard size or send us your custom measurements — every outfit is tailored to you. Size chart, measuring guide and stitching time.",
 };

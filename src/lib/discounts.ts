@@ -22,15 +22,15 @@ export interface DiscountCode {
 
 /** Every discount code the store accepts, keyed by its upper-case code. */
 export const DISCOUNT_CODES: Record<string, DiscountCode> = {
-  PPD10: {
-    code: "PPD10",
+  REB10: {
+    code: "REB10",
     percent: 10,
     label: "10% off your order",
   },
 };
 
 /** The code we advertise on the storefront. */
-export const DEFAULT_DISCOUNT_CODE = "PPD10";
+export const DEFAULT_DISCOUNT_CODE = "REB10";
 
 /** What `validateDiscountCode` tells the caller. */
 export interface DiscountValidation {

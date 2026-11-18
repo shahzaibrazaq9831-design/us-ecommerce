@@ -14,6 +14,11 @@ import { DEFAULT_DISCOUNT_CODE, DISCOUNT_CODES } from "@/lib/discounts";
 export const stylingAssistanceMessage =
   "Hello Rung E Bahar, I would like some styling assistance.";
 
+/** Instagram profile to link to. Override per deployment without a code change. */
+const instagramUrl =
+  process.env.NEXT_PUBLIC_INSTAGRAM_URL?.trim() ||
+  "https://www.instagram.com/rungebahar/";
+
 export const siteConfig = {
   name: "Rung E Bahar",
   tagline: "Luxury Designer-Inspired Dresses",
@@ -27,7 +32,7 @@ export const siteConfig = {
   promoDiscount: `${DISCOUNT_CODES[DEFAULT_DISCOUNT_CODE].percent}%`,
   copyrightYear: "2026",
   social: {
-    instagram: "https://www.instagram.com/rungebahar/",
+    instagram: instagramUrl,
     threads: "https://www.threads.com/@rungebahar",
     facebook: "https://www.facebook.com/rungebahar",
     tiktok: "https://www.tiktok.com/@rungebahar",

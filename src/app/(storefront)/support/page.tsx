@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import InfoPageLayout from "@/components/InfoPageLayout";
 
 export const metadata: Metadata = {
-  title: "Personal Customer Support | Premium Pakistani Dresses",
+  title: "Personal Customer Support",
   description:
     "Help with sizing, product details and orders — reach us by email or WhatsApp and we'll guide you personally.",
 };

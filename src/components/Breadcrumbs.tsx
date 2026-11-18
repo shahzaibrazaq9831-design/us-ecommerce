@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight, Home } from "lucide-react";
 import { getDetailProductBySlug } from "@/data/catalog";
+import { SITE_URL } from "@/lib/seo";
 
 /**
  * Smart breadcrumb bar shown under the header on every page.
@@ -17,8 +18,6 @@ import { getDetailProductBySlug } from "@/data/catalog";
  *
  * Every crumb except the current page is clickable.
  */
-
-const SITE_URL = "https://www.rungebahar.com";
 
 const STATIC_LABELS: Record<string, string> = {
   shop: "Shop",

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import InfoPageLayout from "@/components/InfoPageLayout";
 
 export const metadata: Metadata = {
-  title: "Shipping & Delivery | Premium Pakistani Dresses",
+  title: "Shipping & Delivery",
   description:
     "Processing time 1–3 days, delivery in 12–15 business days (max 20). Free standard delivery where available at checkout. Tracking and customs information.",
 };

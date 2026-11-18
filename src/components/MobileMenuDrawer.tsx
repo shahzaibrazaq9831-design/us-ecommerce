@@ -198,7 +198,7 @@ export default function MobileMenuDrawer({ open, onClose }: { open: boolean; onC
             aria-label="Rung E Bahar"
           >
             <Image
-              src="/images/logo-damsa.webp"
+              src="/images/logo-rung-e-bahar.webp"
               alt="Rung E Bahar"
               width={889}
               height={220}

@@ -49,7 +49,7 @@ export default function Footer() {
               aria-label={siteConfig.company}
             >
               <Image
-                src="/images/logo-damsa.webp"
+                src="/images/logo-rung-e-bahar.webp"
                 alt={siteConfig.company}
                 width={889}
                 height={220}

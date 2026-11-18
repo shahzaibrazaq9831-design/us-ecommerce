@@ -8,8 +8,15 @@
 
 import type { Metadata } from "next";
 
-/** The live address of the shop. Change this when the domain changes. */
-export const SITE_URL = "https://www.rungebahar.com";
+/**
+ * The canonical address of the shop.
+ *
+ * The environment variable wins so staging/production deployments do not need
+ * a code change; the checked-in value is the safe public fallback.
+ */
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://www.rungebahar.com"
+).replace(/\/+$/, "");
 
 /** Shop name used in titles and structured data. */
 export const SITE_NAME = "Rung E Bahar";
@@ -88,7 +95,7 @@ export function pageMetadata({
   const url = absoluteUrl(path);
 
   return {
-    title,
+    title: `${title} | ${SITE_NAME}`,
     description,
     alternates: {
       canonical: url,

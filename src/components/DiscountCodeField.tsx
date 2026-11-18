@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Tag, X } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { siteConfig } from "@/data/site";
 
 interface DiscountCodeFieldProps {
   /** The drawer is narrow, so the field can be stacked instead of inline. */
@@ -72,7 +73,7 @@ export default function DiscountCodeField({ compact = false }: DiscountCodeField
             setMessage("");
             setAccepted(false);
           }}
-          placeholder="PPD10"
+          placeholder={siteConfig.promoCode}
           autoComplete="off"
           spellCheck={false}
           aria-describedby={`discount-message${compact ? "-drawer" : ""}`}

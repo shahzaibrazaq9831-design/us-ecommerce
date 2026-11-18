@@ -98,6 +98,12 @@ export interface AdminSettings {
   contactEmail: string;
   contactPhone: string;
   shippingText: string;
+  announcementText: string;
+  offerEnabled: boolean;
+  offerEndDate: string;
+  discountCode: string;
+  discountPercent: number;
+  returnsText: string;
 }
 
 export interface DashboardOrder {

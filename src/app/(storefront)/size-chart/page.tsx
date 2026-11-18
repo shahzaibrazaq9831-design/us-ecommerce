@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Size Chart | Premium Pakistani Dresses",
+  title: "Size Chart",
   description:
     "Find your perfect fit with our size chart for shirts, maxi gowns, lehenga cholis and trousers. All measurements in inches, from 2XS to 2XL.",
 };

@@ -266,7 +266,7 @@ export default function ProductBuyPanel({ product, rating }: ProductBuyPanelProp
           <li>• Kameez, trouser and dupatta — three-piece set</li>
           <li>• Made-to-order stitching available (free tailoring to your size)</li>
           <li>• Worldwide shipping (free on every order)</li>
-          <li>• 7-day returns on eligible items</li>
+          <li>• Returns accepted on eligible faulty or damaged items</li>
         </ul>
       </div>
 

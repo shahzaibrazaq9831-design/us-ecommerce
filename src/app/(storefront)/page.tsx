@@ -15,11 +15,11 @@ import {
 } from "@/data/collections";
 import { categories, getCategoryCounts } from "@/lib/products";
 import { listApprovedReviews } from "@/lib/reviews";
-import { gallery } from "@/data/site";
+import { gallery, siteConfig } from "@/data/site";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Premium Pakistani Dresses | Designer-Inspired Collection",
+  title: "Luxury Designer-Inspired Dresses",
   description:
     "Bridal, wedding, formal and chiffon dresses made to order. Free worldwide shipping, three stitching options and a size guide for every piece.",
   path: "/",
@@ -132,7 +132,7 @@ export default function HomePage() {
             </div>
             <div className="instagram-grid">
               {gallery.map((src) => (
-                <a key={src} href="https://www.instagram.com/premium.pakistani.dresses/" target="_blank" rel="noopener noreferrer" className="instagram-item">
+                <a key={src} href={siteConfig.social.instagram} target="_blank" rel="noopener noreferrer" className="instagram-item">
                   <Image src={src} alt="Style" fill sizes="(max-width: 768px) 33vw, 16vw" style={{ objectFit: "cover" }} />
                   <div className="instagram-overlay">
                     <i className="fab fa-instagram" />

@@ -24,6 +24,13 @@ const SCROLL_IDLE_MS = 900;
 
 type PopupState = "closed" | "open" | "closing";
 
+export interface DiscountPopupProps {
+  /** The one discount code advertised across the storefront. */
+  promoCode?: string;
+  /** Human-readable percentage, e.g. "10%". */
+  promoDiscount?: string;
+}
+
 /**
  * Welcome offer shown after the page finishes loading.
  *
@@ -31,7 +38,10 @@ type PopupState = "closed" | "open" | "closing";
  * claimed the code), uses a blurred page backdrop only while the popup is open,
  * and locks scrolling / focus while open. It must never open during scroll.
  */
-export default function DiscountPopup() {
+export default function DiscountPopup({
+  promoCode = siteConfig.promoCode,
+  promoDiscount = siteConfig.promoDiscount,
+}: DiscountPopupProps) {
   const pathname = usePathname();
   const [state, setState] = useState<PopupState>("closed");
   const [email, setEmail] = useState("");
@@ -278,10 +288,10 @@ export default function DiscountPopup() {
 
   const copyCode = async () => {
     try {
-      await navigator.clipboard.writeText(siteConfig.promoCode);
+      await navigator.clipboard.writeText(promoCode);
     } catch {
       const field = document.createElement("textarea");
-      field.value = siteConfig.promoCode;
+      field.value = promoCode;
       field.setAttribute("readonly", "");
       field.style.position = "fixed";
       field.style.opacity = "0";
@@ -331,7 +341,7 @@ export default function DiscountPopup() {
 
             <p className="dp-eyebrow">Welcome to Rung E Bahar</p>
             <h2 id="dp-title" className="dp-title">
-              Your 10% off is ready
+              Your {promoDiscount} off is ready
             </h2>
             <p id="dp-success-desc" className="dp-desc">
               Use this code at checkout on your first order.
@@ -344,10 +354,10 @@ export default function DiscountPopup() {
               aria-label={
                 copied
                   ? "Discount code copied"
-                  : `Copy discount code ${siteConfig.promoCode}`
+                  : `Copy discount code ${promoCode}`
               }
             >
-              <span className="dp-code-value">{siteConfig.promoCode}</span>
+              <span className="dp-code-value">{promoCode}</span>
               <span className="dp-code-action" aria-live="polite">
                 {copied ? (
                   <>
@@ -372,7 +382,7 @@ export default function DiscountPopup() {
         ) : (
           <>
             <Image
-              src="/images/logo-damsa.webp"
+              src="/images/logo-rung-e-bahar.webp"
               alt="Rung E Bahar"
               width={889}
               height={220}
@@ -382,7 +392,7 @@ export default function DiscountPopup() {
 
             <p className="dp-eyebrow">Welcome to Rung E Bahar</p>
             <h2 id="dp-title" className="dp-title">
-              Get 10% off your first order
+              Get {promoDiscount} off your first order
             </h2>
             <p id="dp-desc" className="dp-desc">
               Join our community and enjoy exclusive offers, early access and
