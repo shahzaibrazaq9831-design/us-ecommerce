@@ -38,8 +38,52 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="footer bg-[var(--color-gray-100)] pb-0 pt-[var(--spacing-lg)] text-[var(--color-gray-700)]">
-      <div className="container">
+    <footer
+      id="site-footer"
+      className="footer relative isolate overflow-hidden bg-[var(--color-gray-100)] pb-[clamp(74px,10.5vw,178px)] pt-[var(--spacing-lg)] text-[var(--color-gray-700)]"
+    >
+      {/* The dotted wordmark is a full-footer canvas: dots spread through the
+          whole section (not one strip) and slowly gather into the wordmark at
+          the bottom. It also warms from grey to gold as the footer scrolls
+          in. Kept behind the content and out of the accessibility tree. */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{
+          WebkitMaskImage:
+            "linear-gradient(to bottom, transparent 0%, #000 14%, #000 100%)",
+          maskImage:
+            "linear-gradient(to bottom, transparent 0%, #000 14%, #000 100%)",
+        }}
+        aria-hidden="true"
+      >
+        <DotMark
+          text={siteConfig.name.toUpperCase()}
+          height={150}
+          fillHeight
+          anchor="bottom"
+          style={{ position: "absolute", inset: 0, height: "100%", zIndex: 0 }}
+          overscanX={1.35}
+          overscanY={1}
+          headroom={0}
+          upward={130}
+          radius={170}
+          spread={210}
+          dotSize={0.9}
+          showRing={false}
+          color="#A8A29A"
+          colorTo="#B08A4F"
+          idle={1.1}
+          introEase={0.05}
+          introStagger={0}
+          introDistance={700}
+          spreadEase={0.075}
+          returnEase={0.028}
+          mouseEase={0.18}
+          replay
+        />
+      </div>
+
+      <div className="container relative z-10">
         <div className="footer-grid grid grid-cols-4 items-start gap-[var(--spacing-lg)] border-b border-[var(--color-gray-300)] pb-[var(--spacing-lg)]">
           {/* Column 1: company and how to reach us */}
           <div className="footer-brand">
@@ -159,23 +203,6 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-[var(--spacing-md)] w-full pb-[var(--spacing-md)]">
-          <DotMark
-            text="RUNG E BAHAR"
-            height={120}
-            headroom={45}
-            upward={100}
-            radius={95}
-            ringSize={22}
-            color="#9E9E9E"
-            introEase={0.16}
-            introStagger={220}
-            introDistance={200}
-            spreadEase={0.16}
-            returnEase={0.05}
-            mouseEase={0.28}
-          />
-        </div>
       </div>
     </footer>
   );
