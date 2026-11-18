@@ -333,8 +333,10 @@ export default function DotMark({
             continue;
           }
           allDone = false;
-          // easeOutCubic: a quick rush in, then a gentle settle into place.
-          const e = 1 - Math.pow(1 - t, 3);
+          // easeInOutSine: a gentle start and even travel across the whole
+          // duration, so the name only becomes readable near the end of the
+          // second instead of snapping together in the first half.
+          const e = (1 - Math.cos(Math.PI * t)) / 2;
           d.x = d.sx + (d.ox - d.sx) * e;
           d.y = d.sy + (d.oy - d.sy) * e;
           d.ialpha = 0.3 + 0.7 * e;
