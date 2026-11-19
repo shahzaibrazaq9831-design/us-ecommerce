@@ -128,7 +128,7 @@ export default function HomePage() {
           <div className="container">
             <div className="section-header">
               <h2 className="section-title">Follow Our Style</h2>
-              <p className="section-subtitle">@rungebahar</p>
+              <p className="section-subtitle">@damsacoture</p>
             </div>
             <div className="instagram-grid">
               {gallery.map((src) => (

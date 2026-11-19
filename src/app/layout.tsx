@@ -30,7 +30,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Rung E Bahar | Luxury Designer-Inspired Dresses",
+    default: "Damsa Coture | Luxury Designer-Inspired Dresses",
     template: "%s",
   },
   description:
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
-    title: "Rung E Bahar | Luxury Designer-Inspired Collection",
+    title: "Damsa Coture | Luxury Designer-Inspired Collection",
     description:
       "Bridal, wedding, formal and chiffon dresses made to order. Free worldwide shipping and three stitching options.",
     url: SITE_URL,

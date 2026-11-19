@@ -68,14 +68,14 @@ function SidebarContent({
         ) : (
           <span className="admin-brand-copy">
             <Image
-              src="/images/logo-rung-e-bahar.webp"
-              alt="Rung E Bahar"
+              src="/images/logo-damsa.webp"
+              alt="Damsa Coture"
               width={889}
               height={220}
               priority
               className="admin-brand-logo"
             />
-            <small>Studio admin</small>
+            <small>Damsa Coture</small>
           </span>
         )}
       </div>

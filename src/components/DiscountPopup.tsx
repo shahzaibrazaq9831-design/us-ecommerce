@@ -256,15 +256,15 @@ export default function DiscountPopup() {
         </button>
 
         <Image
-          src="/images/logo-rung-e-bahar.webp"
-          alt="Rung E Bahar"
+          src="/images/logo-damsa.webp"
+          alt="Damsa Coture"
           width={889}
           height={220}
           className="dp-logo"
           sizes="180px"
         />
 
-        <p className="dp-eyebrow">A little more from Rung E Bahar</p>
+        <p className="dp-eyebrow">A little more from Damsa Coture</p>
         <h2 id="dp-title" className="dp-title">
           {MULTI_BUY_LABEL}
         </h2>

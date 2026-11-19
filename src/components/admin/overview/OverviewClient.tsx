@@ -102,7 +102,7 @@ export default function OverviewClient({
       <div className="admin-page">
         <header className="admin-page-head">
           <div>
-            <p className="admin-eyebrow">Studio overview</p>
+            <p className="admin-eyebrow">Damsa Coture overview</p>
             <h1>Good to see you.</h1>
             <p className="admin-subtitle">
               A live view of your orders, catalogue and customers.
@@ -156,7 +156,7 @@ export default function OverviewClient({
             <header className="admin-card-head">
               <div>
                 <h2>Recent orders</h2>
-                <p>The latest activity across the studio</p>
+                <p>The latest activity across the shop</p>
               </div>
               <Link href="/admin/orders" className="admin-link-button">
                 View all

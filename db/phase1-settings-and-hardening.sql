@@ -22,7 +22,7 @@ create table if not exists public.site_settings (
 
 -- Store details (defaults only; existing rows are preserved).
 insert into public.site_settings (key, value, updated_at) values
-  ('store_name', 'Rung E Bahar', now()),
+  ('store_name', 'Damsa Coture', now()),
   ('contact_email', 'rungebahar@gmail.com', now()),
   ('contact_phone', '+447476469395', now()),
   ('shipping_text', 'Free worldwide delivery on every order, delivered within 2 weeks. Made-to-order stitching is included in that time.', now())

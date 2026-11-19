@@ -223,7 +223,7 @@ export const occasions: Occasion[] = [
 export const brands: Brand[] = [
   {
     slug: "rung-e-bahar",
-    name: "Rung E Bahar Atelier",
+    name: "Damsa Coture Atelier",
     href: "/brands/rung-e-bahar",
     description: "Our house line — the pieces we make first and restock most.",
   },

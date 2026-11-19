@@ -70,15 +70,14 @@ export default function Footer() {
           spread={210}
           dotSize={0.9}
           showRing={false}
-          color="#A8A29A"
-          colorTo="#B08A4F"
+          color="#8A857D"
           idle={1.1}
-          introDuration={500}
+          introDuration={350}
           introStagger={0}
           introLead={1}
-          spreadEase={0.075}
-          returnEase={0.028}
-          mouseEase={0.18}
+          spreadEase={0.045}
+          returnEase={0.018}
+          mouseEase={0.12}
           replay
         />
       </div>
@@ -93,7 +92,7 @@ export default function Footer() {
               aria-label={siteConfig.company}
             >
               <Image
-                src="/images/logo-rung-e-bahar.webp"
+                src="/images/logo-damsa.webp"
                 alt={siteConfig.company}
                 width={889}
                 height={220}

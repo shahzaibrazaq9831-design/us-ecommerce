@@ -4,7 +4,7 @@ import AdminShell from "@/components/admin/AdminShell";
 import AdminLoading from "./loading";
 
 /**
- * The gate around every studio screen. A signed-out visitor is redirected
+ * The gate around every admin screen. A signed-out visitor is redirected
  * by `requireAdmin()` before any data is read. Every server action checks
  * the session again for itself.
  *

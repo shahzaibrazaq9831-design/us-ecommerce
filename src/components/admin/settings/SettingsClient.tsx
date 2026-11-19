@@ -72,7 +72,7 @@ export default function SettingsClient({
       <div className="admin-page">
         <header className="admin-page-head">
           <div>
-            <p className="admin-eyebrow">Studio</p>
+            <p className="admin-eyebrow">Damsa Coture</p>
             <h1>Settings</h1>
             <p className="admin-subtitle">
               Storefront details used across the shop · source: {source}

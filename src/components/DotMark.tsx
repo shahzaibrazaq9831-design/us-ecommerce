@@ -57,7 +57,7 @@ function mixColor(from: Rgb, to: Rgb, t: number): string {
 }
 
 export default function DotMark({
-  text = "RUNG E BAHAR",
+  text = "DAMSA COTURE",
   height = 160, // canvas height (ignored when fillHeight is set)
   fillHeight = false, // take the height from CSS instead of the height prop
   anchor = "center", // "center" or "bottom" — where the wordmark sits in the box

@@ -19,7 +19,7 @@ export const SITE_URL = (
 ).replace(/\/+$/, "");
 
 /** Shop name used in titles and structured data. */
-export const SITE_NAME = "Rung E Bahar";
+export const SITE_NAME = "Damsa Coture";
 
 /**
  * Is this request coming from a local machine?

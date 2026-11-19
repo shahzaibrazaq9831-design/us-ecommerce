@@ -11,7 +11,7 @@ import { occasions as catalogueOccasions } from "@/lib/products";
 import type { Review } from "@/lib/products";
 
 export const stylingAssistanceMessage =
-  "Hello Rung E Bahar, I would like some styling assistance.";
+  "Hello Damsa Coture, I would like some styling assistance.";
 
 /** Instagram profile to link to. Override per deployment without a code change. */
 const instagramUrl =
@@ -19,9 +19,9 @@ const instagramUrl =
   "https://www.instagram.com/rungebahar/";
 
 export const siteConfig = {
-  name: "Rung E Bahar",
+  name: "Damsa Coture",
   tagline: "Luxury Designer-Inspired Dresses",
-  company: "Rung E Bahar",
+  company: "Damsa Coture",
   email: "rungebahar@gmail.com",
   phone: "+447476469395",
   whatsapp: `https://wa.me/447476469395?text=${encodeURIComponent(stylingAssistanceMessage)}`,

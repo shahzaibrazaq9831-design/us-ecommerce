@@ -36,15 +36,15 @@ export default function LoginPanel({
         transition={{ type: "spring", stiffness: 300, damping: 28 }}
       >
         <Image
-          src="/images/logo-rung-e-bahar.webp"
-          alt="Rung E Bahar"
+          src="/images/logo-damsa.webp"
+          alt="Damsa Coture"
           width={889}
           height={220}
           priority
           className="admin-login-logo"
         />
         <p className="admin-login-eyebrow">
-          <Sparkles size={14} aria-hidden="true" /> Studio access
+          <Sparkles size={14} aria-hidden="true" /> Damsa Coture access
         </p>
         <h1>Welcome back</h1>
         <p className="admin-login-copy">
@@ -52,7 +52,7 @@ export default function LoginPanel({
         </p>
         {configured ? (
           <p className="admin-login-hint">
-            Studio sign-in: <strong>{email}</strong>
+            Damsa Coture sign-in: <strong>{email}</strong>
           </p>
         ) : null}
 
@@ -119,7 +119,7 @@ export default function LoginPanel({
             <LockKeyhole size={16} aria-hidden="true" /> Sign in
           </motion.button>
         </form>
-        <p className="admin-login-foot">DAMSA COTURE · Private studio area</p>
+        <p className="admin-login-foot">DAMSA COTURE · Private admin area</p>
       </motion.div>
     </div>
   );

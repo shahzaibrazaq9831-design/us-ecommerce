@@ -80,7 +80,7 @@ function stripe(): Stripe | null {
   if (!key) return null;
 
   if (!stripeClient) {
-    stripeClient = new Stripe(key, { appInfo: { name: "Rung E Bahar" } });
+    stripeClient = new Stripe(key, { appInfo: { name: "Damsa Coture" } });
   }
 
   return stripeClient;

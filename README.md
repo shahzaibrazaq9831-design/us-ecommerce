@@ -1,6 +1,6 @@
-# Rung E Bahar — Next.js
+# Damsa Coture — Next.js
 
-A complete e-commerce storefront built with **Next.js 16** (App Router, React 19, TypeScript), matching the Rung E Bahar design. Fully responsive, animated, cart & wishlist support.
+A complete e-commerce storefront built with **Next.js 16** (App Router, React 19, TypeScript), matching the Damsa Coture design. Fully responsive, animated, cart & wishlist support.
 
 ## Folder Structure
 
@@ -240,4 +240,4 @@ every newsletter carries a one-click unsubscribe link.
 - Rate limits (checkout, order lookup, reviews, newsletter) are counted in the memory of one server. Spread the shop over several servers and they need a shared store such as Redis.
 - The cookie banner is a fixed overlay: it never pushes the page down and never locks the scroll, and no analytics is loaded until the visitor accepts.
 
-© 2026 Rung E Bahar
+© 2026 Damsa Coture

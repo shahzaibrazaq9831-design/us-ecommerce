@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Rung E Bahar — luxury designer-inspired dresses made to order";
+export const alt = "Damsa Coture — luxury designer-inspired dresses made to order";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -33,7 +33,7 @@ export default async function OpengraphImage() {
               color: "#C9A96E",
             }}
           >
-            Rung E Bahar
+            Damsa Coture
           </div>
           <div
             style={{
@@ -64,7 +64,7 @@ export default async function OpengraphImage() {
         >
           <span>Free worldwide shipping</span>
           <span>Unstitched · Standard · Custom</span>
-          <span>rungebahar.com</span>
+          <span>Damsa Coture</span>
         </div>
       </div>
     ),

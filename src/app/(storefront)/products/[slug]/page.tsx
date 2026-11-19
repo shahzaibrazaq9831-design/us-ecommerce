@@ -94,7 +94,7 @@ async function ProductPage({ params }: ProductPageProps) {
       itemCondition: "https://schema.org/NewCondition",
       seller: {
         "@type": "Organization",
-        name: "Rung E Bahar",
+        name: "Damsa Coture",
       },
     },
   };
