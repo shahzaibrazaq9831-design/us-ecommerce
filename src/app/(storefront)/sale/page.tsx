@@ -3,6 +3,7 @@ import ListingHeader from "@/components/ListingHeader";
 import ProductGrid from "@/components/ProductGrid";
 import { getSaleProducts } from "@/lib/products";
 import { pageMetadata } from "@/lib/seo";
+import { getStorefrontProducts } from "@/lib/storefront-catalog";
 
 export const metadata: Metadata = pageMetadata({
   title: "Sale",
@@ -11,8 +12,9 @@ export const metadata: Metadata = pageMetadata({
   path: "/sale",
 });
 
-export default function SalePage() {
-  const products = getSaleProducts();
+export default async function SalePage() {
+  const catalog = await getStorefrontProducts();
+  const products = getSaleProducts(catalog);
   const saving = products.reduce((total, product) => {
     return total + (product.originalPrice ?? product.price) - product.price;
   }, 0);

@@ -4,11 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { searchProducts } from "@/lib/products";
-import { useCurrency } from "@/context/CurrencyContext";
+import Price from "@/components/Price";
+import { useCatalogProducts } from "@/components/StoreCatalogProvider";
 
 export default function SearchOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState("");
-  const { formatPrice } = useCurrency();
+  const catalog = useCatalogProducts();
 
   useEffect(() => {
     if (!open) return;
@@ -24,8 +25,8 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
     const q = query.trim().toLowerCase();
     if (!q) return [];
     // Searches the catalogue by product name, category, occasion and designer.
-    return searchProducts(q).slice(0, 8);
-  }, [query]);
+    return searchProducts(q, catalog).slice(0, 8);
+  }, [query, catalog]);
 
   if (!open) return null;
 
@@ -69,7 +70,15 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 600 }}>{p.name}</div>
                         <div style={{ color: "var(--color-gray-600)", fontSize: "0.9rem" }}>
-                          {p.categoryLabel} • {formatPrice(p.price)}
+                          {p.categoryLabel} •{" "}
+                          <Price
+                            value={p.price}
+                            compareAt={p.originalPrice}
+                            className=""
+                            valueClassName=""
+                            compareAtClassName="price-original"
+                            style={{ display: "inline-flex", gap: "6px" }}
+                          />
                         </div>
                       </div>
                     </Link>

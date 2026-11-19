@@ -10,11 +10,7 @@ import {
   X,
 } from "lucide-react";
 import CollectionProductCard from "@/components/CollectionProductCard";
-import {
-  NEW_ARRIVALS_COUNT,
-  newArrivalsCatalog,
-  type Availability,
-} from "@/data/newArrivals";
+import type { Availability, NewArrivalProduct } from "@/data/newArrivals";
 
 const SORT_OPTIONS = [
   { value: "featured", label: "Featured" },
@@ -80,7 +76,11 @@ const buildQuery = (
   return query ? `?${query}` : "";
 };
 
-export default function NewArrivalsView() {
+export default function NewArrivalsView({
+  products,
+}: {
+  products: NewArrivalProduct[];
+}) {
   const [sort, setSort] = useState<SortValue>("featured");
   const [grid, setGrid] = useState<GridMode>("default");
   const [availability, setAvailability] = useState<Availability[]>(DEFAULT_AVAILABILITY);
@@ -142,7 +142,7 @@ export default function NewArrivalsView() {
   }, []);
 
   const visible = useMemo(() => {
-    const items = newArrivalsCatalog.filter((item) => availability.includes(item.availability));
+    const items = products.filter((item) => availability.includes(item.availability));
     switch (sort) {
       case "most-relevant":
         return [...items].sort((a, b) => a.relevanceRank - b.relevanceRank);
@@ -164,7 +164,7 @@ export default function NewArrivalsView() {
       default:
         return items;
     }
-  }, [availability, sort]);
+  }, [availability, sort, products]);
 
   const activeChips: { key: string; label: string; onRemove: () => void }[] = [];
   if (availability.length !== AVAILABILITY_OPTIONS.length) {
@@ -199,7 +199,7 @@ export default function NewArrivalsView() {
             New Arrivals
           </h1>
           <p className="collection-subtitle">
-            {NEW_ARRIVALS_COUNT} designer-inspired ensembles, added weekly. Filter by
+            {products.length} designer-inspired ensembles, added weekly. Filter by
             availability or sort the collection below.
           </p>
         </header>

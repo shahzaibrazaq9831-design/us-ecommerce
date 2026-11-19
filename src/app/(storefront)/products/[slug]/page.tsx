@@ -2,8 +2,14 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getFeaturedDetailSlugs, getDetailProductBySlug } from "@/data/catalog";
-import { getRelatedProducts, getBrandBySlug, getStitchingLabel } from "@/lib/products";
+import { getFeaturedDetailSlugs } from "@/data/catalog";
+import {
+  getProductBySlug,
+  getRelatedProducts,
+  getBrandBySlug,
+  getStitchingLabel,
+} from "@/lib/products";
+import { getStorefrontProducts } from "@/lib/storefront-catalog";
 import { getRatingSummary } from "@/lib/reviews";
 import ProductCard from "@/components/ProductCard";
 import ProductGallery from "@/components/ProductGallery";
@@ -22,7 +28,8 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = getDetailProductBySlug(slug);
+  const catalog = await getStorefrontProducts();
+  const product = getProductBySlug(slug, catalog);
 
   if (!product) {
     return pageMetadata({
@@ -45,13 +52,14 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = getDetailProductBySlug(slug);
+  const catalog = await getStorefrontProducts();
+  const product = getProductBySlug(slug, catalog);
 
   if (!product) {
     notFound();
   }
 
-  const related = getRelatedProducts(product.slug);
+  const related = getRelatedProducts(product.slug, 4, catalog);
   const brand = getBrandBySlug(product.brand);
 
   // The rating comes from the approved reviews only. A piece nobody has

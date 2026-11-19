@@ -9,6 +9,7 @@ import {
   type BrandSlug,
 } from "@/lib/products";
 import { pageMetadata } from "@/lib/seo";
+import { getStorefrontProducts } from "@/lib/storefront-catalog";
 
 interface BrandPageProps {
   params: Promise<{ slug: string }>;
@@ -31,7 +32,8 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
     });
   }
 
-  const count = getProductsByBrand(brand.slug).length;
+  const catalog = await getStorefrontProducts();
+  const count = getProductsByBrand(brand.slug, catalog).length;
 
   return pageMetadata({
     title: `${brand.name} — Designer Collection`,
@@ -50,7 +52,8 @@ export default async function BrandPage({ params }: BrandPageProps) {
     notFound();
   }
 
-  const products = getProductsByBrand(brand.slug as BrandSlug);
+  const catalog = await getStorefrontProducts();
+  const products = getProductsByBrand(brand.slug as BrandSlug, catalog);
 
   return (
     <section className="section">

@@ -518,8 +518,9 @@ const SEEDS: ProductSeed[] = [
     category: "bridal",
     occasions: ["barat"],
     brand: "rung-e-bahar",
-    price: 91600,
-    originalPrice: 130900,
+    // Exact Rung E Bahar prices: sale Rs 69,000 / regular Rs 98,500.
+    price: 69000,
+    originalPrice: 98500,
     unstitched: true,
     description:
       "A deep-toned bridal three-piece with dense zardozi across the bodice and a wide embroidered dupatta that reaches the floor.",
@@ -601,8 +602,9 @@ const SEEDS: ProductSeed[] = [
     category: "wedding",
     occasions: ["mehndi"],
     brand: "rung-e-bahar",
-    price: 72500,
-    originalPrice: 103600,
+    // Exact Rung E Bahar prices: sale Rs 54,600 / regular Rs 77,900.
+    price: 54600,
+    originalPrice: 77900,
     isBestSeller: true,
     unstitched: true,
     description:
@@ -651,8 +653,9 @@ const SEEDS: ProductSeed[] = [
     category: "wedding",
     occasions: ["nikkah"],
     brand: "rung-e-bahar",
-    price: 96300,
-    originalPrice: 137600,
+    // Exact Rung E Bahar prices: sale Rs 72,500 / regular Rs 103,600.
+    price: 72500,
+    originalPrice: 103600,
     isNew: true,
     unstitched: true,
     description:
@@ -664,8 +667,9 @@ const SEEDS: ProductSeed[] = [
     category: "wedding",
     occasions: ["nikkah", "walima"],
     brand: "rung-e-bahar",
-    price: 74500,
-    originalPrice: 106300,
+    // Exact Rung E Bahar prices: sale Rs 56,000 / regular Rs 80,000.
+    price: 56000,
+    originalPrice: 80000,
     isBestSeller: true,
     unstitched: true,
     description:
@@ -888,34 +892,51 @@ export const products: Product[] = SEEDS.map((seed, index) => {
  * Look-ups
  * ------------------------------------------------------------------ */
 
-export function getProductBySlug(slug: string): Product | undefined {
+/**
+ * Every selector below takes an optional catalogue. Server pages pass the
+ * database-backed list they read for the request; the checked-in catalogue is
+ * only the default so older callers (and local development) keep working.
+ */
+export function getProductBySlug(
+  slug: string,
+  catalog: Product[] = products
+): Product | undefined {
   const clean = slug.replace(/^new-arrival-/, "");
-  return products.find((product) => product.slug === clean);
+  return catalog.find((product) => product.slug === clean);
 }
 
-export function getProductsByCategory(category: CategorySlug): Product[] {
-  return products.filter((product) => product.category === category);
+export function getProductsByCategory(
+  category: CategorySlug,
+  catalog: Product[] = products
+): Product[] {
+  return catalog.filter((product) => product.category === category);
 }
 
-export function getProductsByOccasion(occasion: OccasionSlug): Product[] {
-  return products.filter((product) => product.occasions.includes(occasion));
+export function getProductsByOccasion(
+  occasion: OccasionSlug,
+  catalog: Product[] = products
+): Product[] {
+  return catalog.filter((product) => product.occasions.includes(occasion));
 }
 
-export function getProductsByBrand(brand: BrandSlug): Product[] {
-  return products.filter((product) => product.brand === brand);
+export function getProductsByBrand(
+  brand: BrandSlug,
+  catalog: Product[] = products
+): Product[] {
+  return catalog.filter((product) => product.brand === brand);
 }
 
-export function getNewArrivals(): Product[] {
-  return products.filter((product) => product.isNew);
+export function getNewArrivals(catalog: Product[] = products): Product[] {
+  return catalog.filter((product) => product.isNew);
 }
 
-export function getBestSellers(): Product[] {
-  return products.filter((product) => product.isBestSeller);
+export function getBestSellers(catalog: Product[] = products): Product[] {
+  return catalog.filter((product) => product.isBestSeller);
 }
 
 /** Everything currently reduced — a compare-at price means it is on offer. */
-export function getSaleProducts(): Product[] {
-  return products.filter(
+export function getSaleProducts(catalog: Product[] = products): Product[] {
+  return catalog.filter(
     (product) => product.originalPrice !== null && product.originalPrice > product.price
   );
 }
@@ -949,9 +970,12 @@ export const luxuryFormalShelf: string[] = [
 ];
 
 /** Products in the order given, skipping any slug that is not in the catalogue. */
-export function getProductsBySlugs(slugs: string[]): Product[] {
+export function getProductsBySlugs(
+  slugs: string[],
+  catalog: Product[] = products
+): Product[] {
   return slugs
-    .map((slug) => getProductBySlug(slug))
+    .map((slug) => getProductBySlug(slug, catalog))
     .filter((product): product is Product => Boolean(product));
 }
 
@@ -959,11 +983,14 @@ export function getProductsBySlugs(slugs: string[]): Product[] {
  * Search across the fields a shopper actually types: the product name, the
  * category, the celebration it is made for and the designer.
  */
-export function searchProducts(query: string): Product[] {
+export function searchProducts(
+  query: string,
+  catalog: Product[] = products
+): Product[] {
   const term = query.trim().toLowerCase();
   if (!term) return [];
 
-  return products.filter((product) => {
+  return catalog.filter((product) => {
     const haystack = [
       product.name,
       product.categoryLabel,
@@ -989,15 +1016,14 @@ export interface CardBadge {
 }
 
 /**
- * The badge shown on a product card: a fresh arrival wins, then our best
- * seller, then the saving. Everything else shows no badge.
+ * The badge shown on a product card. A real reduction always wins so a sale
+ * piece is never mistaken for full price; otherwise a fresh arrival, then a
+ * best seller. Everything else shows no badge.
  */
 export function getCardBadge(product: Product): CardBadge | null {
+  if (getDiscountPercent(product) > 0) return { label: "Sale", kind: "sale" };
   if (product.isNew) return { label: "New", kind: "new" };
   if (product.isBestSeller) return { label: "Best Seller", kind: "bestseller" };
-
-  const discount = getDiscountPercent(product);
-  if (discount > 0) return { label: `-${discount}%`, kind: "sale" };
 
   return null;
 }
@@ -1008,11 +1034,15 @@ export function getStitchingLabel(product: Product): string {
 }
 
 /** Products that share a shelf with this one, without repeating it. */
-export function getRelatedProducts(slug: string, limit = 4): Product[] {
-  const product = getProductBySlug(slug);
-  if (!product) return products.slice(0, limit);
+export function getRelatedProducts(
+  slug: string,
+  limit = 4,
+  catalog: Product[] = products
+): Product[] {
+  const product = getProductBySlug(slug, catalog);
+  if (!product) return catalog.slice(0, limit);
 
-  const scored = products
+  const scored = catalog
     .filter((candidate) => candidate.slug !== product.slug)
     .map((candidate) => {
       let score = 0;
@@ -1031,23 +1061,29 @@ export function getRelatedProducts(slug: string, limit = 4): Product[] {
  * can never advertise more products than the catalogue holds.
  * ------------------------------------------------------------------ */
 
-export function getCategoryCounts(): Record<string, number> {
+export function getCategoryCounts(
+  catalog: Product[] = products
+): Record<string, number> {
   return categories.reduce<Record<string, number>>((counts, category) => {
-    counts[category.slug] = getProductsByCategory(category.slug).length;
+    counts[category.slug] = getProductsByCategory(category.slug, catalog).length;
     return counts;
   }, {});
 }
 
-export function getOccasionCounts(): Record<string, number> {
+export function getOccasionCounts(
+  catalog: Product[] = products
+): Record<string, number> {
   return occasions.reduce<Record<string, number>>((counts, occasion) => {
-    counts[occasion.slug] = getProductsByOccasion(occasion.slug).length;
+    counts[occasion.slug] = getProductsByOccasion(occasion.slug, catalog).length;
     return counts;
   }, {});
 }
 
-export function getBrandCounts(): Record<string, number> {
+export function getBrandCounts(
+  catalog: Product[] = products
+): Record<string, number> {
   return brands.reduce<Record<string, number>>((counts, brand) => {
-    counts[brand.slug] = getProductsByBrand(brand.slug).length;
+    counts[brand.slug] = getProductsByBrand(brand.slug, catalog).length;
     return counts;
   }, {});
 }

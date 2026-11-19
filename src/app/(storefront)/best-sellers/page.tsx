@@ -3,6 +3,7 @@ import ListingHeader from "@/components/ListingHeader";
 import ProductGrid from "@/components/ProductGrid";
 import { getBestSellers } from "@/lib/products";
 import { pageMetadata } from "@/lib/seo";
+import { getStorefrontProducts } from "@/lib/storefront-catalog";
 
 export const metadata: Metadata = pageMetadata({
   title: "Best Sellers",
@@ -11,8 +12,9 @@ export const metadata: Metadata = pageMetadata({
   path: "/best-sellers",
 });
 
-export default function BestSellersPage() {
-  const products = getBestSellers();
+export default async function BestSellersPage() {
+  const catalog = await getStorefrontProducts();
+  const products = getBestSellers(catalog);
 
   return (
     <section className="section">

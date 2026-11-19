@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useCurrency } from "@/context/CurrencyContext";
+import Price, { isReduced } from "@/components/Price";
 import type { CollectionProduct } from "@/data/collections";
 
 interface GalleryProductCardProps {
@@ -24,7 +24,6 @@ export default function GalleryProductCard({
   product,
   eager = false,
 }: GalleryProductCardProps) {
-  const { formatPrice } = useCurrency();
   // The reference cards use the first two gallery shots only.
   const images = product.images.slice(0, 2);
   const [index, setIndex] = useState(0);
@@ -61,7 +60,7 @@ export default function GalleryProductCard({
         </Link>
 
         {/* The Sale pill only appears when the piece is actually reduced. */}
-        {product.originalPrice !== null && product.originalPrice > product.price ? (
+        {isReduced(product.price, product.originalPrice) ? (
           <span className="gallery-card-badge">Sale</span>
         ) : null}
 
@@ -94,16 +93,13 @@ export default function GalleryProductCard({
         <Link href={product.href} className="gallery-card-name">
           {product.name}
         </Link>
-        <div className="gallery-card-price">
-          <span className="gallery-card-price-current">
-            {formatPrice(product.price)}
-          </span>
-          {product.originalPrice !== null && product.originalPrice > product.price ? (
-            <span className="gallery-card-price-old">
-              {formatPrice(product.originalPrice)}
-            </span>
-          ) : null}
-        </div>
+        <Price
+          value={product.price}
+          compareAt={product.originalPrice}
+          className="gallery-card-price"
+          valueClassName="gallery-card-price-current"
+          compareAtClassName="gallery-card-price-old"
+        />
       </div>
     </article>
   );

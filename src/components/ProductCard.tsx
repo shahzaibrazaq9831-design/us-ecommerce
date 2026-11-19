@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
-import { useCurrency } from "@/context/CurrencyContext";
 import { useProductRating } from "@/components/ProductRatingsProvider";
+import Price from "@/components/Price";
 import {
   getCardBadge,
   getStitchingLabel,
@@ -13,7 +13,6 @@ import {
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart, toggleWishlist, isWishlisted, openQuickView } = useCart();
-  const { formatPrice } = useCurrency();
   const wishlisted = isWishlisted(product.slug);
   const badge = getCardBadge(product);
   const soldOut = product.availability === "out_of_stock";
@@ -85,12 +84,13 @@ export default function ProductCard({ product }: { product: Product }) {
           ) : null}
         </p>
 
-        <div className="product-price">
-          <span className="price-current">{formatPrice(product.price)}</span>
-          {product.originalPrice !== null && (
-            <span className="price-original">{formatPrice(product.originalPrice)}</span>
-          )}
-        </div>
+        <Price
+          value={product.price}
+          compareAt={product.originalPrice}
+          className="product-price"
+          valueClassName="price-current"
+          compareAtClassName="price-original"
+        />
 
         {/* How the piece can be made — unstitched, standard or to your measurements */}
         <p className="product-stitching">{getStitchingLabel(product)}</p>

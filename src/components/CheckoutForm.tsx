@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useHydrated } from "@/hooks/useHydrated";
+import { useCatalogProducts } from "@/components/StoreCatalogProvider";
 import { priceCart } from "@/lib/pricing";
 import { MULTI_BUY_DISCOUNT_LABEL } from "@/lib/offers";
 import {
@@ -82,6 +83,7 @@ export default function CheckoutForm({
   methods: PaymentMethodChoice[];
 }) {
   const { cart, clearCart } = useCart();
+  const catalog = useCatalogProducts();
   const { formatPrice, region, setRegionCode } = useCurrency();
 
   /** True once the browser has taken over from the server. */
@@ -178,7 +180,7 @@ export default function CheckoutForm({
   );
 
   /** The totals, worked out from the catalogue. */
-  const priced = useMemo(() => priceCart(items), [items]);
+  const priced = useMemo(() => priceCart(items, catalog), [items, catalog]);
   const totals = priced.ok ? priced.order : null;
 
   const setField = useCallback(

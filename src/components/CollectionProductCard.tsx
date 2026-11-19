@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
-import { useCurrency } from "@/context/CurrencyContext";
+import Price, { isReduced } from "@/components/Price";
 import { toCartProduct, type NewArrivalProduct } from "@/data/newArrivals";
 
 interface CollectionProductCardProps {
@@ -23,14 +23,13 @@ export default function CollectionProductCard({
   product,
   eager = false,
 }: CollectionProductCardProps) {
-  const { formatPrice } = useCurrency();
   const { openQuickView } = useCart();
   // The collection grid uses the first two gallery shots only.
   const images = product.images.slice(0, 2);
   const [index, setIndex] = useState(0);
   const total = images.length;
   const soldOut = product.availability === "out_of_stock";
-  const onSale = product.originalPrice !== null && product.originalPrice > product.price;
+  const onSale = isReduced(product.price, product.originalPrice);
 
   const showPrevious = () => setIndex((current) => (current - 1 + total) % total);
   const showNext = () => setIndex((current) => (current + 1) % total);
@@ -108,12 +107,13 @@ export default function CollectionProductCard({
         <Link href={href} className="gallery-card-name collection-card-name">
           {product.name}
         </Link>
-        <div className="gallery-card-price">
-          <span className="gallery-card-price-current">{formatPrice(product.price)}</span>
-          {product.originalPrice !== null && (
-            <span className="gallery-card-price-old">{formatPrice(product.originalPrice)}</span>
-          )}
-        </div>
+        <Price
+          value={product.price}
+          compareAt={product.originalPrice}
+          className="gallery-card-price"
+          valueClassName="gallery-card-price-current"
+          compareAtClassName="gallery-card-price-old"
+        />
       </div>
     </article>
   );

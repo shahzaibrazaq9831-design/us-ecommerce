@@ -4,6 +4,7 @@ import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import { getOccasionCounts, occasions } from "@/lib/products";
 import { pageMetadata } from "@/lib/seo";
+import { getStorefrontProducts } from "@/lib/storefront-catalog";
 
 export const metadata: Metadata = pageMetadata({
   title: "Shop by Occasion",
@@ -12,8 +13,9 @@ export const metadata: Metadata = pageMetadata({
   path: "/collections",
 });
 
-export default function CollectionsPage() {
-  const counts = getOccasionCounts();
+export default async function CollectionsPage() {
+  const catalog = await getStorefrontProducts();
+  const counts = getOccasionCounts(catalog);
 
   return (
     <section className="section">

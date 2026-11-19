@@ -9,11 +9,13 @@ import ProductRail from "@/components/ProductRail";
 import Reveal from "@/components/Reveal";
 import ReviewsSection from "@/components/ReviewsSection";
 import {
-  newArrivalProducts,
-  luxuryFormalProducts,
-  bestSellingProducts,
+  buildBestSellingProducts,
+  buildLuxuryFormalProducts,
+  buildNewArrivalProducts,
+  buildOccasionProducts,
 } from "@/data/collections";
 import { categories, getCategoryCounts } from "@/lib/products";
+import { getStorefrontProducts } from "@/lib/storefront-catalog";
 import { listApprovedReviews } from "@/lib/reviews";
 import { gallery, siteConfig } from "@/data/site";
 import { pageMetadata } from "@/lib/seo";
@@ -37,10 +39,14 @@ async function HomepageReviews() {
   return <ReviewsSection reviews={reviews} />;
 }
 
-export default function HomePage() {
-  // Shelf counts come from the catalogue, so the home page can never
-  // advertise more pieces than the shop actually holds.
-  const categoryCounts = getCategoryCounts();
+export default async function HomePage() {
+  // Every shelf and every count is built from the database-backed catalogue.
+  const catalog = await getStorefrontProducts();
+  const categoryCounts = getCategoryCounts(catalog);
+  const occasionProducts = buildOccasionProducts(catalog);
+  const newArrivalProducts = buildNewArrivalProducts(catalog);
+  const luxuryFormalProducts = buildLuxuryFormalProducts(catalog);
+  const bestSellingProducts = buildBestSellingProducts(catalog);
 
   return (
     <>
@@ -51,7 +57,7 @@ export default function HomePage() {
 
       {/* Shop by Occasion */}
       <Reveal>
-        <OccasionCarousel />
+        <OccasionCarousel products={occasionProducts} />
       </Reveal>
 
       {/* New Arrivals — all 8 shown in a grid, 2 per row on phones */}

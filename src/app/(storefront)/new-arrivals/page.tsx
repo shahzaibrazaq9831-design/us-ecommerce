@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import NewArrivalsView from "@/components/NewArrivalsView";
-import { getNewArrivals } from "@/lib/products";
+import { buildNewArrivalsCatalog } from "@/data/newArrivals";
 import { pageMetadata } from "@/lib/seo";
+import { getStorefrontProducts } from "@/lib/storefront-catalog";
 
 export const metadata: Metadata = pageMetadata({
   title: "New Arrivals",
@@ -10,15 +11,15 @@ export const metadata: Metadata = pageMetadata({
   path: "/new-arrivals",
 });
 
-export default function NewArrivalsPage() {
-  // Counted from the catalogue so the page never promises a piece we do not have.
-  const count = getNewArrivals().length;
+export default async function NewArrivalsPage() {
+  const catalog = await getStorefrontProducts();
+  const items = buildNewArrivalsCatalog(catalog);
 
   return (
     <>
-      <NewArrivalsView />
+      <NewArrivalsView products={items} />
       <p className="sr-only" aria-live="polite">
-        {count} new arrivals in the catalogue.
+        {items.length} new arrivals in the catalogue.
       </p>
     </>
   );

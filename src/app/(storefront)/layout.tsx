@@ -3,7 +3,9 @@ import { Suspense } from "react";
 import { CartProvider } from "@/context/CartContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { ProductRatingsProvider } from "@/components/ProductRatingsProvider";
+import { StoreCatalogProvider } from "@/components/StoreCatalogProvider";
 import { getExchangeRates, resolveCurrency } from "@/lib/currency";
+import { getStorefrontProducts } from "@/lib/storefront-catalog";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import Header from "@/components/Header";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -33,13 +35,15 @@ async function StorefrontShell({ children }: { children: React.ReactNode }) {
   const initialCurrency = resolveCurrency(
     cookieStore.get("ppd_currency")?.value ?? cookieStore.get("currency")?.value
   );
-  const [rates, settings] = await Promise.all([
+  const [rates, settings, catalog] = await Promise.all([
     getExchangeRates(),
     getStorefrontSettings(),
+    getStorefrontProducts(),
   ]);
 
   return (
     <CurrencyProvider initialCurrency={initialCurrency} rates={rates}>
+      <StoreCatalogProvider products={catalog}>
       <CartProvider>
         {/* The real ratings, from the approved reviews only. */}
         <ProductRatingsProvider>
@@ -76,6 +80,7 @@ async function StorefrontShell({ children }: { children: React.ReactNode }) {
           <CookieConsent />
         </ProductRatingsProvider>
       </CartProvider>
+      </StoreCatalogProvider>
     </CurrencyProvider>
   );
 }

@@ -4,7 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Heart, ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
-import { useCurrency } from "@/context/CurrencyContext";
+import Price from "@/components/Price";
+import { useCatalogProducts } from "@/components/StoreCatalogProvider";
 import { getProductBySlug, getStitchingLabel } from "@/lib/products";
 
 /**
@@ -16,10 +17,10 @@ import { getProductBySlug, getStitchingLabel } from "@/lib/products";
  */
 export default function WishlistPage() {
   const { wishlist, toggleWishlist, addToCart } = useCart();
-  const { formatPrice } = useCurrency();
+  const catalog = useCatalogProducts();
 
   const items = wishlist
-    .map((slug) => getProductBySlug(slug))
+    .map((slug) => getProductBySlug(slug, catalog))
     .filter((product): product is NonNullable<typeof product> => Boolean(product));
 
   if (items.length === 0) {
@@ -75,12 +76,7 @@ export default function WishlistPage() {
                     {product.name}
                   </Link>
                   <p className="wishlist-item-stitching">{getStitchingLabel(product)}</p>
-                  <div className="product-price">
-                    <span className="price-current">{formatPrice(product.price)}</span>
-                    {product.originalPrice !== null && (
-                      <span className="price-original">{formatPrice(product.originalPrice)}</span>
-                    )}
-                  </div>
+                  <Price value={product.price} compareAt={product.originalPrice} />
                 </div>
 
                 <div className="wishlist-item-actions">

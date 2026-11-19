@@ -19,7 +19,13 @@
  * history.
  */
 
-import { getProductBySlug, type Measurements, type StitchingOption } from "@/lib/products";
+import {
+  getProductBySlug,
+  products,
+  type Measurements,
+  type Product,
+  type StitchingOption,
+} from "@/lib/products";
 import {
   multiBuy,
   multiBuyDiscount,
@@ -144,7 +150,10 @@ export type PriceResult =
  * change. There are no discount codes: a typed code has nothing to apply to,
  * so one offer can never stack on another.
  */
-export function priceCart(lines: CartLineInput[]): PriceResult {
+export function priceCart(
+  lines: CartLineInput[],
+  catalog: Product[] = products
+): PriceResult {
   if (!Array.isArray(lines) || lines.length === 0) {
     return { ok: false, error: "Your cart is empty." };
   }
@@ -160,7 +169,7 @@ export function priceCart(lines: CartLineInput[]): PriceResult {
 
   for (const line of lines) {
     const slug = (line?.slug ?? "").trim();
-    const product = getProductBySlug(slug);
+    const product = getProductBySlug(slug, catalog);
 
     if (!product) {
       return {
@@ -246,8 +255,11 @@ export function priceCart(lines: CartLineInput[]): PriceResult {
  * has while the cart is still loading. It reads the catalogue the same
  * way `priceCart` does, so the screen and the invoice agree.
  */
-export function summariseLines(lines: CartLineInput[]): PriceBreakdown {
-  const result = priceCart(lines);
+export function summariseLines(
+  lines: CartLineInput[],
+  catalog: Product[] = products
+): PriceBreakdown {
+  const result = priceCart(lines, catalog);
   return result.ok
     ? result.order
     : {

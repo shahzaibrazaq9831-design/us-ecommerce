@@ -1,17 +1,22 @@
 import ProductRail from "@/components/ProductRail";
-import { occasionProducts } from "@/data/collections";
+import type { CollectionProduct } from "@/data/collections";
 
 /**
  * Home-page "Shop by Occasion" rail. The occasion photos keep their original
- * order and now carry the matching product name, price and Sale badge.
+ * order and show only the small SHOP label and the celebration name — prices
+ * belong on the collection pages, not on these tiles.
  */
-export default function OccasionCarousel() {
+export default function OccasionCarousel({
+  products,
+}: {
+  products: CollectionProduct[];
+}) {
   return (
     <ProductRail
       id="shop-by-occasion"
       title="Shop by Occasion"
       subtitle="Find your look for the ceremony, the celebration and every gathering in between."
-      products={occasionProducts}
+      products={products}
       variant="occasion"
     />
   );

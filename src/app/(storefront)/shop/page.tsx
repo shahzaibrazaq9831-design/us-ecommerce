@@ -1,7 +1,13 @@
 "use client";
 
 import { useMemo, useState, useSyncExternalStore } from "react";
-import { categories, occasions, products, searchProducts, type OccasionSlug } from "@/lib/products";
+import {
+  categories,
+  occasions,
+  searchProducts,
+  type OccasionSlug,
+} from "@/lib/products";
+import { useCatalogProducts } from "@/components/StoreCatalogProvider";
 import ProductCard from "@/components/ProductCard";
 import Reveal from "@/components/Reveal";
 import { useProductRatings } from "@/components/ProductRatingsProvider";
@@ -29,6 +35,7 @@ const getLocationSearch = () => window.location.search;
 const getServerLocationSearch = () => "";
 
 export default function ShopPage() {
+  const catalog = useCatalogProducts();
   const { formatPrice } = useCurrency();
   const ratings = useProductRatings();
   const [category, setCategory] = useState("all");
@@ -54,7 +61,7 @@ export default function ShopPage() {
   }
 
   const filtered = useMemo(() => {
-    let items = [...products];
+    let items = [...catalog];
     const range = priceRanges.find((r) => r.id === price) ?? priceRanges[0];
 
     if (category !== "all") {
@@ -65,7 +72,7 @@ export default function ShopPage() {
     }
     items = items.filter((p) => p.price >= range.min && p.price < range.max);
     if (search.trim()) {
-      const wanted = new Set(searchProducts(search).map((p) => p.slug));
+      const wanted = new Set(searchProducts(search, catalog).map((p) => p.slug));
       items = items.filter((p) => wanted.has(p.slug));
     }
 
@@ -84,7 +91,7 @@ export default function ShopPage() {
       );
 
     return items;
-  }, [category, occasion, price, sort, search, ratings]);
+  }, [category, occasion, price, sort, search, ratings, catalog]);
 
   const activeRange = priceRanges.find((r) => r.id === price) ?? priceRanges[0];
 

@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { firstCheckoutIssue, validateCheckoutInput } from "@/lib/checkout-validation";
 import { priceCart } from "@/lib/pricing";
+import { getStorefrontProducts } from "@/lib/storefront-catalog";
 import {
   createOrder,
   markNotificationSent,
@@ -89,7 +90,7 @@ export async function POST(request: Request) {
   const input = validation.value;
 
   /* 3. Work the money out from the catalogue. ------------------------ */
-  const priced = priceCart(input.items);
+  const priced = priceCart(input.items, await getStorefrontProducts());
 
   if (!priced.ok) {
     return Response.json({ ok: false, error: priced.error }, { status: 400 });

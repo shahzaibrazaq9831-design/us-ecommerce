@@ -3,12 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
-import { useCurrency } from "@/context/CurrencyContext";
 import { useProductRating } from "@/components/ProductRatingsProvider";
+import Price from "@/components/Price";
 
 export default function QuickViewModal() {
-  const { quickView, closeQuickView, addToCart, openQuickView, toggleWishlist, isWishlisted } = useCart();
-  const { formatPrice } = useCurrency();
+  const { quickView, closeQuickView, addToCart, toggleWishlist, isWishlisted } = useCart();
   const rating = useProductRating(quickView?.slug ?? "");
 
   if (!quickView) return null;
@@ -43,10 +42,14 @@ export default function QuickViewModal() {
                   </span>
                 </div>
               )}
-              <div className="product-price" style={{ marginBottom: "16px" }}>
-                <span className="price-current">{formatPrice(quickView.price)}</span>
-                {quickView.originalPrice !== null ? <span className="price-original">{formatPrice(quickView.originalPrice)}</span> : null}
-              </div>
+              <Price
+                value={quickView.price}
+                compareAt={quickView.originalPrice}
+                className="product-price"
+                style={{ marginBottom: "16px" }}
+                valueClassName="price-current"
+                compareAtClassName="price-original"
+              />
               <p style={{ color: "var(--color-gray-700)", marginBottom: "20px", lineHeight: "1.7" }}>{quickView.description}</p>
               <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "16px" }}>
                 <button className="btn btn-primary" onClick={() => { addToCart(quickView); closeQuickView(); }}>

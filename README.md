@@ -218,13 +218,34 @@ every newsletter carries a one-click unsubscribe link.
 
 | I want to change… | Edit this file |
 |---|---|
-| Products (add/remove/edit) | `src/data/products.ts` |
+| Products and prices (add/remove/edit) | The admin dashboard — Supabase is the source of truth |
+| Prices in bulk | A CSV with `scripts/update-prices.ts` (see below) |
 | Site name, email, phone, nav menu | `src/data/site.ts` |
 | Hero slides, occasions, categories, reviews | `src/data/site.ts` |
 | Colors, fonts, spacing, animations | `src/app/globals.css` (`:root` variables) |
 | Header / footer / shared UI | `src/components/` |
 | Page layouts | `src/app/<page>/page.tsx` |
-| Product images | Drop files in `public/images/`, reference from `src/data/products.ts` |
+| Product images | Upload in the admin, or drop files in `public/images/` |
+
+### Product prices
+
+The storefront reads `price_cents` and `sale_price_cents` from the Supabase
+`products` table through `src/lib/storefront-catalog.ts`. Values are whole PKR
+rupees: `price_cents` is the regular (compare-at) price and
+`sale_price_cents` is the reduced price, when there is one. The shared
+`Price` component renders both current and struck-through prices, and the
+cache tag is invalidated whenever a product is saved in the admin.
+
+To change many prices at once, make a CSV with the columns
+`slug,price,compare_at_price` (see `scripts/prices.example.csv`):
+
+```powershell
+npm run update:prices -- prices.csv            # dry run, prints old → new
+npm run update:prices -- prices.csv --apply    # writes the rows
+```
+
+Unknown slugs are skipped and reported. The script never scrapes an external
+site.
 
 ## Tech Stack
 

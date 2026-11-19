@@ -9,6 +9,7 @@ import {
   type OccasionSlug,
 } from "@/lib/products";
 import { pageMetadata } from "@/lib/seo";
+import { getStorefrontProducts } from "@/lib/storefront-catalog";
 
 interface CollectionPageProps {
   params: Promise<{ slug: string }>;
@@ -34,7 +35,8 @@ export async function generateMetadata({
     });
   }
 
-  const count = getProductsByOccasion(occasion.slug).length;
+  const catalog = await getStorefrontProducts();
+  const count = getProductsByOccasion(occasion.slug, catalog).length;
 
   return pageMetadata({
     title: `${occasion.name} Collection`,
@@ -53,7 +55,8 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
     notFound();
   }
 
-  const products = getProductsByOccasion(occasion.slug as OccasionSlug);
+  const catalog = await getStorefrontProducts();
+  const products = getProductsByOccasion(occasion.slug as OccasionSlug, catalog);
 
   return (
     <section className="section">

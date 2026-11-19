@@ -81,11 +81,6 @@ function env(name: string): string {
   return process.env[name]?.trim() ?? "";
 }
 
-function toCents(rupees: number): number {
-  // Catalogue prices are whole PKR rupees; the SQL columns are integer cents.
-  return Math.round(rupees * 100);
-}
-
 function assertOk(error: { message: string } | null, context: string): void {
   if (error) throw new Error(`${context}: ${error.message}`);
 }
@@ -230,9 +225,10 @@ async function main(): Promise<void> {
     description: product.description,
     category_slug: product.category,
     brand_slug: product.brand,
-    price_cents: toCents(product.price),
-    sale_price_cents:
-      product.originalPrice === null ? null : toCents(product.originalPrice),
+    // The dashboard works in whole PKR: price_cents holds the regular price
+    // and sale_price_cents the reduced price (when the piece is on sale).
+    price_cents: product.originalPrice ?? product.price,
+    sale_price_cents: product.originalPrice === null ? null : product.price,
     badge: product.badge ?? null,
     is_new: product.isNew,
     is_best_seller: product.isBestSeller,

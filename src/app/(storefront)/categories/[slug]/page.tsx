@@ -9,6 +9,7 @@ import {
   type CategorySlug,
 } from "@/lib/products";
 import { pageMetadata } from "@/lib/seo";
+import { getStorefrontProducts } from "@/lib/storefront-catalog";
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
@@ -34,7 +35,8 @@ export async function generateMetadata({
     });
   }
 
-  const count = getProductsByCategory(category.slug).length;
+  const catalog = await getStorefrontProducts();
+  const count = getProductsByCategory(category.slug, catalog).length;
 
   return pageMetadata({
     title: `${category.name} — ${count} pieces`,
@@ -53,7 +55,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     notFound();
   }
 
-  const products = getProductsByCategory(category.slug as CategorySlug);
+  const catalog = await getStorefrontProducts();
+  const products = getProductsByCategory(category.slug as CategorySlug, catalog);
 
   return (
     <section className="section">

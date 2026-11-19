@@ -8,10 +8,11 @@
  *   - returns a small result object the UI can turn into a toast.
  */
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin-session";
 import { getServiceClient } from "@/lib/admin/supabase";
+import { STOREFRONT_PRODUCTS_TAG } from "@/lib/cache-tags";
 import {
   orderStatusSchema,
   productSchema,
@@ -46,6 +47,17 @@ function refreshAdmin(): void {
   revalidatePath("/admin/reviews");
   revalidatePath("/admin/analytics");
   revalidatePath("/admin/settings");
+}
+
+/**
+ * Make a catalogue change visible to shoppers straight away. The cached
+ * product list is tagged, so one invalidation refreshes the shop, every
+ * listing, the rails, search and the checkout totals; the path revalidation
+ * covers any page that was prerendered with the old data.
+ */
+function refreshStorefront(): void {
+  revalidateTag(STOREFRONT_PRODUCTS_TAG, { expire: 0 });
+  revalidatePath("/", "layout");
 }
 
 async function audit(
@@ -197,6 +209,7 @@ export async function saveProductAction(input: ProductInput): Promise<ActionResu
 
     await audit(admin.email, data.id ? "product_update" : "product_create", "product", String(productId));
     refreshAdmin();
+    refreshStorefront();
     return {
       ok: true,
       message: data.id ? "Product saved." : "Product added to the catalogue.",
@@ -217,6 +230,7 @@ export async function deleteProductAction(id: number): Promise<ActionResult> {
     if (error) return failure(error);
     await audit(admin.email, "product_delete", "product", String(id));
     refreshAdmin();
+    refreshStorefront();
     return { ok: true, message: "Product deleted." };
   } catch (error) {
     return failure(error);
@@ -240,6 +254,7 @@ export async function updateStockAction(id: number, stock: number): Promise<Acti
     if (error) return failure(error);
     await audit(admin.email, "stock_update", "product", String(id), { stock });
     refreshAdmin();
+    refreshStorefront();
     return { ok: true, message: "Stock updated." };
   } catch (error) {
     return failure(error);
@@ -273,6 +288,7 @@ export async function bulkProductAction(
 
     await audit(admin.email, `bulk_${action}`, "product", ids.join(","));
     refreshAdmin();
+    refreshStorefront();
     return { ok: true, message: `${ids.length} product${ids.length === 1 ? "" : "s"} updated.` };
   } catch (error) {
     return failure(error);
@@ -309,6 +325,7 @@ export async function saveTaxonomyAction(input: TaxonomyInput): Promise<ActionRe
 
     await audit(admin.email, "taxonomy_save", kind, slug);
     refreshAdmin();
+    refreshStorefront();
     return { ok: true, message: `${name} saved.` };
   } catch (error) {
     return failure(error);
@@ -340,6 +357,7 @@ export async function deleteTaxonomyAction(
 
     await audit(admin.email, "taxonomy_delete", kind, slug);
     refreshAdmin();
+    refreshStorefront();
     return { ok: true, message: `${slug} deleted.` };
   } catch (error) {
     return failure(error);
