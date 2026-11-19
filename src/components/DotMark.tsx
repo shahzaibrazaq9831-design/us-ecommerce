@@ -128,6 +128,8 @@ export default function DotMark({
     let colorTarget = 0;
     /** Height of the wordmark band, refreshed on every build. */
     let band = 0;
+    /** Previous painted frame, for refresh-rate-independent colour easing. */
+    let lastFrame = 0;
     const reducedMotion =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -254,6 +256,9 @@ export default function DotMark({
       introActive = true;
       introFinished = false;
       introStartTime = performance.now();
+      // Every gather starts grey, so the warm-up is visible again on replay.
+      colorProgress = 0;
+      colorTarget = 0;
       dots.forEach((d) => {
         d.x = d.sx;
         d.y = d.sy;
@@ -310,12 +315,30 @@ export default function DotMark({
       ctx.clearRect(0, 0, w, h);
       const now = performance.now();
 
-      // Blend the dot colour as the wordmark scrolls into view. The loop only
-      // runs while the footer is on screen, so this is a cheap, smooth
-      // scroll-linked transition rather than a jittery one.
+      // Blend the dot colour while the wordmark scrolls into view and gathers.
+      // The loop only runs while the footer is on screen, so this stays a
+      // cheap, smooth transition rather than a jittery one.
       if (scrollColor && colorFrom && colorEnd) {
-        colorProgress += (colorTarget - colorProgress) * 0.07;
+        // The gather starts a band before the wordmark is on screen, so the
+        // scroll-only target is often still 0 when the dots finish arranging —
+        // which left the mark grey. Drive the warm-up from the intro as well,
+        // so the dots reach gold with the 0.5s gather and stay there.
+        if (introActive) {
+          const introT = Math.min(
+            1,
+            Math.max(0, (now - introStartTime) / Math.max(1, introDuration))
+          );
+          colorTarget = Math.max(colorTarget, introT);
+        } else if (introFinished) {
+          colorTarget = 1;
+        }
+        // Time-based smoothing: the blend takes ~0.5s at any refresh rate
+        // instead of creeping along at a fixed 0.07 per frame.
+        const dt = lastFrame ? Math.min(64, now - lastFrame) : 16.67;
+        colorProgress +=
+          (colorTarget - colorProgress) * (1 - Math.pow(0.86, dt / 16.67));
       }
+      lastFrame = now;
       const fillColor =
         scrollColor && colorFrom && colorEnd
           ? mixColor(colorFrom, colorEnd, colorProgress)

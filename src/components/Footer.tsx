@@ -57,7 +57,7 @@ export default function Footer() {
         aria-hidden="true"
       >
         <DotMark
-          text={siteConfig.name.toUpperCase()}
+          text="DAMSA COTURE"
           height={150}
           fillHeight
           anchor="bottom"
@@ -73,7 +73,7 @@ export default function Footer() {
           color="#A8A29A"
           colorTo="#B08A4F"
           idle={1.1}
-          introDuration={1600}
+          introDuration={500}
           introStagger={0}
           introLead={1}
           spreadEase={0.075}
