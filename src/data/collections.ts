@@ -3,7 +3,8 @@
  *
  * The lists are built from the catalogue the server read for the request
  * (`getStorefrontProducts`), so every rail shows the database price. The
- * checked-in catalogue is never read here.
+ * checked-in catalogue is used only as an image fallback for an occasion tile
+ * whose featured piece is missing from the live catalogue.
  *
  * `slug` links the card to its product (buy) page at `/products/<slug>`.
  */
@@ -14,6 +15,7 @@ import {
   getProductsBySlugs,
   luxuryFormalShelf,
   occasions,
+  products as staticProducts,
   type Product,
 } from "@/lib/products";
 
@@ -57,7 +59,11 @@ export function buildOccasionProducts(catalog: Product[]): CollectionProduct[] {
 
   return occasions
     .map((occasion): CollectionProduct | null => {
-      const product = bySlug.get(occasion.featuredSlug);
+      // The tile is editorial: it must always be present even if its featured
+      // piece is not in the live catalogue. Only the photo is used on the card.
+      const product =
+        bySlug.get(occasion.featuredSlug) ??
+        staticProducts.find((item) => item.slug === occasion.featuredSlug);
       if (!product) return null;
 
       return {

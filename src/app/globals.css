@@ -616,6 +616,13 @@
     @apply outline-offset-[-3px] [outline:3px_solid_#1F3D2B];
   }
 
+  /* Restore the desktop arrows on the occasion rail (the four visible tiles).
+     They stay hidden at the first/last tile via the aria-hidden rule below. */
+  .product-rail-section--occasion .product-rail-wrap:hover .product-rail-arrow,
+  .product-rail-section--occasion .product-rail-wrap:focus-within .product-rail-arrow {
+    @apply visible opacity-100;
+  }
+
   /* Products Grid */
   .products-grid {
     @apply grid grid-cols-4 gap-[var(--spacing-xl)];
@@ -4571,21 +4578,47 @@
   }
 }
 
-@media (max-width: 480px) {
-  .buy-panel-price-current {
-    font-size: 1.4rem;
-  }
-
+@media (max-width: 640px) {
+  /* A column flex container would turn the Add to Cart button's
+     `flex: 1 1 200px` into a 200px *height*, so use a one-column grid. */
   .buy-panel-purchase {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
   }
 
   .buy-panel-qty {
+    width: 100%;
     justify-content: space-between;
+  }
+
+  .buy-panel-qty button {
+    width: 2.75rem;
+    min-width: 2.75rem;
+    min-height: 3rem;
   }
 
   .buy-panel-qty input {
     flex: 1;
+    width: auto;
+    min-height: 3rem;
+  }
+
+  .buy-panel-add,
+  .buy-panel-buynow {
+    width: 100%;
+    min-width: 0;
+    min-height: 3rem;
+    padding: 0.75rem 1rem;
+    font-size: clamp(0.875rem, 3.2vw, 1rem);
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .buy-panel-price-current {
+    font-size: 1.4rem;
   }
 }
 

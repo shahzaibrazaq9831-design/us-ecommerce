@@ -3,6 +3,11 @@ import { connection } from "next/server";
 import { availablePaymentMethods } from "@/lib/payments";
 import CheckoutForm from "@/components/CheckoutForm";
 
+// Payment methods depend on the environment, so this route renders per
+// request. `connection()` cannot be cached or streamed, so allow the route
+// to block instead of failing instant-navigation validation.
+export const instant = false;
+
 export const metadata: Metadata = {
   title: "Checkout",
   description:
