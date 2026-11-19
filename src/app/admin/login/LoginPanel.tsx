@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { LockKeyhole, Sparkles } from "lucide-react";
+import { Eye, EyeOff, LockKeyhole, Sparkles } from "lucide-react";
 import { signInAction } from "../actions";
 
 export default function LoginPanel({
@@ -17,6 +18,7 @@ export default function LoginPanel({
   email: string;
 }) {
   const reduce = useReducedMotion();
+  const [showPassword, setShowPassword] = useState(false);
 
   const messages: Record<string, string> = {
     missing: "Enter both the email address and the password.",
@@ -80,17 +82,35 @@ export default function LoginPanel({
               required
             />
           </label>
-          <label className="admin-field">
-            <span className="admin-label">Password</span>
-            <input
-              className="admin-input"
-              type="password"
-              name="password"
-              autoComplete="current-password"
-              placeholder="••••••••"
-              required
-            />
-          </label>
+          <div className="admin-field">
+            <label className="admin-label" htmlFor="admin-password">
+              Password
+            </label>
+            <div className="admin-password-field">
+              <input
+                id="admin-password"
+                className="admin-input"
+                type={showPassword ? "text" : "password"}
+                name="password"
+                autoComplete="current-password"
+                placeholder="••••••••"
+                required
+              />
+              <button
+                type="button"
+                className="admin-password-toggle"
+                onClick={() => setShowPassword((visible) => !visible)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+              >
+                {showPassword ? (
+                  <EyeOff size={16} aria-hidden="true" />
+                ) : (
+                  <Eye size={16} aria-hidden="true" />
+                )}
+              </button>
+            </div>
+          </div>
           <motion.button
             type="submit"
             className="admin-button admin-button--primary admin-login-submit"
@@ -99,7 +119,7 @@ export default function LoginPanel({
             <LockKeyhole size={16} aria-hidden="true" /> Sign in
           </motion.button>
         </form>
-        <p className="admin-login-foot">Rung E Bahar · Private studio area</p>
+        <p className="admin-login-foot">DAMSA COTURE · Private studio area</p>
       </motion.div>
     </div>
   );

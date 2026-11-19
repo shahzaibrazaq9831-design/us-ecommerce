@@ -420,7 +420,7 @@ export function orderStoreErrorMessage(code: OrderStoreErrorCode | undefined): s
     case "not-configured":
       return "Order storage is not configured on this server. Set SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SERVICE_KEY) and redeploy.";
     case "missing-table":
-      return "Order storage is not set up yet: the Supabase store_orders table is missing. Apply db/orders.sql in the Supabase SQL editor, then try again.";
+      return "Order storage is not set up yet: the Supabase store_orders table is missing from the API schema cache. Apply db/orders.sql in the Supabase SQL editor (it reloads the schema cache), then try again.";
     case "permission":
       return "Order storage rejected the request. Check that the Supabase service key belongs to this project and has not been restricted.";
     case "read-failed":
@@ -428,6 +428,57 @@ export function orderStoreErrorMessage(code: OrderStoreErrorCode | undefined): s
     case "write-failed":
     default:
       return "We could not save that order. Please try again in a moment.";
+  }
+}
+
+/** Recognise an order-store failure when the exact error type is unknown. */
+export function asOrderStoreError(error: unknown): OrderStoreError | null {
+  return error instanceof OrderStoreError ? error : null;
+}
+
+/** The wording for an error that is not one of our own order-store errors. */
+function unexpectedReadError(error: unknown): string {
+  const detail = error instanceof Error ? error.message : String(error);
+  console.error(`[orders] Unexpected read failure: ${detail}`);
+  return "We could not read the orders. Please try again in a moment.";
+}
+
+/**
+ * Read orders without throwing. Admin pages use this so a missing Supabase
+ * table shows a safe, actionable notice instead of a raw PGRST205 error.
+ */
+export async function tryListStoredOrders(): Promise<{
+  orders: StoredOrder[];
+  error: string | null;
+}> {
+  try {
+    return { orders: await listStoredOrders(), error: null };
+  } catch (error) {
+    const storeError = asOrderStoreError(error);
+    if (!storeError) return { orders: [], error: unexpectedReadError(error) };
+
+    console.error(
+      `[orders] Could not list orders: ${storeError.code}: ${storeError.detail}`
+    );
+    return { orders: [], error: orderStoreErrorMessage(storeError.code) };
+  }
+}
+
+/** Read one order without throwing when the order store is unavailable. */
+export async function tryGetOrderById(id: string): Promise<{
+  order: StoredOrder | null;
+  error: string | null;
+}> {
+  try {
+    return { order: await getOrderById(id), error: null };
+  } catch (error) {
+    const storeError = asOrderStoreError(error);
+    if (!storeError) return { order: null, error: unexpectedReadError(error) };
+
+    console.error(
+      `[orders] Could not read order ${id}: ${storeError.code}: ${storeError.detail}`
+    );
+    return { order: null, error: orderStoreErrorMessage(storeError.code) };
   }
 }
 

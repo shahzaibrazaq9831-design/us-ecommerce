@@ -1,7 +1,11 @@
 import "server-only";
 import { cache } from "react";
 import { getServiceClient, serviceKey } from "./supabase";
-import { listStoredOrders, type StoredOrder } from "@/lib/orders";
+import {
+  tryGetOrderById,
+  tryListStoredOrders,
+  type StoredOrder,
+} from "@/lib/orders";
 import { siteConfig } from "@/data/site";
 import { DEFAULT_STOREFRONT_SETTINGS } from "@/data/settings";
 import { normaliseAdminOrderStatus } from "./status";
@@ -490,12 +494,9 @@ export const getAdminSnapshot = cache(async (): Promise<AdminSnapshot> => {
   if (reviewResult.notice) notices.push(reviewResult.notice);
   if (settingsResult.notice) notices.push(settingsResult.notice);
 
-  let storedOrders: StoredOrder[] = [];
-  try {
-    storedOrders = await listStoredOrders();
-  } catch (error) {
-    notices.push(error instanceof Error ? error.message : "Could not read orders.");
-  }
+  const orderResult = await tryListStoredOrders();
+  const storedOrders = orderResult.orders;
+  if (orderResult.error) notices.push(orderResult.error);
 
   const orders = storedOrders.map(toDashboardOrder);
   const source: AdminSnapshot["source"] = serviceKey()
@@ -532,7 +533,6 @@ export const getAdminSnapshot = cache(async (): Promise<AdminSnapshot> => {
 
 /** One order in full, for the slide-over drawer. */
 export const getAdminOrder = cache(async (id: string): Promise<StoredOrder | null> => {
-  const orders = await listStoredOrders();
-  const wanted = id.trim().toUpperCase();
-  return orders.find((order) => order.id.trim().toUpperCase() === wanted) ?? null;
+  const { order } = await tryGetOrderById(id);
+  return order;
 });

@@ -269,3 +269,8 @@ begin
     execute format('grant select, insert, update, delete on public.%I to service_role', t);
   end loop;
 end $$;
+
+-- PostgREST caches the schema. Tell it to refresh so the tables above are
+-- visible to the Data API straight away; otherwise requests can keep failing
+-- with PGRST205 ("table ... not found in the schema cache") after a migration.
+notify pgrst, 'reload schema';

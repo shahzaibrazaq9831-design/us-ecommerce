@@ -78,3 +78,9 @@ select table_name
 from information_schema.tables
 where table_schema = 'public'
   and table_name = 'store_orders';
+
+-- PostgREST keeps its own copy of the schema. Without this, the Data API can
+-- keep answering "Could not find the table 'public.store_orders' in the
+-- schema cache" (PGRST205) even after the table has been created. Re-running
+-- this file is therefore enough to fix both a missing table and a stale cache.
+notify pgrst, 'reload schema';

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/admin-session";
 import {
-  getOrderById,
+  tryGetOrderById,
   orderStatusLabels,
   orderStatuses,
   paymentMethodLabels,
@@ -78,8 +78,26 @@ async function OrderPanel({ params, searchParams }: AdminOrderPageProps) {
   const { id } = await params;
   const query = await searchParams;
 
-  const order = await getOrderById(id);
-  if (!order) notFound();
+  const { order, error: storeError } = await tryGetOrderById(id);
+  if (!order && !storeError) notFound();
+
+  // The order store is unavailable (for example, the Supabase table is
+  // missing). Say so plainly instead of showing a raw database error page.
+  if (!order) {
+    return (
+      <div className="admin-panel">
+        <div className="admin-page-head">
+          <Link href="/admin/orders" className="admin-back">
+            ← All orders
+          </Link>
+          <h1 className="admin-title">{id}</h1>
+        </div>
+        <p className="admin-alert admin-alert--warning" role="alert">
+          {storeError ?? "We could not read that order."}
+        </p>
+      </div>
+    );
+  }
 
   const saved = first(query.saved);
   const error = first(query.error);

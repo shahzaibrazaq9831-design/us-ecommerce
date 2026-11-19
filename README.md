@@ -150,6 +150,15 @@ has not been applied. Open the Supabase SQL editor, run
 [`db/orders.sql`](./db/orders.sql), then place the order again — no redeploy is
 needed.
 
+The same message covers **“Could not find the table 'public.store_orders' in
+the schema cache”** (`PGRST205`). In that case the table may already exist but
+PostgREST is still serving its old schema. Re-run
+[`db/orders.sql`](./db/orders.sql): it ends with `notify pgrst, 'reload schema';`,
+which refreshes that cache. If the error only appears in the admin area, check
+that `NEXT_PUBLIC_SUPABASE_URL` points at the same Supabase project the SQL was
+applied to. The admin screens now show this as a setup notice with the fix,
+rather than a raw database error.
+
 ## Checkout, Payments & Emails
 
 The checkout at `/checkout` is a real guest checkout: contact details, the

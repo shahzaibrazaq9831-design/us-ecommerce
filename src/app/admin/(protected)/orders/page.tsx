@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/admin-session";
 import { getAdminSnapshot } from "@/lib/admin/data";
-import { listStoredOrders } from "@/lib/orders";
+import { tryListStoredOrders } from "@/lib/orders";
 import { toOrderDetail } from "@/lib/admin/data";
 import { LoadingTable } from "@/components/admin/Feedback";
 import OrdersClient from "@/components/admin/orders/OrdersClient";
@@ -28,16 +28,16 @@ export default function AdminOrdersPage({ searchParams }: Props) {
 
 async function OrdersPanel({ searchParams }: Props) {
   await requireAdmin();
-  const [snapshot, storedOrders, params] = await Promise.all([
+  const [snapshot, ordersResult, params] = await Promise.all([
     getAdminSnapshot(),
-    listStoredOrders(),
+    tryListStoredOrders(),
     searchParams,
   ]);
 
   return (
     <OrdersClient
       orders={snapshot.orders}
-      details={storedOrders.map(toOrderDetail)}
+      details={ordersResult.orders.map(toOrderDetail)}
       source={snapshot.source}
       schemaNotice={snapshot.schemaNotice}
       initialOrder={first(params.order)}
