@@ -10,8 +10,18 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import type { Measurements, Product, StitchingOption } from "@/lib/products";
+import {
+  measurementFields,
+  standardSizes,
+  validateMeasurements,
+  type MeasurementKey,
+  type MeasurementUnit,
+  type Measurements,
+  type Product,
+  type StitchingOption,
+} from "@/lib/products";
 import { multiBuyDiscount } from "@/lib/offers";
+import { MAX_QUANTITY_PER_LINE } from "@/lib/pricing";
 
 /**
  * What the customer chose on the product page. Every cart line keeps
@@ -83,13 +93,63 @@ export function defaultSelection(product: Product): CartSelection {
   return { stitching };
 }
 
+/**
+ * Can this selection actually be ordered? A ready-made piece needs a size and
+ * a made-to-measure piece needs every measurement. Cards and wishlist buttons
+ * add a piece in one click, so this check keeps a half-chosen piece out of the
+ * cart — checkout would otherwise refuse it with no way to put it right.
+ */
+export function selectionComplete(
+  product: Product,
+  selection: CartSelection
+): boolean {
+  if (product.availability === "out_of_stock") return false;
+  if (!product.stitching.includes(selection.stitching)) return false;
+
+  if (selection.stitching === "standard") {
+    return Boolean(selection.size && standardSizes.includes(selection.size));
+  }
+
+  if (selection.stitching === "custom") {
+    if (!selection.measurements) return false;
+    const values = Object.fromEntries(
+      measurementFields.map((field) => [
+        field.key,
+        String(selection.measurements?.[field.key as MeasurementKey] ?? ""),
+      ])
+    ) as Record<MeasurementKey, string>;
+    const unit: MeasurementUnit = selection.measurements.unit ?? "in";
+    return validateMeasurements(values, unit).valid;
+  }
+
+  return true;
+}
+
 export interface ToastItem {
   id: number;
   message: string;
+  /** An optional link shown beside the message, e.g. "View cart". */
+  action?: { label: string; href: string };
 }
 
 interface StoreContextValue {
   cart: CartItem[];
+  /**
+   * The single line bought with "Buy now". It is kept beside the cart, never
+   * in it, so a Buy now order cannot pick up anything else the customer has
+   * saved for later.
+   */
+  buyNow: CartItem | null;
+  /** Start a Buy now order with exactly one piece and its chosen options. */
+  setBuyNow: (
+    product: Product,
+    selection?: Partial<CartSelection>,
+    quantity?: number
+  ) => void;
+  /** Change the quantity of the Buy now line. */
+  updateBuyNowQuantity: (quantity: number) => void;
+  /** Discard the Buy now order. */
+  clearBuyNow: () => void;
   wishlist: string[];
   /** Add a piece to the cart, keeping the choices made on the product page. */
   addToCart: (
@@ -99,6 +159,11 @@ interface StoreContextValue {
   ) => void;
   removeFromCart: (lineKey: string) => void;
   updateQuantity: (lineKey: string, quantity: number) => void;
+  /** Change the choices on a saved line, keeping its place in the cart. */
+  updateCartLineSelection: (
+    lineKey: string,
+    selection: Partial<CartSelection>
+  ) => void;
   clearCart: () => void;
   /** Sum of the lines, before the multi-buy discount. */
   subtotal: number;
@@ -118,7 +183,8 @@ interface StoreContextValue {
   openQuickView: (product: Product) => void;
   closeQuickView: () => void;
   toast: ToastItem | null;
-  showToast: (message: string) => void;
+  showToast: (message: string, action?: ToastItem["action"]) => void;
+  dismissToast: () => void;
 }
 
 const StoreContext = createContext<StoreContextValue | null>(null);
@@ -134,6 +200,8 @@ const StoreContext = createContext<StoreContextValue | null>(null);
 
 const CART_KEY = "ppd_cart";
 const WISHLIST_KEY = "ppd_wishlist";
+/** The one-line Buy now order. Kept separately so it survives a refresh. */
+const BUY_NOW_KEY = "ppd_buy_now";
 
 type Listener = () => void;
 
@@ -209,6 +277,7 @@ function createPersistentStore<T>(key: string, fallback: T): PersistentStore<T> 
 
 const cartStore = createPersistentStore<CartItem[]>(CART_KEY, []);
 const wishlistStore = createPersistentStore<string[]>(WISHLIST_KEY, []);
+const buyNowStore = createPersistentStore<CartItem | null>(BUY_NOW_KEY, null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const cart = useSyncExternalStore(
@@ -221,20 +290,67 @@ export function CartProvider({ children }: { children: ReactNode }) {
     wishlistStore.getSnapshot,
     wishlistStore.getServerSnapshot
   );
+  const buyNow = useSyncExternalStore(
+    buyNowStore.subscribe,
+    buyNowStore.getSnapshot,
+    buyNowStore.getServerSnapshot
+  );
 
   const [quickView, setQuickView] = useState<Product | null>(null);
   const [toast, setToast] = useState<ToastItem | null>(null);
   const [isCartOpen, setCartOpen] = useState(false);
 
-  // Auto-hide toast
+  // Auto-hide toast. A toast with a link stays long enough to be clicked.
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(null), 2200);
+    const t = setTimeout(() => setToast(null), toast.action ? 5000 : 2200);
     return () => clearTimeout(t);
   }, [toast]);
 
-  const showToast = useCallback((message: string) => {
-    setToast({ id: Date.now(), message });
+  const showToast = useCallback(
+    (message: string, action?: ToastItem["action"]) => {
+      setToast({ id: Date.now(), message, action });
+    },
+    []
+  );
+
+  const dismissToast = useCallback(() => {
+    setToast(null);
+  }, []);
+
+  /**
+   * Start a one-piece order. This deliberately does not touch the cart: a
+   * Buy now order is only ever the piece the customer chose right here.
+   */
+  const setBuyNow = useCallback(
+    (
+      product: Product,
+      selection?: Partial<CartSelection>,
+      quantity = 1
+    ) => {
+      const chosen: CartSelection = { ...defaultSelection(product), ...selection };
+      buyNowStore.write({ ...product, ...chosen, quantity });
+    },
+    []
+  );
+
+  const updateBuyNowQuantity = useCallback((quantity: number) => {
+    const current = buyNowStore.getSnapshot();
+    if (!current) return;
+
+    if (quantity <= 0) {
+      buyNowStore.write(null);
+      return;
+    }
+
+    buyNowStore.write({
+      ...current,
+      quantity: Math.min(MAX_QUANTITY_PER_LINE, quantity),
+    });
+  }, []);
+
+  const clearBuyNow = useCallback(() => {
+    buyNowStore.write(null);
   }, []);
 
   const addToCart = useCallback(
@@ -244,6 +360,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       quantity = 1
     ) => {
       const chosen: CartSelection = { ...defaultSelection(product), ...selection };
+
+      // A one-click add from a card or the wishlist has no size yet. Open the
+      // quick view so the customer can choose one instead of saving a line
+      // that checkout would have to reject.
+      if (!selectionComplete(product, chosen)) {
+        setQuickView(product);
+        showToast("Choose your options to add this piece.");
+        return;
+      }
+
       const lineKey = cartLineKey({ ...product, ...chosen });
 
       const current = cartStore.getSnapshot();
@@ -258,9 +384,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
         : [...current, { ...product, ...chosen, quantity }];
 
       cartStore.write(next);
-      showToast("Added to cart");
+      // Adding to the cart starts the cart flow, so an earlier Buy now line
+      // must not later take over a normal cart checkout.
+      buyNowStore.write(null);
+      showToast("Added to cart", { label: "View cart", href: "/cart" });
     },
-    [showToast]
+    [setQuickView, showToast]
   );
 
   const removeFromCart = useCallback(
@@ -287,6 +416,44 @@ export function CartProvider({ children }: { children: ReactNode }) {
       )
     );
   }, []);
+
+  /**
+   * Repair a saved line's choices. Changing the choices changes the line key,
+   * so the old line is replaced and an identical line already in the cart is
+   * merged with it rather than left as a duplicate.
+   */
+  const updateCartLineSelection = useCallback(
+    (lineKey: string, selection: Partial<CartSelection>) => {
+      const current = cartStore.getSnapshot();
+      const line = current.find((item) => cartLineKey(item) === lineKey);
+      if (!line) return;
+
+      const { quantity, ...choices } = line;
+      const updated: CartItem = { ...choices, ...selection, quantity };
+      const nextKey = cartLineKey(updated);
+      const remaining = current.filter((item) => cartLineKey(item) !== lineKey);
+
+      if (nextKey === lineKey) {
+        cartStore.write(current.map((item) => (cartLineKey(item) === lineKey ? updated : item)));
+        return;
+      }
+
+      const existing = remaining.find((item) => cartLineKey(item) === nextKey);
+      cartStore.write(
+        existing
+          ? remaining.map((item) =>
+              cartLineKey(item) === nextKey
+                ? {
+                    ...item,
+                    quantity: Math.min(MAX_QUANTITY_PER_LINE, item.quantity + quantity),
+                  }
+                : item
+            )
+          : [...remaining, updated]
+      );
+    },
+    []
+  );
 
   const clearCart = useCallback(() => {
     cartStore.write([]);
@@ -333,10 +500,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const value: StoreContextValue = {
     cart,
+    buyNow,
+    setBuyNow,
+    updateBuyNowQuantity,
+    clearBuyNow,
     wishlist,
     addToCart,
     removeFromCart,
     updateQuantity,
+    updateCartLineSelection,
     clearCart,
     subtotal,
     discount,
@@ -353,6 +525,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     closeQuickView,
     toast,
     showToast,
+    dismissToast,
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

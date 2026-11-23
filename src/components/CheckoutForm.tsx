@@ -2,13 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useCart } from "@/context/CartContext";
+import { Minus, Plus, Trash2 } from "lucide-react";
+import { useCart, cartLineKey, type CartItem } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useHydrated } from "@/hooks/useHydrated";
 import { useCatalogProducts } from "@/components/StoreCatalogProvider";
-import { priceCart } from "@/lib/pricing";
+import { MAX_QUANTITY_PER_LINE, priceCart } from "@/lib/pricing";
 import { MULTI_BUY_DISCOUNT_LABEL } from "@/lib/offers";
+import { standardSizes } from "@/lib/products";
 import {
   countryCurrency,
   countryMarketCode,
@@ -50,6 +53,14 @@ function errorId(field: string): string {
   return `${controlId(field)}-error`;
 }
 
+/** A fresh key for every distinct order, used for safe retries. */
+function makeIdempotencyKey(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 /** One customer-facing message, wired to the control it describes. */
 function FieldError({ field, message }: { field: string; message?: string }) {
   if (!message) return null;
@@ -82,9 +93,32 @@ export default function CheckoutForm({
   /** The ways this server can take payment. */
   methods: PaymentMethodChoice[];
 }) {
-  const { cart, clearCart } = useCart();
+  const {
+    cart,
+    buyNow,
+    clearCart,
+    clearBuyNow,
+    removeFromCart,
+    updateQuantity,
+    updateCartLineSelection,
+    updateBuyNowQuantity,
+  } = useCart();
   const catalog = useCatalogProducts();
   const { formatPrice, region, setRegionCode } = useCurrency();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  /**
+   * `?buyNow=1` selects the one-piece order. The piece itself is read from
+   * the same persistent store as the cart, so a refresh of this page keeps
+   * the order intact. Without the flag the form uses the ordinary cart.
+   */
+  const buyNowMode = searchParams.get("buyNow") === "1";
+  const isBuyNow = buyNowMode && buyNow !== null;
+  const lines: CartItem[] = useMemo(
+    () => (isBuyNow && buyNow ? [buyNow] : cart),
+    [buyNow, cart, isBuyNow]
+  );
 
   /** True once the browser has taken over from the server. */
   const hydrated = useHydrated();
@@ -94,6 +128,8 @@ export default function CheckoutForm({
   const [submitting, setSubmitting] = useState(false);
   const [focusRequest, setFocusRequest] = useState<{ field: string; nonce: number } | null>(null);
   const focusNonce = useRef(0);
+  const [formTouched, setFormTouched] = useState(false);
+  const markTouched = useCallback(() => setFormTouched(true), []);
 
   const [contact, setContact] = useState({ name: "", email: "", phone: "" });
   const [address, setAddress] = useState({
@@ -114,16 +150,24 @@ export default function CheckoutForm({
   const shippingCountry = address.country;
 
   /**
-   * The key that makes creating the order safe to repeat.
-   *
-   * It is made when the cart changes, so pressing "place order" twice
-   * sends the same key and the customer gets the same order instead of
-   * two.
+   * An empty order has no business being here. Once the browser has read the
+   * cart, send the customer back to the cart page (which explains that it is
+   * empty) instead of showing a checkout with nothing in it.
+   */
+  useEffect(() => {
+    if (!hydrated) return;
+    if (lines.length === 0) router.replace("/cart");
+  }, [hydrated, lines.length, router]);
+
+  /**
+   * The key that makes creating the order safe to repeat. It is made on the
+   * first submit attempt and reset when the order lines change, so pressing
+   * "place order" twice sends the same key and gets one order, not two.
    */
   const keyRef = useRef("");
   const cartSignature = useMemo(
     () =>
-      cart
+      lines
         .map(
           (item) =>
             `${item.slug}:${item.quantity}:${item.stitching}:${item.size ?? ""}:${
@@ -131,7 +175,7 @@ export default function CheckoutForm({
             }:${item.measurements ? JSON.stringify(item.measurements) : ""}`
         )
         .join("|"),
-    [cart]
+    [lines]
   );
 
   useEffect(() => {
@@ -167,7 +211,7 @@ export default function CheckoutForm({
   /** The items, in the shape both the catalogue and the server expect. */
   const items = useMemo(
     () =>
-      cart.map((item) => ({
+      lines.map((item) => ({
         slug: item.slug,
         quantity: item.quantity,
         stitching: item.stitching,
@@ -176,15 +220,50 @@ export default function CheckoutForm({
         ...(item.measurements ? { measurements: item.measurements } : {}),
         ...(item.notes ? { notes: item.notes } : {}),
       })),
-    [cart]
+    [lines]
   );
 
   /** The totals, worked out from the catalogue. */
   const priced = useMemo(() => priceCart(items, catalog), [items, catalog]);
   const totals = priced.ok ? priced.order : null;
 
+  /** The same payload the server will validate, kept in one place. */
+  const payload: CheckoutInput = useMemo(
+    () => ({
+      contact,
+      address: {
+        line1: address.line1,
+        ...(address.line2 ? { line2: address.line2 } : {}),
+        city: address.city,
+        ...(address.state ? { state: address.state } : {}),
+        ...(address.postalCode ? { postalCode: address.postalCode } : {}),
+        country: shippingCountry,
+      },
+      deliveryNote,
+      termsAccepted,
+      items,
+      paymentMethod,
+      // The real key is added on submit. This stand-in lets the shared schema
+      // check the customer's details without depending on browser-only state.
+      idempotencyKey: "checkout-pending-key",
+    }),
+    [address, contact, deliveryNote, items, paymentMethod, shippingCountry, termsAccepted]
+  );
+
+  const validation = useMemo(() => validateCheckoutInput(payload), [payload]);
+  const liveErrors = useMemo(
+    () => (validation.valid ? {} : issuesByField(validation.issues)),
+    [validation]
+  );
+  /** Server messages win; field messages appear once the customer starts. */
+  const visibleErrors = formTouched ? { ...liveErrors, ...errors } : errors;
+  const canPlaceOrder =
+    validation.valid && priced.ok && lines.length > 0 && !submitting;
+
   const setField = useCallback(
     (group: "contact" | "address", field: string, value: string) => {
+      setFormTouched(true);
+
       if (group === "contact") {
         setContact((current) => ({ ...current, [field]: value }));
       } else {
@@ -228,37 +307,18 @@ export default function CheckoutForm({
     setMessage("");
     setErrors({});
     setFocusRequest(null);
+    setFormTouched(true);
 
-    if (!keyRef.current) {
-      keyRef.current =
-        typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    }
-
-    const payload: CheckoutInput = {
-      contact,
-      address: {
-        line1: address.line1,
-        ...(address.line2 ? { line2: address.line2 } : {}),
-        city: address.city,
-        ...(address.state ? { state: address.state } : {}),
-        ...(address.postalCode ? { postalCode: address.postalCode } : {}),
-        country: shippingCountry,
-      },
-      deliveryNote,
-      termsAccepted,
-      items,
-      paymentMethod,
-      idempotencyKey: keyRef.current,
-    };
+    const key = keyRef.current || makeIdempotencyKey();
+    keyRef.current = key;
+    const submission: CheckoutInput = { ...payload, idempotencyKey: key };
 
     // The same schema the server uses, so mistakes are caught before the
     // order is sent.
-    const validation = validateCheckoutInput(payload);
+    const check = validateCheckoutInput(submission);
 
-    if (!validation.valid) {
-      applyIssues(validation.issues, "We could not place that order. Please try again.");
+    if (!check.valid) {
+      applyIssues(check.issues, "We could not place that order. Please try again.");
       return;
     }
 
@@ -268,7 +328,7 @@ export default function CheckoutForm({
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(submission),
       });
 
       // An infrastructure failure can arrive as an empty body (a bare 500),
@@ -300,8 +360,15 @@ export default function CheckoutForm({
         return;
       }
 
-      // The order is with us now, so the cart has done its job.
-      clearCart();
+      // The order is with us now. Only the lines used for this order are
+      // spent: a Buy now order must not empty the saved cart, and a cart
+      // checkout must not leave a stale Buy now line behind.
+      if (isBuyNow) clearBuyNow();
+      else {
+        clearCart();
+        // A stale Buy now line must not resurface in a later checkout.
+        clearBuyNow();
+      }
 
       if (data.redirect) {
         window.location.assign(data.redirect);
@@ -312,7 +379,7 @@ export default function CheckoutForm({
     }
   };
 
-  const itemIssues = Object.entries(errors).filter(([field]) => field.startsWith("items"));
+  const itemIssues = Object.entries(visibleErrors).filter(([field]) => field.startsWith("items"));
   const shippingCurrency = shippingCountry ? countryCurrency(shippingCountry) : region.currency;
 
   /* The cart has not arrived yet. -------------------------------------- */
@@ -333,12 +400,12 @@ export default function CheckoutForm({
     );
   }
 
-  /* The cart is empty. ------------------------------------------------ */
-  if (cart.length === 0) {
+  /* No order lines. The effect above takes the customer back to the cart. */
+  if (lines.length === 0) {
     return (
-      <div className="checkout checkout--empty">
-        <h2>Your cart is empty</h2>
-        <p>There is nothing to check out yet — have a look at the collection.</p>
+      <div className="checkout checkout--empty" role="status" aria-live="polite">
+        <h2>{buyNowMode ? "Your Buy now order is empty" : "Your cart is empty"}</h2>
+        <p>Taking you back to your cart — choose a piece to order.</p>
         <Link href="/shop" className="btn btn-primary">
           Continue shopping
         </Link>
@@ -365,11 +432,11 @@ export default function CheckoutForm({
                 type="text"
                 autoComplete="name"
                 value={contact.name}
-                aria-invalid={Boolean(errors["contact.name"])}
-                aria-describedby={errors["contact.name"] ? errorId("contact.name") : undefined}
+                aria-invalid={Boolean(visibleErrors["contact.name"])}
+                aria-describedby={visibleErrors["contact.name"] ? errorId("contact.name") : undefined}
                 onChange={(event) => setField("contact", "name", event.target.value)}
               />
-              <FieldError field="contact.name" message={errors["contact.name"]} />
+              <FieldError field="contact.name" message={visibleErrors["contact.name"]} />
             </div>
 
             <div className="field-row">
@@ -384,11 +451,11 @@ export default function CheckoutForm({
                   type="email"
                   autoComplete="email"
                   value={contact.email}
-                  aria-invalid={Boolean(errors["contact.email"])}
-                  aria-describedby={errors["contact.email"] ? errorId("contact.email") : undefined}
+                  aria-invalid={Boolean(visibleErrors["contact.email"])}
+                  aria-describedby={visibleErrors["contact.email"] ? errorId("contact.email") : undefined}
                   onChange={(event) => setField("contact", "email", event.target.value)}
                 />
-                <FieldError field="contact.email" message={errors["contact.email"]} />
+                <FieldError field="contact.email" message={visibleErrors["contact.email"]} />
               </div>
 
               <div className="field">
@@ -403,11 +470,11 @@ export default function CheckoutForm({
                   autoComplete="tel"
                   placeholder="+92 300 1234567"
                   value={contact.phone}
-                  aria-invalid={Boolean(errors["contact.phone"])}
-                  aria-describedby={errors["contact.phone"] ? errorId("contact.phone") : undefined}
+                  aria-invalid={Boolean(visibleErrors["contact.phone"])}
+                  aria-describedby={visibleErrors["contact.phone"] ? errorId("contact.phone") : undefined}
                   onChange={(event) => setField("contact", "phone", event.target.value)}
                 />
-                <FieldError field="contact.phone" message={errors["contact.phone"]} />
+                <FieldError field="contact.phone" message={visibleErrors["contact.phone"]} />
               </div>
             </div>
           </section>
@@ -427,11 +494,11 @@ export default function CheckoutForm({
                 type="text"
                 autoComplete="address-line1"
                 value={address.line1}
-                aria-invalid={Boolean(errors["address.line1"])}
-                aria-describedby={errors["address.line1"] ? errorId("address.line1") : undefined}
+                aria-invalid={Boolean(visibleErrors["address.line1"])}
+                aria-describedby={visibleErrors["address.line1"] ? errorId("address.line1") : undefined}
                 onChange={(event) => setField("address", "line1", event.target.value)}
               />
-              <FieldError field="address.line1" message={errors["address.line1"]} />
+              <FieldError field="address.line1" message={visibleErrors["address.line1"]} />
             </div>
 
             <div className="field">
@@ -445,11 +512,11 @@ export default function CheckoutForm({
                 type="text"
                 autoComplete="address-line2"
                 value={address.line2}
-                aria-invalid={Boolean(errors["address.line2"])}
-                aria-describedby={errors["address.line2"] ? errorId("address.line2") : undefined}
+                aria-invalid={Boolean(visibleErrors["address.line2"])}
+                aria-describedby={visibleErrors["address.line2"] ? errorId("address.line2") : undefined}
                 onChange={(event) => setField("address", "line2", event.target.value)}
               />
-              <FieldError field="address.line2" message={errors["address.line2"]} />
+              <FieldError field="address.line2" message={visibleErrors["address.line2"]} />
             </div>
 
             <div className="field-row">
@@ -464,11 +531,11 @@ export default function CheckoutForm({
                   type="text"
                   autoComplete="address-level2"
                   value={address.city}
-                  aria-invalid={Boolean(errors["address.city"])}
-                  aria-describedby={errors["address.city"] ? errorId("address.city") : undefined}
+                  aria-invalid={Boolean(visibleErrors["address.city"])}
+                  aria-describedby={visibleErrors["address.city"] ? errorId("address.city") : undefined}
                   onChange={(event) => setField("address", "city", event.target.value)}
                 />
-                <FieldError field="address.city" message={errors["address.city"]} />
+                <FieldError field="address.city" message={visibleErrors["address.city"]} />
               </div>
 
               <div className="field">
@@ -483,11 +550,11 @@ export default function CheckoutForm({
                   type="text"
                   autoComplete="address-level1"
                   value={address.state}
-                  aria-invalid={Boolean(errors["address.state"])}
-                  aria-describedby={errors["address.state"] ? errorId("address.state") : undefined}
+                  aria-invalid={Boolean(visibleErrors["address.state"])}
+                  aria-describedby={visibleErrors["address.state"] ? errorId("address.state") : undefined}
                   onChange={(event) => setField("address", "state", event.target.value)}
                 />
-                <FieldError field="address.state" message={errors["address.state"]} />
+                <FieldError field="address.state" message={visibleErrors["address.state"]} />
               </div>
             </div>
 
@@ -504,15 +571,15 @@ export default function CheckoutForm({
                   type="text"
                   autoComplete="postal-code"
                   value={address.postalCode}
-                  aria-invalid={Boolean(errors["address.postalCode"])}
+                  aria-invalid={Boolean(visibleErrors["address.postalCode"])}
                   aria-describedby={
-                    errors["address.postalCode"] ? errorId("address.postalCode") : undefined
+                    visibleErrors["address.postalCode"] ? errorId("address.postalCode") : undefined
                   }
                   onChange={(event) =>
                     setField("address", "postalCode", event.target.value)
                   }
                 />
-                <FieldError field="address.postalCode" message={errors["address.postalCode"]} />
+                <FieldError field="address.postalCode" message={visibleErrors["address.postalCode"]} />
               </div>
 
               <div className="field">
@@ -525,9 +592,9 @@ export default function CheckoutForm({
                   className="field__input"
                   autoComplete="country"
                   value={shippingCountry}
-                  aria-invalid={Boolean(errors["address.country"])}
+                  aria-invalid={Boolean(visibleErrors["address.country"])}
                   aria-describedby={
-                    `checkout-country-currency${errors["address.country"] ? ` ${errorId("address.country")}` : ""}`
+                    `checkout-country-currency${visibleErrors["address.country"] ? ` ${errorId("address.country")}` : ""}`
                   }
                   onChange={(event) => handleCountryChange(event.target.value)}
                 >
@@ -541,7 +608,7 @@ export default function CheckoutForm({
                 <p id="checkout-country-currency" className="field__hint">
                   Prices and payment in {shippingCurrency}.
                 </p>
-                <FieldError field="address.country" message={errors["address.country"]} />
+                <FieldError field="address.country" message={visibleErrors["address.country"]} />
               </div>
             </div>
           </section>
@@ -565,11 +632,14 @@ export default function CheckoutForm({
                 rows={4}
                 maxLength={500}
                 value={deliveryNote}
-                aria-invalid={Boolean(errors.deliveryNote)}
-                aria-describedby={errors.deliveryNote ? errorId("deliveryNote") : undefined}
-                onChange={(event) => setDeliveryNote(event.target.value)}
+                aria-invalid={Boolean(visibleErrors.deliveryNote)}
+                aria-describedby={visibleErrors.deliveryNote ? errorId("deliveryNote") : undefined}
+                onChange={(event) => {
+                  setDeliveryNote(event.target.value);
+                  markTouched();
+                }}
               />
-              <FieldError field="deliveryNote" message={errors.deliveryNote} />
+              <FieldError field="deliveryNote" message={visibleErrors.deliveryNote} />
             </div>
           </section>
 
@@ -581,8 +651,8 @@ export default function CheckoutForm({
               className="checkout__options"
               role="radiogroup"
               aria-label="Payment method"
-              aria-invalid={Boolean(errors.paymentMethod)}
-              aria-describedby={errors.paymentMethod ? errorId("paymentMethod") : undefined}
+              aria-invalid={Boolean(visibleErrors.paymentMethod)}
+              aria-describedby={visibleErrors.paymentMethod ? errorId("paymentMethod") : undefined}
             >
               {methods.includes("card") ? (
                 <label className="checkout__option">
@@ -592,7 +662,10 @@ export default function CheckoutForm({
                     name="paymentMethod"
                     value="card"
                     checked={paymentMethod === "card"}
-                    onChange={() => setPaymentMethod("card")}
+                    onChange={() => {
+                      setPaymentMethod("card");
+                      markTouched();
+                    }}
                   />
                   <span>
                     <strong>Pay by card</strong>
@@ -612,7 +685,10 @@ export default function CheckoutForm({
                     name="paymentMethod"
                     value="cod"
                     checked={paymentMethod === "cod"}
-                    onChange={() => setPaymentMethod("cod")}
+                    onChange={() => {
+                      setPaymentMethod("cod");
+                      markTouched();
+                    }}
                   />
                   <span>
                     <strong>Cash on delivery</strong>
@@ -622,7 +698,7 @@ export default function CheckoutForm({
               ) : null}
             </div>
 
-            <FieldError field="paymentMethod" message={errors.paymentMethod} />
+            <FieldError field="paymentMethod" message={visibleErrors.paymentMethod} />
           </section>
 
           {/* Terms -------------------------------------------------- */}
@@ -633,9 +709,12 @@ export default function CheckoutForm({
                 type="checkbox"
                 name="termsAccepted"
                 checked={termsAccepted}
-                aria-invalid={Boolean(errors.termsAccepted)}
-                aria-describedby={errors.termsAccepted ? errorId("termsAccepted") : undefined}
-                onChange={(event) => setTermsAccepted(event.target.checked)}
+                aria-invalid={Boolean(visibleErrors.termsAccepted)}
+                aria-describedby={visibleErrors.termsAccepted ? errorId("termsAccepted") : undefined}
+                onChange={(event) => {
+                  setTermsAccepted(event.target.checked);
+                  markTouched();
+                }}
               />
               <span>
                 I have read and accept the{" "}
@@ -649,7 +728,7 @@ export default function CheckoutForm({
                 .
               </span>
             </label>
-            <FieldError field="termsAccepted" message={errors.termsAccepted} />
+            <FieldError field="termsAccepted" message={visibleErrors.termsAccepted} />
           </section>
         </div>
 
@@ -675,46 +754,124 @@ export default function CheckoutForm({
             tabIndex={-1}
             aria-describedby={itemIssues.length > 0 ? "checkout-item-errors" : undefined}
           >
-            {cart.map((item) => (
-              <li className="checkout__item" key={`${item.slug}-${item.quantity}-${item.size ?? ""}`}>
-                <div className="checkout__item-image">
-                  <Image
-                    src={item.image}
-                    alt={item.name}
-                    fill
-                    sizes="72px"
-                    style={{ objectFit: "cover" }}
-                  />
-                </div>
+            {lines.map((item, index) => {
+              const lineKey = cartLineKey(item);
+              const pricedLine = totals?.lines[index];
+              const changeQuantity = (next: number) => {
+                if (isBuyNow) updateBuyNowQuantity(next);
+                else updateQuantity(lineKey, next);
+              };
+              const removeItem = () => {
+                if (isBuyNow) clearBuyNow();
+                else removeFromCart(lineKey);
+              };
 
-                <div className="checkout__item-body">
-                  <p className="checkout__item-name">
-                    {item.name}
-                    <span className="checkout__item-quantity">× {item.quantity}</span>
-                  </p>
+              return (
+                <li className="checkout__item" key={lineKey}>
+                  <div className="checkout__item-image">
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      sizes="72px"
+                      style={{ objectFit: "cover" }}
+                    />
+                  </div>
 
-                  <ul className="checkout__item-choices">
-                    <li>{item.stitching === "custom" ? "Custom stitched" : item.stitching === "unstitched" ? "Unstitched" : "Standard stitched"}</li>
-                    {item.size ? <li>Size {item.size}</li> : null}
-                    {item.lining ? <li>{item.lining}</li> : null}
-                  </ul>
+                  <div className="checkout__item-body">
+                    <p className="checkout__item-name">{item.name}</p>
 
-                  {item.measurements ? (
-                    <p className="checkout__item-measurements">
-                      <span>Bust {item.measurements.bust} · Waist {item.measurements.waist} · Hip {item.measurements.hip} · Shoulder {item.measurements.shoulder} · Sleeve {item.measurements.sleeveLength} · Length {item.measurements.dressLength} {item.measurements.unit}</span>
+                    <ul className="checkout__item-choices">
+                      <li>{item.stitching === "custom" ? "Custom stitched" : item.stitching === "unstitched" ? "Unstitched" : "Standard stitched"}</li>
+                      {item.size ? <li>Size {item.size}</li> : null}
+                      {item.lining ? <li>{item.lining}</li> : null}
+                    </ul>
+
+                    {/* Older carts can hold a line saved before a size was
+                        chosen. Let it be put right here instead of blocking
+                        the order with no way forward. */}
+                    {!isBuyNow && item.stitching === "standard" && !item.size ? (
+                      <div className="checkout__item-fix">
+                        <label htmlFor={`checkout-size-${index}`}>
+                          Choose a size for {item.name}
+                        </label>
+                        <select
+                          id={`checkout-size-${index}`}
+                          value=""
+                          onChange={(event) =>
+                            updateCartLineSelection(lineKey, { size: event.target.value })
+                          }
+                        >
+                          <option value="">Choose a size…</option>
+                          {standardSizes.map((size) => (
+                            <option key={size} value={size}>
+                              {size}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : null}
+
+                    {!isBuyNow && item.stitching === "custom" && !item.measurements ? (
+                      <p className="checkout__item-fix">
+                        This piece needs your measurements.{" "}
+                        <Link href={`/products/${item.slug}`}>Add them here</Link>.
+                      </p>
+                    ) : null}
+
+                    {item.measurements ? (
+                      <p className="checkout__item-measurements">
+                        <span>Bust {item.measurements.bust} · Waist {item.measurements.waist} · Hip {item.measurements.hip} · Shoulder {item.measurements.shoulder} · Sleeve {item.measurements.sleeveLength} · Length {item.measurements.dressLength} {item.measurements.unit}</span>
+                      </p>
+                    ) : null}
+
+                    {item.notes ? (
+                      <p className="checkout__item-note">Your note: {item.notes}</p>
+                    ) : null}
+
+                    <p className="checkout__item-unit">
+                      Unit price {formatPrice(pricedLine?.unitPrice ?? item.price, shippingCurrency)}
                     </p>
-                  ) : null}
 
-                  {item.notes ? (
-                    <p className="checkout__item-note">Your note: {item.notes}</p>
-                  ) : null}
-                </div>
+                    <div className="checkout__item-controls">
+                      <div className="cart-qty" aria-label={`Quantity for ${item.name}`}>
+                        <button
+                          type="button"
+                          onClick={() => changeQuantity(item.quantity - 1)}
+                          disabled={item.quantity <= 1}
+                          aria-label={`Decrease quantity of ${item.name}`}
+                        >
+                          <Minus size={14} strokeWidth={2} aria-hidden="true" />
+                        </button>
+                        <span>{item.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => changeQuantity(item.quantity + 1)}
+                          disabled={item.quantity >= MAX_QUANTITY_PER_LINE}
+                          aria-label={`Increase quantity of ${item.name}`}
+                        >
+                          <Plus size={14} strokeWidth={2} aria-hidden="true" />
+                        </button>
+                      </div>
 
-                <p className="checkout__item-price">
-                  {formatPrice(item.price * item.quantity, shippingCurrency)}
-                </p>
-              </li>
-            ))}
+                      <button
+                        type="button"
+                        className="checkout__item-remove"
+                        onClick={removeItem}
+                        aria-label={`Remove ${item.name} from order`}
+                      >
+                        <Trash2 size={14} strokeWidth={1.8} aria-hidden="true" />
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="checkout__item-price">
+                    {formatPrice(pricedLine?.lineTotal ?? item.price * item.quantity, shippingCurrency)}
+                  </p>
+                </li>
+              );
+            })}
           </ul>
 
           {itemIssues.length > 0 ? (
@@ -746,13 +903,30 @@ export default function CheckoutForm({
                   : "Free"}
               </dd>
             </div>
+            <div>
+              <dt>Tax</dt>
+              <dd>None</dd>
+            </div>
             <div className="checkout__totals-total">
-              <dt>Total</dt>
+              <dt>Grand total</dt>
               <dd>{formatPrice(totals?.total ?? 0, shippingCurrency)}</dd>
             </div>
           </dl>
 
-          <button type="submit" className="btn btn-primary checkout__submit" disabled={submitting}>
+          {!canPlaceOrder && !submitting ? (
+            <p id="checkout-form-hint" className="checkout__form-hint">
+              {!priced.ok
+                ? priced.error
+                : "Fill in the required details and accept the terms to place your order."}
+            </p>
+          ) : null}
+
+          <button
+            type="submit"
+            className="btn btn-primary checkout__submit"
+            disabled={!canPlaceOrder}
+            aria-describedby={!canPlaceOrder ? "checkout-form-hint" : undefined}
+          >
             {submitting ? "Placing your order…" : "Place order"}
           </button>
 

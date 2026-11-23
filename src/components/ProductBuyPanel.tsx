@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Check, Minus, Plus, Ruler, ShoppingBag, X, Zap } from "lucide-react";
 import { useCart, type CartSelection } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import {
+  measurementFields,
   measurementsFromValues,
   validateMeasurements,
   type Product,
@@ -33,7 +34,7 @@ interface ProductBuyPanelProps {
  */
 export default function ProductBuyPanel({ product, rating }: ProductBuyPanelProps) {
   const router = useRouter();
-  const { addToCart, openCart, toggleWishlist, isWishlisted } = useCart();
+  const { addToCart, setBuyNow, openCart, showToast, toggleWishlist, isWishlisted } = useCart();
   const { formatPrice } = useCurrency();
 
   const [selection, setSelection] = useState<StitchingSelection>(() => ({
@@ -52,6 +53,26 @@ export default function ProductBuyPanel({ product, rating }: ProductBuyPanelProp
   const discountPercent = onSale
     ? Math.round((1 - product.price / (product.originalPrice as number)) * 100)
     : 0;
+
+  /**
+   * What is still missing before the piece can be ordered. The buttons stay
+   * clickable so the customer always gets a clear answer instead of a button
+   * that looks dead.
+   */
+  const selectionProblem = useMemo(() => {
+    if (soldOut) return "This piece is out of stock.";
+    if (!product.stitching.includes(selection.stitching)) {
+      return "Choose an available way of making this piece.";
+    }
+    if (selection.stitching === "standard" && !selection.size) {
+      return "Please choose a size to continue.";
+    }
+    if (selection.stitching === "custom") {
+      const check = validateMeasurements(selection.measurements, selection.unit);
+      if (!check.valid) return "Please add your measurements to continue.";
+    }
+    return "";
+  }, [product.stitching, selection, soldOut]);
 
   /**
    * Check the stitching choice. Returns the choices to save with the
@@ -99,22 +120,56 @@ export default function ProductBuyPanel({ product, rating }: ProductBuyPanelProp
     return cartSelection;
   };
 
+  /** Put the keyboard and the eye on the choice that stopped the order. */
+  const focusMissingChoice = () => {
+    const panel = document.querySelector<HTMLElement>(".buy-panel");
+    if (!panel) return;
+
+    let target: HTMLElement | null = null;
+    if (!product.stitching.includes(selection.stitching)) {
+      target = panel.querySelector<HTMLElement>('input[name="stitching"]');
+    } else if (selection.stitching === "standard" && !selection.size) {
+      target = panel.querySelector<HTMLElement>(".stitching-select");
+    } else if (selection.stitching === "custom") {
+      const check = validateMeasurements(selection.measurements, selection.unit);
+      const index = measurementFields.findIndex((field) => check.errors[field.key]);
+      if (index >= 0) {
+        target = panel.querySelectorAll<HTMLElement>(".stitching-measurements input")[index] ?? null;
+      }
+    }
+
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    target?.focus({ preventScroll: true });
+  };
+
   const handleAddToCart = () => {
     if (soldOut) return;
     const chosen = buildSelection();
-    if (!chosen) return;
+    if (!chosen) {
+      // Never leave a click silent: point to the choice that is missing.
+      showToast(selectionProblem || "Please check your selections.");
+      focusMissingChoice();
+      return;
+    }
 
     addToCart(product, chosen, quantity);
+    // Show the cart so the customer can immediately see what was added.
     openCart();
   };
 
   const handleBuyNow = () => {
     if (soldOut) return;
     const chosen = buildSelection();
-    if (!chosen) return;
+    if (!chosen) {
+      showToast(selectionProblem || "Please check your selections.");
+      focusMissingChoice();
+      return;
+    }
 
-    addToCart(product, chosen, quantity);
-    router.push("/checkout");
+    setBuyNow(product, chosen, quantity);
+    // The query string selects the one-line order; the line itself is in the
+    // same persistent store as the cart, so a refresh keeps the order.
+    router.push("/checkout?buyNow=1");
   };
 
   return (
@@ -233,6 +288,12 @@ export default function ProductBuyPanel({ product, rating }: ProductBuyPanelProp
         <Zap size={18} strokeWidth={1.75} aria-hidden="true" />
         Buy Now
       </button>
+
+      {selectionProblem ? (
+        <p className="buy-panel-purchase-error" role="alert">
+          {selectionProblem}
+        </p>
+      ) : null}
 
       <button
         type="button"

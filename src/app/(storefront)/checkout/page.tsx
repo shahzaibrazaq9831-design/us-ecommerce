@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { availablePaymentMethods } from "@/lib/payments";
@@ -34,14 +35,22 @@ export default async function CheckoutPage() {
     <section className="section">
       <div className="container">
         <div className="section-header" style={{ textAlign: "left" }}>
-          <h1 className="section-title">Checkout</h1>
+          <h1 className="section-title">Order Summary</h1>
           <p className="section-subtitle">
-            Guest checkout — no account needed. Your pieces are stitched to
-            order, so please check the details carefully.
+            Review your pieces and delivery details — no account needed. Your
+            pieces are stitched to order, so please check them carefully.
           </p>
         </div>
 
-        <CheckoutForm methods={methods} />
+        <Suspense
+          fallback={
+            <div className="checkout checkout--loading" aria-busy="true">
+              <p>Loading your order summary…</p>
+            </div>
+          }
+        >
+          <CheckoutForm methods={methods} />
+        </Suspense>
       </div>
     </section>
   );
