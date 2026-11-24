@@ -1,0 +1,530 @@
+/* -------------------------------------------------------------------------
+ * Damsa Coture printable invoice.
+ * The paper keeps the storefront palette whatever the admin theme is doing.
+ * ---------------------------------------------------------------------- */
+
+.invoice-page {
+  --invoice-gold: #8b6914;
+  --invoice-gold-dark: #6b4f0f;
+  --invoice-accent: #c9a96e;
+  --invoice-ink: #2c2c2c;
+  --invoice-muted: #757575;
+  --invoice-faint: #9e9e9e;
+  --invoice-line: #e6e0d6;
+  --invoice-cream: #faf8f5;
+
+  padding: 24px;
+}
+
+.invoice-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 210mm;
+  margin: 0 auto 20px;
+}
+
+.invoice-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 4px;
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.invoice-action--ghost {
+  border: 1px solid var(--invoice-line);
+  color: var(--invoice-ink);
+  background: #fff;
+}
+
+.invoice-action--ghost:hover {
+  border-color: var(--invoice-gold);
+  color: var(--invoice-gold-dark);
+}
+
+.invoice-action--primary {
+  border: 1px solid var(--invoice-gold);
+  color: #fff;
+  background: linear-gradient(135deg, var(--invoice-gold), var(--invoice-gold-dark));
+  box-shadow: 0 4px 15px rgba(139, 105, 20, 0.3);
+}
+
+.invoice-action--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(139, 105, 20, 0.38);
+}
+
+.invoice-print-area {
+  width: 100%;
+}
+
+.invoice-paper {
+  width: min(100%, 210mm);
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 18mm 16mm;
+  color: var(--invoice-ink);
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.invoice-paper h1,
+.invoice-paper h2,
+.invoice-party-name,
+.invoice-thank-you {
+  font-family: var(--font-heading, "Playfair Display", Georgia, serif);
+}
+
+.invoice-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.invoice-logo-block {
+  max-width: 260px;
+}
+
+.invoice-logo {
+  width: 210px;
+  height: auto;
+}
+
+.invoice-tagline {
+  margin-top: 8px;
+  color: var(--invoice-gold);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.invoice-title-block {
+  flex: none;
+  text-align: right;
+}
+
+.invoice-title-block h1 {
+  margin: 0;
+  color: var(--invoice-gold-dark);
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  line-height: 1.1;
+}
+
+.invoice-meta {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  margin-left: auto;
+  width: max-content;
+  max-width: 100%;
+}
+
+.invoice-meta div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.invoice-meta dt {
+  color: var(--invoice-muted);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.invoice-meta dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.invoice-stamps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.invoice-stamp {
+  padding: 4px 10px;
+  border: 1px solid var(--invoice-gold);
+  border-radius: 2px;
+  color: var(--invoice-gold-dark);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.4;
+}
+
+.invoice-stamp--unpaid {
+  border-color: var(--invoice-faint);
+  color: var(--invoice-muted);
+}
+
+.invoice-stamp--cash-on-delivery {
+  border-color: var(--invoice-accent);
+  color: var(--invoice-gold-dark);
+}
+
+.invoice-stamp--cancelled {
+  border-color: #b42318;
+  color: #b42318;
+}
+
+.invoice-rule {
+  height: 1px;
+  margin: 24px 0 28px;
+  background: linear-gradient(to right, var(--invoice-gold), var(--invoice-accent), transparent);
+}
+
+.invoice-paper h2 {
+  margin: 0 0 10px;
+  color: var(--invoice-gold-dark);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.invoice-parties {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.invoice-party p {
+  margin: 0 0 2px;
+  color: var(--invoice-muted);
+  overflow-wrap: anywhere;
+}
+
+.invoice-party .invoice-party-name {
+  margin-bottom: 6px;
+  color: var(--invoice-ink);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.invoice-order-details {
+  margin-top: 34px;
+  padding-top: 20px;
+  border-top: 1px solid var(--invoice-line);
+}
+
+.invoice-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 32px;
+  margin: 0;
+}
+
+.invoice-detail-grid dt {
+  color: var(--invoice-muted);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.invoice-detail-grid dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.invoice-items {
+  margin-top: 34px;
+}
+
+.invoice-items table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.invoice-items th,
+.invoice-items td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--invoice-line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.invoice-items th {
+  color: var(--invoice-gold-dark);
+  border-bottom: 1px solid var(--invoice-accent);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.invoice-items tbody tr:last-child td {
+  border-bottom: 1px solid var(--invoice-accent);
+}
+
+.invoice-number {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.invoice-item-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.invoice-thumb {
+  flex: none;
+  width: 42px;
+  height: 52px;
+  overflow: hidden;
+  background: var(--invoice-cream);
+}
+
+.invoice-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.invoice-empty-items {
+  color: var(--invoice-muted);
+  text-align: center !important;
+}
+
+.invoice-totals {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+.invoice-totals dl {
+  width: min(100%, 260px);
+  margin: 0;
+}
+
+.invoice-totals dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 5px 0;
+}
+
+.invoice-totals dt {
+  color: var(--invoice-muted);
+}
+
+.invoice-totals dd {
+  margin: 0;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.invoice-totals .invoice-grand-total {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--invoice-accent);
+}
+
+.invoice-totals .invoice-grand-total dt {
+  color: var(--invoice-ink);
+  font-family: var(--font-heading, "Playfair Display", Georgia, serif);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.invoice-totals .invoice-grand-total dd {
+  color: var(--invoice-gold-dark);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.invoice-footer {
+  margin-top: 56px;
+  padding-top: 18px;
+  border-top: 1px solid var(--invoice-line);
+  color: var(--invoice-muted);
+  text-align: center;
+}
+
+.invoice-footer p {
+  margin: 0 0 4px;
+  overflow-wrap: anywhere;
+}
+
+.invoice-footer .invoice-thank-you {
+  margin-bottom: 8px;
+  color: var(--invoice-ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.invoice-footer .invoice-disclaimer {
+  margin-top: 14px;
+  color: var(--invoice-faint);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+  .invoice-page {
+    padding: 12px;
+  }
+
+  .invoice-toolbar {
+    margin-bottom: 14px;
+  }
+
+  .invoice-action {
+    flex: 1 1 auto;
+  }
+
+  .invoice-paper {
+    min-height: 0;
+    padding: 20px 16px;
+    font-size: 11px;
+  }
+
+  .invoice-header {
+    gap: 16px;
+  }
+
+  .invoice-logo {
+    width: 150px;
+  }
+
+  .invoice-title-block h1 {
+    font-size: 21px;
+    letter-spacing: 0.16em;
+  }
+
+  .invoice-meta div {
+    display: block;
+  }
+
+  .invoice-meta dt {
+    display: block;
+  }
+
+  .invoice-parties {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .invoice-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .invoice-items {
+    overflow-x: auto;
+  }
+
+  .invoice-items table {
+    min-width: 520px;
+  }
+}
+
+/* -------------------------------------------------------------------------
+ * Print. A4 with no browser margin, then the paper supplies its own padding.
+ * Zero page margins keep Chrome's date and title footer out of the document.
+ * ---------------------------------------------------------------------- */
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  html:has(.invoice-print-area),
+  body:has(.invoice-print-area) {
+    width: 210mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  body:has(.invoice-print-area) .admin-sidebar,
+  body:has(.invoice-print-area) .admin-topbar,
+  body:has(.invoice-print-area) .admin-mobile-backdrop,
+  body:has(.invoice-print-area) .invoice-toolbar,
+  body:has(.invoice-print-area) .admin-command {
+    display: none !important;
+  }
+
+  body:has(.invoice-print-area) .admin-root,
+  body:has(.invoice-print-area) .admin-content,
+  body:has(.invoice-print-area) .admin-main-content,
+  body:has(.invoice-print-area) .invoice-page {
+    display: block !important;
+    width: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    color: var(--invoice-ink) !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  body:has(.invoice-print-area) .invoice-print-area {
+    width: auto !important;
+    padding: 14mm 15mm !important;
+    background: #fff !important;
+  }
+
+  body:has(.invoice-print-area) .invoice-paper {
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  /* The background of the stamp and table header must survive print. */
+  body:has(.invoice-print-area) *,
+  body:has(.invoice-print-area) *::before,
+  body:has(.invoice-print-area) *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body:has(.invoice-print-area) .invoice-header,
+  body:has(.invoice-print-area) .invoice-parties,
+  body:has(.invoice-print-area) .invoice-order-details,
+  body:has(.invoice-print-area) .invoice-totals,
+  body:has(.invoice-print-area) .invoice-footer,
+  body:has(.invoice-print-area) .invoice-items tr,
+  body:has(.invoice-print-area) .invoice-totals dl div {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  body:has(.invoice-print-area) .invoice-items thead {
+    display: table-header-group;
+  }
+
+  body:has(.invoice-print-area) .invoice-items {
+    overflow: visible !important;
+  }
+
+  body:has(.invoice-print-area) .invoice-items table {
+    min-width: 0 !important;
+  }
+}

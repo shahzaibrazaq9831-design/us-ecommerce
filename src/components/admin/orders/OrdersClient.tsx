@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Download, Filter, Printer, Search, TriangleAlert } from "lucide-react";
+import { Download, FileText, Filter, Search, TriangleAlert } from "lucide-react";
 import PageTransition from "@/components/admin/PageTransition";
 import DataTable, { type DataColumn } from "@/components/admin/DataTable";
 import StatusBadge from "@/components/admin/StatusBadge";
@@ -298,13 +299,12 @@ export default function OrdersClient({
           footer={
             selected ? (
               <>
-                <button
-                  type="button"
+                <Link
+                  href={`/admin/orders/${encodeURIComponent(selected.id)}/invoice`}
                   className="admin-button admin-button--ghost"
-                  onClick={() => window.print()}
                 >
-                  <Printer size={16} /> Print invoice
-                </button>
+                  <FileText size={16} /> Invoice
+                </Link>
                 <select
                   className="admin-select"
                   value={normaliseAdminOrderStatus(selected.status)}
@@ -420,27 +420,6 @@ export default function OrdersClient({
             </div>
           ) : null}
         </Drawer>
-
-        <div className="admin-print-only" aria-hidden="true">
-          {selected ? (
-            <div className="admin-invoice">
-              <h1>{formatMoney(selected.total, selected.currency)}</h1>
-              <p>Invoice for {selected.id} · {formatDate(selected.date)}</p>
-              <h2>{selected.customer}</h2>
-              <p>{selected.address.join(", ")}</p>
-              <ul>
-                {selected.items.map((item, index) => (
-                  <li key={index}>
-                    {item.name} × {item.quantity} — {formatMoney(item.price * item.quantity, selected.currency)}
-                    <small>{item.stitching}</small>
-                  </li>
-                ))}
-              </ul>
-              <strong>Total: {formatMoney(selected.total, selected.currency)}</strong>
-              <p>Payment: {selected.paymentMethod} · {selected.paymentStatus}</p>
-            </div>
-          ) : null}
-        </div>
       </div>
     </PageTransition>
   );

@@ -2564,57 +2564,8 @@ body.admin-body-lock {
 }
 
 /* -------------------------------------------------------------------------
- * Printable invoice
+ * Printable invoice styles live with the invoice route in invoice.css.
  * ---------------------------------------------------------------------- */
-
-.admin-print-only {
-  display: none;
-}
-
-@media print {
-  body * {
-    visibility: hidden !important;
-  }
-
-  .admin-print-only,
-  .admin-print-only * {
-    visibility: visible !important;
-  }
-
-  .admin-print-only {
-    position: absolute;
-    inset: 0 auto auto 0;
-    display: block !important;
-    width: 100%;
-    padding: 24px;
-    background: #fff;
-    color: #111;
-  }
-
-  .admin-invoice {
-    max-width: 720px;
-    margin: 0 auto;
-    font-family: Arial, sans-serif;
-  }
-
-  .admin-invoice h1 {
-    margin: 0;
-    font-size: 28px;
-  }
-
-  .admin-invoice ul {
-    margin: 18px 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .admin-invoice li {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid #ddd;
-  }
-}
 
 /* -------------------------------------------------------------------------
  * Responsive
